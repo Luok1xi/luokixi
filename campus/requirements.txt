@@ -1,0 +1,3 @@
+scrapling[ai]==0.4.15
+ddgs[mcp]==9.16.0
+pypdf==6.12.2

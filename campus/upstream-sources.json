@@ -1,0 +1,51 @@
+{
+  "verifiedAt": "2026-10-06T09:32:00+08:00",
+  "verification": "GitHub connector repository metadata and official license pages; installed package versions are pinned in requirements.txt",
+  "components": [
+    {
+      "name": "Scrapling",
+      "version": "0.4.15",
+      "repository": "https://github.com/D4Vinci/Scrapling",
+      "license": "BSD-3-Clause",
+      "purpose": "HTML extraction and browser rendering",
+      "status": "installed-and-integrated",
+      "skill": {
+        "path": "agent-skill/Scrapling-Skill",
+        "commit": "54e95104160d4d0f5b25ec6d4bcea767757126d5"
+      }
+    },
+    {
+      "name": "DDGS",
+      "version": "9.16.0",
+      "repository": "https://github.com/deedy5/ddgs",
+      "license": "MIT",
+      "purpose": "Public web metasearch",
+      "status": "installed-and-integrated"
+    },
+    {
+      "name": "pypdf",
+      "version": "6.12.2",
+      "repository": "https://github.com/py-pdf/pypdf",
+      "license": "BSD-3-Clause",
+      "licenseSource": "https://github.com/py-pdf/pypdf/blob/6.12.2/LICENSE",
+      "purpose": "Page-level PDF text extraction",
+      "status": "installed-and-integrated",
+      "note": "GitHub default-branch metadata reports NOASSERTION; the installed 6.12.2 package declares BSD-3-Clause and its tagged LICENSE was checked."
+    }
+  ],
+  "frontendFollowup": {
+    "owner": "Opus",
+    "currentDependency": "gsap@3.15.0",
+    "currentLicenseSource": "https://gsap.com/community/standard-license/",
+    "issue": "The current Standard No Charge license is not an MIT declaration and includes use restrictions. Do not label all site dependencies MIT or purely open source on this evidence.",
+    "candidate": {
+      "name": "Motion",
+      "repository": "https://github.com/motiondivision/motion",
+      "license": "MIT",
+      "status": "researched-only-not-installed",
+      "scope": "Open-source JavaScript package only; paid Motion+ assets are not part of this recommendation."
+    },
+    "status": "awaiting-frontend-owner-change"
+  },
+  "scope": "Source tracking for these selected components, not an audit of all transitive dependencies. Exam papers, recordings and collected web content retain their own rights."
+}

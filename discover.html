@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>发现 · Luokixi</title>
+<meta name="description" content="一次看一个开源项目：中文导读、为什么推荐、怎么上手，收藏后按自己的目标生成搭建清单。">
+<script type="module" src="/src/pages/discover.js"></script>
+</head>
+<body data-page="discover" class="is-immersive">
+<!-- @include nav -->
+
+<main id="main" class="dc">
+  <div class="dc-top">
+    <div class="segmented glass-pill" role="group" aria-label="精选分类" id="dc-shelf">
+      <button type="button" data-shelf="all" aria-pressed="true">全部</button>
+      <button type="button" data-shelf="practical" aria-pressed="false">实用</button>
+      <button type="button" data-shelf="creative" aria-pressed="false">新奇</button>
+      <button type="button" data-shelf="potential" aria-pressed="false">潜力</button>
+    </div>
+    <p class="dc-status" id="dc-status" role="status"></p>
+  </div>
+
+  <div class="dc-feed" id="dc-feed" tabindex="0" aria-label="项目发现流。用上下方向键切换项目"></div>
+
+  <div class="dc-progress" aria-hidden="true"><i id="dc-progress"></i></div>
+  <p class="dc-count num" id="dc-count" aria-live="polite"></p>
+
+  <button class="dc-plan-btn glass" id="dc-plan-btn" type="button" hidden>
+    <span>搭建清单</span><span class="num" id="dc-plan-n">0</span><span class="muted">/ 5</span>
+  </button>
+  <p class="dc-keys" aria-hidden="true"><span class="kbd">↑</span><span class="kbd">↓</span> 切换 <span class="kbd">L</span> 收藏 <span class="kbd">X</span> 不感兴趣 <span class="kbd">G</span> 导读</p>
+  <div class="dc-toast glass" id="dc-toast" role="status" aria-live="polite" hidden></div>
+</main>
+
+<dialog class="dlg dlg-wide glass dc-sheet" id="dc-guide" aria-labelledby="dc-guide-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <div class="dc-sheet-body" id="dc-guide-body"></div>
+</dialog>
+
+<dialog class="dlg glass dc-sheet" id="dc-plan" aria-labelledby="dc-plan-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <div class="dc-sheet-body" id="dc-plan-body"></div>
+</dialog>
+</body>
+</html>

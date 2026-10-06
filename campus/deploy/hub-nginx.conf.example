@@ -1,0 +1,36 @@
+# Review paths and add real TLS certificates before using. Not deployed by Codex.
+server {
+    listen 443 ssl;
+    server_name YOUR_DOMAIN;
+    ssl_certificate /etc/ssl/YOUR_FULLCHAIN.pem;
+    ssl_certificate_key /etc/ssl/YOUR_PRIVATE_KEY.pem;
+    root /srv/luokixi/public-build;
+    index index.html;
+    client_max_body_size 26m;
+
+    # The publisher must also exclude private files from public-build itself.
+    location ^~ /files/ { return 404; }
+    location ~ /\. { return 404; }
+    # Video uploads alone have a larger limit. Keep the ordinary resource limit.
+    location = /api/hub/clips {
+        client_max_body_size 201m;
+        proxy_pass http://127.0.0.1:17861;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 120s;
+        proxy_request_buffering off;
+    }
+    location ^~ /api/hub/ {
+        proxy_pass http://127.0.0.1:17861;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 120s;
+    }
+    location ^~ /hub/ {
+        proxy_pass http://127.0.0.1:17861;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+    location /api/ { return 404; }
+    location / { try_files $uri $uri/ =404; }
+}

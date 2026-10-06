@@ -1,0 +1,221 @@
+{
+  "version": 1,
+  "school": "中国矿业大学（北京）",
+  "courses": [
+    {
+      "id": "calc-a1",
+      "name": "高等数学 A1",
+      "subject": "calculus"
+    },
+    {
+      "id": "calc-a2",
+      "name": "高等数学 A2",
+      "subject": "calculus"
+    },
+    {
+      "id": "linalg",
+      "name": "线性代数",
+      "subject": "algebra"
+    }
+  ],
+  "papers": [
+    {
+      "id": "exam-01",
+      "course": "calc-a1",
+      "year": "2022-2023",
+      "stage": "课程考卷",
+      "kind": "A卷 · 答案",
+      "pages": 2,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-01.pdf"
+    },
+    {
+      "id": "exam-02",
+      "course": "calc-a1",
+      "year": "2021-2022",
+      "stage": "课程考卷",
+      "kind": "A卷 · 答案与评分标准",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-02.pdf"
+    },
+    {
+      "id": "exam-03",
+      "course": "calc-a1",
+      "year": "2020-2021",
+      "stage": "课程考卷",
+      "kind": "A卷 · 答案与评分标准",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-03.pdf"
+    },
+    {
+      "id": "exam-04",
+      "course": "calc-a1",
+      "year": "2019-2020",
+      "stage": "课程考卷",
+      "kind": "A卷 · 答案与评分标准",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-04.pdf"
+    },
+    {
+      "id": "exam-05",
+      "course": "calc-a1",
+      "year": "2023-2024",
+      "stage": "课程考卷",
+      "kind": "A卷 · 参考答案与评分标准",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-05.pdf"
+    },
+    {
+      "id": "exam-06",
+      "course": "calc-a1",
+      "year": "2023-2024",
+      "stage": "期中",
+      "kind": "试卷与参考答案",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-06.pdf"
+    },
+    {
+      "id": "exam-07",
+      "course": "calc-a1",
+      "year": "2022-2023",
+      "stage": "期中",
+      "kind": "试卷与参考答案",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-07.pdf"
+    },
+    {
+      "id": "exam-08",
+      "course": "calc-a1",
+      "year": "2021-2022",
+      "stage": "期中",
+      "kind": "试卷与参考答案",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-08.pdf"
+    },
+    {
+      "id": "exam-09",
+      "course": "calc-a1",
+      "year": "2020-2021",
+      "stage": "期中",
+      "kind": "试卷",
+      "pages": 1,
+      "hasAnswers": false,
+      "scanned": false,
+      "file": "files/school/exam-09.pdf"
+    },
+    {
+      "id": "exam-10",
+      "course": "linalg",
+      "year": "年份待核",
+      "stage": "扫描合集",
+      "kind": "30页扫描合集",
+      "pages": 30,
+      "hasAnswers": false,
+      "scanned": true,
+      "file": "files/school/exam-10.pdf"
+    },
+    {
+      "id": "exam-11",
+      "course": "linalg",
+      "year": "2023-2024",
+      "stage": "课程考卷",
+      "kind": "B卷",
+      "pages": 3,
+      "hasAnswers": false,
+      "scanned": false,
+      "file": "files/school/exam-11.pdf"
+    },
+    {
+      "id": "exam-12",
+      "course": "linalg",
+      "year": "2023（文件名）",
+      "stage": "扫描试卷",
+      "kind": "原始扫描 · 部分页旋转",
+      "pages": 4,
+      "hasAnswers": false,
+      "scanned": true,
+      "file": "files/school/exam-12.pdf"
+    },
+    {
+      "id": "exam-13",
+      "course": "linalg",
+      "year": "2023-2024",
+      "stage": "期末",
+      "kind": "A卷",
+      "pages": 3,
+      "hasAnswers": false,
+      "scanned": false,
+      "file": "files/school/exam-13.pdf"
+    },
+    {
+      "id": "exam-14",
+      "course": "calc-a2",
+      "year": "2023-2024",
+      "stage": "期末",
+      "kind": "A卷 · 参考答案",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-14.pdf"
+    },
+    {
+      "id": "exam-15",
+      "course": "calc-a2",
+      "year": "2023-2024",
+      "stage": "期末",
+      "kind": "B卷 · 参考答案",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-15.pdf"
+    },
+    {
+      "id": "exam-16",
+      "course": "calc-a2",
+      "year": "2022-2023",
+      "stage": "课程考卷",
+      "kind": "A卷 · 答案与评分标准",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-16.pdf"
+    },
+    {
+      "id": "exam-17",
+      "course": "calc-a2",
+      "year": "2021-2022",
+      "stage": "课程考卷",
+      "kind": "B卷 · 答案与评分标准",
+      "pages": 3,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-17.pdf"
+    },
+    {
+      "id": "exam-18",
+      "course": "calc-a2",
+      "year": "2020-2021",
+      "stage": "课程考卷",
+      "kind": "A卷 · 答案与评分标准",
+      "pages": 4,
+      "hasAnswers": true,
+      "scanned": false,
+      "file": "files/school/exam-18.pdf"
+    }
+  ]
+}

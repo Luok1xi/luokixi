@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Luokixi 社区入口</title></head>
+<body><main><h1>Luokixi 社区</h1><p>正在打开对应页面。</p><p><a href="/me.html">我的社区</a> · <a href="/projects.html">项目</a> · <a href="/auth.html">登录与注册</a></p></main>
+<script type="module">
+const [mode,a,b] = location.hash.slice(1).split('/');
+const destinations = {me:'/me.html',messages:'/me.html?tab=notifications',entry:'/project.html?id='+encodeURIComponent(a||'')};
+if (['verify','reset','unsubscribe'].includes(mode)) {
+  location.replace('/auth.html'+location.hash);
+} else if (destinations[mode]) location.replace(destinations[mode]);
+</script></body></html>

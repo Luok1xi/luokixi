@@ -1,0 +1,15 @@
+{
+  "title": "浙江大学课程攻略共享计划",
+  "summary": "浙大学生用 GitHub 共享课程资料与经验的先行者，本站的组织方式也借鉴了它。",
+  "category": "course",
+  "tags": [
+    "课程资料",
+    "共享"
+  ],
+  "origin": "external",
+  "credit": "QSCTech",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/QSCTech/zju-icicles"
+  }
+}

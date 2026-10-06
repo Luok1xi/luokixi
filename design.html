@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<meta name="robots" content="noindex">
+<title>设计样张 v3 · Luokixi</title>
+<meta name="description" content="第三版组件样张：排版学虎扑，界面学 App Store。内容全部为示例。">
+<script type="module" src="/src/pages/design.js"></script>
+</head>
+<body data-page="design" class="has-tabbar">
+<!-- @include nav -->
+
+<main id="main" class="wrap wrap-narrow-plus">
+  <p class="notice dz-banner"><span class="notice-dot" aria-hidden="true"></span><span><strong>设计样张，内容全部是示例。</strong>这一页只用来评审第三版组件（排版学虎扑，界面学 App Store），不放进导航，评分和帖子都是虚构的。</span></p>
+
+  <!-- 板块页头 -->
+  <header class="v3-head">
+    <p class="v3-date" id="dz-date">10月6日 星期二</p>
+    <h1 class="v3-title">首页</h1>
+    <div class="v3-tabs" role="tablist" aria-label="首页内容">
+      <button role="tab" aria-selected="true">推荐</button>
+      <button role="tab" aria-selected="false">关注</button>
+      <button role="tab" aria-selected="false">热榜</button>
+      <button role="tab" aria-selected="false">机会</button>
+      <span class="v3-tabs-bar" aria-hidden="true"></span>
+    </div>
+  </header>
+
+  <!-- 精选大卡 -->
+  <section aria-label="编辑精选">
+    <div class="v3-sec"><h2>编辑精选</h2><a href="#">查看全部</a></div>
+    <div class="v3-shelf">
+      <article class="v3-today" tabindex="0" style="--today-bg: linear-gradient(160deg,#16325c 0%,#0b1426 55%,#3a0f1e 100%)" data-article="a1">
+        <div><p class="v3-today-eyebrow">校园专题（示例）</p><h3 class="v3-today-title">第一次做机械臂，<br>从哪儿开始？</h3></div>
+        <div><p class="v3-today-dek">三位学长学姐的入门路线：先买什么、先学什么、哪些坑别踩。</p><p class="v3-today-meta">编辑精选 · 示例来源</p></div>
+      </article>
+      <article class="v3-today" tabindex="0" style="--today-bg: linear-gradient(170deg,#3b1d5c 0%,#170b26 60%,#0a0a10 100%)" data-article="a2">
+        <div><p class="v3-today-eyebrow">近期机会（示例）</p><h3 class="v3-today-title">这个月能报的<br>三个竞赛</h3></div>
+        <div><p class="v3-today-dek">面向谁、什么时候截止、去哪报名，一张表看清。</p><p class="v3-today-meta">截止前 7 天自动下线</p></div>
+      </article>
+      <article class="v3-today" tabindex="0" style="--today-bg: linear-gradient(160deg,#0f3b34 0%,#0a1a17 60%,#0a0a0a 100%)" data-article="a3">
+        <div><p class="v3-today-eyebrow">校园创作者（示例）</p><h3 class="v3-today-title">把课设做成了<br>全校在用的工具</h3></div>
+        <div><p class="v3-today-dek">一个课表小工具，从两个人用到两千人用的故事。</p><p class="v3-today-meta">作者本人同意展示</p></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 热榜 + 帖子行 -->
+  <section aria-label="热榜">
+    <div class="v3-sec"><h2>校圈热榜</h2><a href="#">完整榜单</a></div>
+    <ol class="v3-hot">
+      <li><span class="v3-hot-title">期末复习资料该从哪儿找？一份按课程整理的清单</span><span class="v3-hot-heat">1.2 万 <span class="v3-up">↑</span></span></li>
+      <li><span class="v3-hot-title">智能车校赛组队，缺一个会调 PID 的同学</span><span class="v3-hot-heat">8,431 <span class="v3-up">↑</span></span></li>
+      <li><span class="v3-hot-title">图书馆哪一层插座最多？大家来补充</span><span class="v3-hot-heat">5,207</span></li>
+      <li><span class="v3-hot-title">第一次用 GitHub 提 PR，被合并了！</span><span class="v3-hot-heat">2,960 <span class="v3-new">新</span></span></li>
+    </ol>
+    <p class="v3-note">统计过去 24 小时的有效回复与“亮了”，每小时更新；不计撤回和被退回的内容。（示例数据）</p>
+
+    <div class="v3-sec"><h2>最新帖子</h2><a href="#">进入校圈</a></div>
+    <a class="v3-post" href="#">
+      <span class="v3-post-title">有没有人一起刷洛谷的入门题单？每天 3 道</span>
+      <span class="v3-post-ex">我是大一机械的，零基础，想找两三个人互相监督，每天晚上在群里交一次题解……</span>
+      <span class="v3-post-meta"><span class="v3-board-tag">算法与刷题</span><span>回复 42</span><span class="v3-lit">亮了 18</span><span>12 分钟前</span></span>
+    </a>
+    <a class="v3-post" href="#">
+      <span class="v3-post-title">分享一个画工程图的小技巧：先定基准再标尺寸</span>
+      <span class="v3-post-ex">上学期工程制图被扣分最多的就是尺寸标注，后来学长教了我一个顺序……</span>
+      <span class="v3-post-meta"><span class="v3-board-tag">选课与学习</span><span>回复 17</span><span class="v3-lit">亮了 31</span><span>1 小时前</span></span>
+    </a>
+
+    <div class="v3-sec"><h2>帖子详情 · 亮回复</h2></div>
+    <div class="v3-litbox">
+      <p class="v3-litbox-head">这些回复被亮了</p>
+      <div class="v3-reply"><span class="avatar" style="--size:36px;--h:200">陈</span><div><p class="v3-reply-who">示例同学 A · 机械 22 级</p><p class="v3-reply-body">先别急着买舵机，用旧电脑风扇的电机把 PID 调一遍，原理就懂了，省钱。</p><p class="v3-reply-lit">亮了 128</p></div></div>
+      <div class="v3-reply"><span class="avatar" style="--size:36px;--h:320">林</span><div><p class="v3-reply-who">示例同学 B · 自动化 23 级</p><p class="v3-reply-body">推荐先看开源广场里那个 SimpleFOC 的中文导读，步骤写得很细。</p><p class="v3-reply-lit">亮了 96</p></div></div>
+    </div>
+  </section>
+
+  <!-- 评分墙 + 评分块 + 评论卡 -->
+  <section aria-label="口碑">
+    <div class="v3-sec"><h2>选课口碑 · 评分墙</h2><a href="#">全部课程</a></div>
+    <div class="v3-wall">
+      <a class="v3-tile" href="#"><div class="v3-tile-top"><span class="v3-tile-name">示例课程甲</span><span class="v3-tile-score num">8.7</span></div><span class="v3-tile-sub">某学院 · 326 人评分</span><p class="v3-tile-quote">“作业量不小，但每次都有用。”<b>亮 212</b></p></a>
+      <a class="v3-tile" href="#"><div class="v3-tile-top"><span class="v3-tile-name">示例课程乙</span><span class="v3-tile-score num">7.9</span></div><span class="v3-tile-sub">某学院 · 141 人评分</span><p class="v3-tile-quote">“期末前一定要把实验报告补齐。”<b>亮 88</b></p></a>
+      <a class="v3-tile" href="#"><div class="v3-tile-top"><span class="v3-tile-name">示例课程丙</span><span class="v3-tile-score is-low">评分人数不足</span></div><span class="v3-tile-sub">某学院 · 3 人评分</span><p class="v3-tile-quote">满 5 人评分后显示分数，先看看原话。</p></a>
+    </div>
+
+    <div class="v3-sec"><h2>评分及评价</h2><a href="#">查看全部</a></div>
+    <div class="v3-rating" id="dz-rating">
+      <div><p class="v3-score">4.6</p><p class="v3-score-of">满分 5 分</p></div>
+      <div class="v3-hist">
+        <div class="v3-hist-row"><span class="v3-hist-stars">★★★★★</span><span class="v3-hist-track"><i style="--p:.72"></i></span></div>
+        <div class="v3-hist-row"><span class="v3-hist-stars">★★★★</span><span class="v3-hist-track"><i style="--p:.18"></i></span></div>
+        <div class="v3-hist-row"><span class="v3-hist-stars">★★★</span><span class="v3-hist-track"><i style="--p:.06"></i></span></div>
+        <div class="v3-hist-row"><span class="v3-hist-stars">★★</span><span class="v3-hist-track"><i style="--p:.03"></i></span></div>
+        <div class="v3-hist-row"><span class="v3-hist-stars">★</span><span class="v3-hist-track"><i style="--p:.01"></i></span></div>
+      </div>
+      <p class="v3-count">共 326 人评分（示例）</p>
+    </div>
+    <div class="v3-shelf" style="margin-top:16px">
+      <article class="v3-review"><div class="v3-review-head"><span class="v3-review-title">讲得清楚，节奏偏快</span><span class="v3-review-meta">2025 秋 · 匿名</span></div><span class="v3-stars">★★★★★</span><p class="v3-review-body">板书很有条理，每节课最后会留五分钟总结。但进度比较快，跟不上的话一定要课后看回放。作业量适中，期末题型和作业很接近。</p><div class="v3-review-foot"><span>有帮助 128</span><span>展开</span></div></article>
+      <article class="v3-review"><div class="v3-review-head"><span class="v3-review-title">实验课收获最大</span><span class="v3-review-meta">2025 春 · 示例同学</span></div><span class="v3-stars">★★★★☆</span><p class="v3-review-body">理论部分有点枯燥，但实验课动手机会很多，老师会一组一组看。建议提前预习实验指导书，不然现场会很慌。</p><div class="v3-review-foot"><span>有帮助 64</span><span>展开</span></div></article>
+      <article class="v3-review"><div class="v3-review-head"><span class="v3-review-title">适合想打基础的同学</span><span class="v3-review-meta">2024 秋 · 匿名</span></div><span class="v3-stars">★★★★☆</span><p class="v3-review-body">不点名，但随堂小测会算平时分。推荐配合资料区的历年试卷一起复习。</p><div class="v3-review-foot"><span>有帮助 41</span><span>展开</span></div></article>
+    </div>
+  </section>
+
+  <!-- 列表行 + 话题宫格 -->
+  <section aria-label="列表">
+    <div class="v3-sec"><h2>资料 · 列表行</h2><a href="#">全部资料</a></div>
+    <ul class="v3-rows" role="list">
+      <li class="v3-row"><span class="v3-icon" style="--h:215">∫</span><div class="v3-row-text"><p class="v3-row-title">示例课程 · 期末试卷 + 答案</p><p class="v3-row-sub">2024–2025 学年 · 第一学期 · 3 页 · 已审核</p></div><a class="v3-pill" href="#">查看</a></li>
+      <li class="v3-row"><span class="v3-icon" style="--h:24">4</span><div class="v3-row-text"><p class="v3-row-title">四级真题 · 2025 年 12 月 第 1 套</p><p class="v3-row-sub">含听力 · 资源接入中</p></div><a class="v3-pill" href="#">收藏</a></li>
+      <li class="v3-row"><span class="v3-icon" style="--h:158"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/></svg></span><div class="v3-row-text"><p class="v3-row-title">示例实验指导书（同学整理版）</p><p class="v3-row-sub">CC BY-SA 4.0 · 上传者：示例同学</p></div><a class="v3-pill" href="#">下载</a></li>
+    </ul>
+
+    <div class="v3-sec"><h2>校圈 · 话题宫格</h2><a href="#">全部话题</a></div>
+    <div class="v3-boards">
+      <a class="v3-board" href="#"><span class="v3-icon" style="--h:205">日</span><span><b>矿大日常</b><span>今日 12 帖</span></span></a>
+      <a class="v3-board" href="#"><span class="v3-icon" style="--h:228">课</span><span><b>选课与学习</b><span>今日 8 帖</span></span></a>
+      <a class="v3-board" href="#"><span class="v3-icon" style="--h:262">创</span><span><b>创作与开源</b><span>今日 5 帖</span></span></a>
+      <a class="v3-board" href="#"><span class="v3-icon" style="--h:24">队</span><span><b>组队与机会</b><span>今日 9 帖</span></span></a>
+      <a class="v3-board" href="#"><span class="v3-icon" style="--h:318">研</span><span><b>科研与生涯</b><span>今日 2 帖</span></span></a>
+      <a class="v3-board" href="#"><span class="v3-icon" style="--h:158">读</span><span><b>精选阅读</b><span>今日 3 帖</span></span></a>
+    </div>
+  </section>
+</main>
+
+<!-- 手机底部标签栏（样张） -->
+<nav class="v3-tabbar" aria-label="板块">
+  <a href="#" aria-current="page"><svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg>首页</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>校园</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 13h8M8 17h6"/></svg>资料</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>校圈</a>
+  <a href="#"><svg viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>开源</a>
+</nav>
+<a class="v3-fab" href="#" aria-label="发布">＋</a>
+
+<!-- @include footer -->
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "title": "HITSZ OpenAuto",
+  "summary": "哈工大（深圳）的课程资料共享网站，把 GitHub 仓库自动汇总成可浏览的课程页面。",
+  "category": "course",
+  "tags": [
+    "课程资料",
+    "静态网站"
+  ],
+  "origin": "external",
+  "credit": "HITSZ OpenAuto",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/HITSZ-OpenAuto/hoa-v2"
+  }
+}

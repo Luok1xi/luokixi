@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>参与贡献 · Luokixi</title>
+<meta name="description" content="在 Luokixi 发布开源项目、投稿学习资料、加入刷题名录。所有内容都通过 GitHub 公开、可追溯地提交。">
+<script type="module" src="/src/pages/contribute.js"></script>
+</head>
+<body data-page="contribute">
+<!-- @include nav -->
+
+<main id="main">
+  <header class="ct-hero">
+    <div class="wrap center">
+      <p class="eyebrow" data-reveal>参与贡献</p>
+      <h1 class="headline headline-xl" data-reveal>一起，<br><span class="glow-text">把它做大。</span></h1>
+      <p class="lead" data-reveal>项目、资料、刷题记录，都可以从这里提交。内容全部放在 GitHub 上，公开、可追溯，谁都能帮忙改进。</p>
+    </div>
+  </header>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <p class="notice" id="repo-notice" hidden data-reveal>
+        <span class="notice-dot" aria-hidden="true"></span>
+        <span><strong>仓库还没有发布到 GitHub。</strong>现在可以先填好表格、复制生成的内容；仓库上线后，按钮会直接带你去 GitHub 提交。</span>
+      </p>
+      <div class="ct-paths">
+        <article class="card ct-path" id="project" data-reveal>
+          <span class="ct-icon" style="--h:262" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="m3 7 9 5 9-5M12 12v10"/></svg></span>
+          <h2>发布项目</h2>
+          <p>课程设计、竞赛作品、实验室工具。代码放在 GitHub 或 Gitee，电路板放在立创开源，这里负责被看见。</p>
+          <button class="btn btn-primary" type="button" data-open="form-project">填写项目信息</button>
+        </article>
+        <article class="card ct-path" id="people" data-reveal>
+          <span class="ct-icon" style="--h:24" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 20V10M9 20V4M15 20v-7M21 20V8"/></svg></span>
+          <h2>加入名录</h2>
+          <p>登记你的洛谷、力扣、Codeforces 账号，每天自动同步，拥有自己的主页和热力图。</p>
+          <button class="btn btn-primary" type="button" data-open="form-person">登记我的账号</button>
+        </article>
+        <article class="card ct-path" id="resource" data-reveal>
+          <span class="ct-icon" style="--h:158" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M12 10v7M9 14l3 3 3-3"/></svg></span>
+          <h2>投稿资料</h2>
+          <p>期中期末试卷、复习提纲、课程笔记。上传到 GitHub Issue，维护者核对来源后收录。</p>
+          <a class="btn btn-primary" id="resource-link" href="#rules">投稿资料</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="guide">
+    <div class="wrap">
+      <header class="sec-head center" data-reveal>
+        <p class="eyebrow">中转站</p>
+        <h2 class="headline">东西放哪儿，<br>我们帮你理清。</h2>
+        <p class="lead">Luokixi 不囤文件。代码、电路、视频各自放到最合适的平台，这里负责把它们串起来。</p>
+      </header>
+      <div class="hub-grid" id="hub-grid"></div>
+    </div>
+  </section>
+
+  <section class="section" id="license">
+    <div class="wrap">
+      <header class="sec-head center" data-reveal>
+        <p class="eyebrow">开源许可</p>
+        <h2 class="headline">选一个许可证，<br>别人才敢用你的作品。</h2>
+      </header>
+      <div class="lic-grid" id="lic-grid"></div>
+    </div>
+  </section>
+
+  <section class="section section-alt" id="flow">
+    <div class="wrap">
+      <header class="sec-head center" data-reveal>
+        <p class="eyebrow">流程</p>
+        <h2 class="headline">从填表到上线，<br>全程自动。</h2>
+      </header>
+      <ol class="flow" role="list" id="flow-list"></ol>
+    </div>
+  </section>
+
+  <section class="section" id="rules">
+    <div class="wrap wrap-narrow">
+      <header class="sec-head" data-reveal>
+        <p class="eyebrow">规则</p>
+        <h2 class="headline">几条底线。</h2>
+      </header>
+      <ul class="rules" role="list" id="rules-list"></ul>
+    </div>
+  </section>
+</main>
+
+<dialog class="dlg dlg-wide glass ct-dlg" id="form-project" aria-labelledby="fp-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <form class="ct-form" data-kind="project">
+    <div class="ct-fields">
+      <h2 id="fp-title">发布项目</h2>
+      <label>项目名称<input name="title" required maxlength="40" placeholder="比如：基于 STM32 的六足机器人"></label>
+      <label>一句话介绍<textarea name="summary" required maxlength="120" rows="2" placeholder="做了什么、用了什么、有什么特别之处"></textarea></label>
+      <div class="ct-row">
+        <label>分类<select name="category" required></select></label>
+        <label>年份<input name="year" type="number" min="2000" max="2100" placeholder="2026"></label>
+      </div>
+      <label>文件名（英文）<input name="slug" required pattern="[a-z0-9][a-z0-9-]{1,47}" placeholder="hexapod-stm32"><small>小写字母、数字和连字符，会成为项目地址的一部分</small></label>
+      <label>代码仓库<input name="repo" type="url" placeholder="https://github.com/你/项目 或 https://gitee.com/…"></label>
+      <label>硬件 / 电路<input name="hardware" type="url" placeholder="https://oshwhub.com/…（可选）"></label>
+      <label>演示视频<input name="video" type="url" placeholder="https://www.bilibili.com/video/…（可选）"></label>
+      <label>作者的 GitHub 用户名<input name="authors" required placeholder="多位作者用空格分开"></label>
+      <label>标签<input name="tags" placeholder="最多 6 个，用空格分开：舵机 步态 STM32"></label>
+    </div>
+    <div class="ct-preview">
+      <p class="ct-path-label">将提交到 <code data-path></code></p>
+      <pre class="code" data-json></pre>
+      <ul class="ct-errors" data-errors role="list"></ul>
+      <div class="btn-group">
+        <a class="btn btn-primary" data-submit target="_blank" rel="noopener">在 GitHub 上提交</a>
+        <button class="btn btn-outline" type="button" data-copy>复制</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="dlg dlg-wide glass ct-dlg" id="form-person" aria-labelledby="fpp-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <form class="ct-form" data-kind="person">
+    <div class="ct-fields">
+      <h2 id="fpp-title">加入名录</h2>
+      <label>GitHub 用户名<input name="github" required pattern="[A-Za-z0-9][A-Za-z0-9-]{0,37}" placeholder="必须和提交 PR 的账号一致"></label>
+      <div class="ct-row">
+        <label>昵称或姓名<input name="name" required maxlength="20"></label>
+        <label>入学年份<input name="grade" type="number" min="1990" max="2100" placeholder="2024"></label>
+      </div>
+      <label>专业<input name="major" maxlength="20" placeholder="机械工程（可选）"></label>
+      <label>一句话介绍<input name="bio" maxlength="80" placeholder="可选"></label>
+      <div class="ct-row ct-row-3">
+        <label>洛谷 UID<input name="luogu" inputmode="numeric" pattern="[0-9]+" placeholder="个人主页地址里的数字"></label>
+        <label>力扣 ID<input name="leetcode" placeholder="leetcode.cn/u/后面那段"></label>
+        <label>Codeforces<input name="codeforces" placeholder="用户名"></label>
+      </div>
+      <p class="ct-hint">洛谷需要在“个人设置 → 隐私”里公开练习情况，否则只能显示等级和获奖。</p>
+    </div>
+    <div class="ct-preview">
+      <p class="ct-path-label">将提交到 <code data-path></code></p>
+      <pre class="code" data-json></pre>
+      <ul class="ct-errors" data-errors role="list"></ul>
+      <div class="btn-group">
+        <a class="btn btn-primary" data-submit target="_blank" rel="noopener">在 GitHub 上提交</a>
+        <button class="btn btn-outline" type="button" data-copy>复制</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- @include footer -->
+</body>
+</html>

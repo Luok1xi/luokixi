@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "_note": "校园地图只用这份数据决定地图视野（中心点和大致范围），不用来生成地点。地点一律来自社区服务里经过核对的投稿。",
+  "source": {
+    "name": "OpenStreetMap",
+    "license": "ODbL 1.0",
+    "url": "https://www.openstreetmap.org/copyright",
+    "method": "Nominatim 检索校名得到的校园轮廓外接矩形",
+    "checkedAt": "2026-10-06"
+  },
+  "coordinateSystem": "wgs84",
+  "notice": "校区范围只用来定位地图视野，不是精确测绘的校园边界。",
+  "campuses": {
+    "xueyuanlu": {
+      "name": "学院路校区",
+      "short": "学院路",
+      "center": [39.9971399, 116.3436324],
+      "bounds": [[39.9950522, 116.3379102], [39.9991976, 116.3465413]],
+      "osm": "https://www.openstreetmap.org/way/1003833559"
+    },
+    "shahe": {
+      "name": "沙河校区",
+      "short": "沙河",
+      "center": [40.1517038, 116.2556327],
+      "bounds": [[40.1494119, 116.2526127], [40.153639, 116.2586302]],
+      "osm": "https://www.openstreetmap.org/way/683349458"
+    }
+  }
+}

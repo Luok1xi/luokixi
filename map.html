@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>校园探索 · Luokixi</title>
+<meta name="description" content="矿大（北京）学院路和沙河两个校区的同学共建地图：自习、饮食、运动、风景和同学的新发现，核对之后才上图。">
+<script type="module" src="/src/pages/map.js"></script>
+</head>
+<body data-page="map">
+<!-- @include nav -->
+
+<main id="main">
+  <header class="cx-hero">
+    <div class="cx-hero-inner wrap">
+      <div class="cx-hero-copy">
+        <p class="eyebrow" data-reveal>校园探索</p>
+        <h1 class="headline headline-xl" data-reveal>两个校区，<br><span class="glow-text">一张大家画的地图。</span></h1>
+        <p class="lead" data-reveal>只画矿大的一张游戏地图。填上你的课，地图就变成你的：今天去哪栋楼上课、还有哪些地方没去过。演出、奶龙这样的限时事件，由同学拍照标出来，核对后所有人都看得到。</p>
+        <div class="btn-group" data-reveal>
+          <a class="btn btn-primary" href="#explore">打开地图</a>
+          <button class="btn btn-outline" type="button" data-add-place>标一个地点</button>
+        </div>
+      </div>
+      <figure class="cx-diorama" id="cx-diorama" aria-hidden="true" data-live data-reveal="scale"></figure>
+    </div>
+    <div class="cx-themes wrap" data-reveal>
+      <p class="cx-themes-label">从这里开始逛</p>
+      <div class="cx-themes-row" id="cx-themes"></div>
+    </div>
+    <p class="cx-art-note wrap">上图是示意插画，不对应真实建筑和道路。</p>
+  </header>
+
+  <section class="cx-explore" id="explore" aria-label="校园地图">
+    <div class="cx-map" id="cx-map" aria-label="校园地图。点一下地图后，可以用方向键平移，用加号和减号缩放。"></div>
+
+    <aside class="cx-panel glass" id="cx-panel">
+      <button class="cx-handle" type="button" id="cx-handle" aria-expanded="false" aria-controls="cx-body">
+        <span class="sr-only">展开地点列表</span>
+      </button>
+      <div class="cx-panel-head">
+        <div class="cx-head-row">
+          <div class="segmented" role="group" aria-label="校区" id="cx-campus">
+            <button type="button" data-campus="xueyuanlu" aria-pressed="true">学院路</button>
+            <button type="button" data-campus="shahe" aria-pressed="false">沙河</button>
+          </div>
+          <button class="cx-add-btn" type="button" data-add-place aria-label="标一个地点">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+        <label class="cx-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+          <span class="sr-only">搜索楼和地点</span>
+          <input type="search" id="cx-q" placeholder="搜楼名、地点或关键词" autocomplete="off" enterkeyhint="search">
+        </label>
+        <div class="cx-tabs" role="tablist" aria-label="面板内容" id="cx-tabs">
+          <button type="button" role="tab" data-tab="quests" aria-selected="true">任务</button>
+          <button type="button" role="tab" data-tab="places" aria-selected="false">同学标注</button>
+          <button type="button" role="tab" data-tab="buildings" aria-selected="false">楼宇</button>
+        </div>
+      </div>
+      <div class="cx-panel-body" id="cx-body" role="tabpanel" aria-live="polite"></div>
+      <div class="cx-panel-foot">
+        <label class="cx-toggle" id="cx-expired-wrap"><input type="checkbox" id="cx-expired"> 显示已过期的发现</label>
+        <span class="cx-fetched" id="cx-fetched"></span>
+        <button class="cx-mod-btn" type="button" id="cx-mod-btn" hidden>待审核 <span class="num" id="cx-mod-n">0</span></button>
+      </div>
+    </aside>
+
+    <p class="cx-legend glass" id="cx-legend" hidden></p>
+
+    <div class="cx-pick-bar cx-bpick glass" id="cx-bpick" hidden>
+      <p><b id="cx-bpick-title">点一栋楼。</b><span>地图上有颜色的方块都可以点。</span></p>
+      <div class="cx-pick-actions"><button class="btn btn-outline btn-sm" type="button" id="cx-bpick-cancel">取消</button></div>
+    </div>
+
+    <div class="cx-map-note glass" id="cx-map-note" role="status" hidden></div>
+    <div class="cx-wheel-hint" id="cx-wheel-hint" aria-hidden="true">先点一下地图，再用滚轮缩放</div>
+
+    <div class="cx-pick" id="cx-pick" hidden>
+      <div class="cx-cross" aria-hidden="true"><i></i></div>
+      <div class="cx-pick-bar glass" role="dialog" aria-label="在地图上选点">
+        <p><b>拖动地图，让十字对准地点。</b><span id="cx-pick-hint">尽量对准入口或者具体的位置。</span></p>
+        <p class="cx-pick-coord num" id="cx-pick-coord"></p>
+        <div class="cx-pick-actions">
+          <button class="btn btn-secondary btn-sm" type="button" id="cx-pick-geo">用我现在的位置</button>
+          <button class="btn btn-outline btn-sm" type="button" id="cx-pick-cancel">取消</button>
+          <button class="btn btn-primary btn-sm" type="button" id="cx-pick-ok">就是这里</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cx-preview-bar glass" id="cx-preview-bar" hidden>
+      <p>审核预览：虚线图钉是待审核地点的位置。</p>
+      <button class="btn btn-primary btn-sm" type="button" id="cx-preview-back">回到审核</button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="center">
+        <p class="eyebrow" data-reveal>怎么上图</p>
+        <h2 class="headline" data-reveal>从拍下，到出现在地图上。</h2>
+      </div>
+      <ol class="cx-steps" role="list">
+        <li class="card" data-reveal>
+          <span class="cx-step-n num">1</span>
+          <h3>拍照，选点</h3>
+          <p>在现场拍一张照片，在地图上把十字对准它，写清楚“楼的哪一侧、哪个入口旁”。临时出现的东西，记下看到的时间和大概能待多久。</p>
+        </li>
+        <li class="card" data-reveal>
+          <span class="cx-step-n num">2</span>
+          <h3>维护者核对</h3>
+          <p>核对校区、坐标、是不是公共区域、照片来源。核对的是这条记录本身，不代表维护者到现场确认过它还在。</p>
+        </li>
+        <li class="card" data-reveal>
+          <span class="cx-step-n num">3</span>
+          <h3>上图，到期下线</h3>
+          <p>通过后出现在地图上，关注它的同学会收到修改提醒。临时发现最多挂 7 天，到期自动下线；后来的同学可以反馈“还在”或“已经不在了”。</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap cx-rules-wrap">
+      <div>
+        <p class="eyebrow" data-reveal>规矩</p>
+        <h2 class="headline" data-reveal>分享地点，<br>不分享别人。</h2>
+      </div>
+      <ul class="cx-rules" role="list">
+        <li data-reveal><b>不拍可辨认的人脸。</b>镜头里有人，就等人走开，或者换个角度。</li>
+        <li data-reveal><b>只标公共区域。</b>宿舍房间、实验室内部、需要刷卡才能进的地方不上图。</li>
+        <li data-reveal><b>照片要去掉隐藏信息。</b>公开展示的是重新生成的预览图，拍摄位置等 EXIF 信息会被去掉；原图只有你和维护者能看到。</li>
+        <li data-reveal><b>“还在 / 不在”是同学反馈。</b>只统计最近 24 小时，每人每个地点只算一条，不是官方确认，也不会延长有效期。</li>
+        <li data-reveal><b>路线交给外部地图。</b>导航按钮会打开百度地图，起点和路线由你在那边选择；校内能不能走通，以现场为准。本站不记录你的位置。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="center">
+        <p class="eyebrow" data-reveal>以后</p>
+        <h2 class="headline" data-reveal>把地点串成路线。</h2>
+        <p class="lead" data-reveal>路线要有同学实地走过、确认过入口和开放时间，才会发布。下面三条还在规划，现在还不能用。</p>
+      </div>
+      <div class="cx-routes">
+        <article class="card" data-reveal><span class="tag">规划中</span><h3>新生第一周</h3><p>报到、领卡、找教室、第一顿饭。按顺序走一遍，第一周不迷路。</p></article>
+        <article class="card" data-reveal><span class="tag">规划中</span><h3>雨天不淋雨</h3><p>从宿舍到教学楼，哪些路有连廊和屋檐。需要同学在雨天亲自走过才能写。</p></article>
+        <article class="card" data-reveal><span class="tag">规划中</span><h3>傍晚散步</h3><p>适合拍照和发呆的角落。照片由同学授权，不用学校官网的图。</p></article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog class="dlg dlg-wide glass cx-dlg" id="cx-add" aria-labelledby="cx-add-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <div class="cx-dlg-body">
+    <p class="eyebrow">标一个地点</p>
+    <h2 class="sheet-title" id="cx-add-title">你发现了什么地方？</h2>
+    <div id="cx-gate"></div>
+    <form class="cx-form" id="cx-form" novalidate>
+      <fieldset class="cx-fs">
+        <legend>校区</legend>
+        <div class="cx-seg">
+          <label><input type="radio" name="campus" value="xueyuanlu" checked><span>学院路</span></label>
+          <label><input type="radio" name="campus" value="shahe"><span>沙河</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="cx-fs">
+        <legend>这是什么地方</legend>
+        <div class="cx-typepick" id="cx-typepick"></div>
+      </fieldset>
+
+      <fieldset class="cx-fs">
+        <legend>会一直在吗</legend>
+        <div class="cx-dur">
+          <label><input type="radio" name="duration" value="permanent" checked><span><b>长期地点</b>图书馆、食堂、球场、一个好看的角落</span></label>
+          <label><input type="radio" name="duration" value="temporary"><span><b>临时发现</b>奶龙、展览、限时布置。最多挂 7 天</span></label>
+        </div>
+      </fieldset>
+
+      <label class="cx-field"><span>名称</span>
+        <input name="title" maxlength="160" required placeholder="例如：图书馆三层东侧自习区">
+      </label>
+
+      <div class="cx-field">
+        <span>位置</span>
+        <div class="cx-loc">
+          <p class="cx-loc-text" id="cx-loc">还没有选点。</p>
+          <button class="btn btn-secondary btn-sm" type="button" id="cx-pick-start">在地图上选点</button>
+        </div>
+      </div>
+
+      <label class="cx-field"><span>详细位置</span>
+        <textarea name="addressHint" rows="2" maxlength="600" placeholder="楼的哪一侧、哪个入口旁、几层。地图上的点可能差几米，这一句能帮后来的人找到。"></textarea>
+      </label>
+
+      <label class="cx-field"><span>一句话介绍</span>
+        <textarea name="summary" rows="2" maxlength="1000" placeholder="它好在哪里，或者你看到了什么。"></textarea>
+      </label>
+
+      <label class="cx-field"><span>开放和通行<em>可选</em></span>
+        <textarea name="accessNotes" rows="2" maxlength="1000" placeholder="开放时间、要不要刷卡、雨天能不能去。"></textarea>
+      </label>
+
+      <div class="cx-field-row">
+        <label class="cx-field"><span>看到的时间</span>
+          <input type="datetime-local" name="observedAt">
+        </label>
+        <label class="cx-field" data-temp-only><span>大概待到</span>
+          <input type="datetime-local" name="expiresAt">
+        </label>
+      </div>
+      <div class="cx-quick" data-temp-only role="group" aria-label="快速设置有效期">
+        <button type="button" data-expire="tonight">今晚</button>
+        <button type="button" data-expire="24">24 小时</button>
+        <button type="button" data-expire="72">3 天</button>
+        <button type="button" data-expire="168">7 天</button>
+      </div>
+
+      <div class="cx-field">
+        <span>照片</span>
+        <div class="cx-up" id="cx-up">
+          <label class="cx-up-add">
+            <input type="file" id="cx-files" accept="image/jpeg,image/png,image/webp" multiple>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>添加照片</span>
+          </label>
+        </div>
+        <p class="cx-hint">至少一张，JPG、PNG 或 WebP，每张不超过 25 MB。不要拍到可辨认的人脸。公开的是去掉 EXIF（含拍摄位置）的预览图，原图只有你和维护者能看到。</p>
+      </div>
+
+      <div class="cx-field-row">
+        <label class="cx-field"><span>照片署名</span>
+          <input name="photoCredit" maxlength="300" placeholder="你的昵称">
+        </label>
+        <label class="cx-field"><span>照片许可</span>
+          <select name="license">
+            <option value="CC BY 4.0">CC BY 4.0（署名后可转载）</option>
+            <option value="CC BY-NC 4.0">CC BY-NC 4.0（署名、不可商用）</option>
+            <option value="仅授权本站展示">仅授权本站展示</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="cx-field"><span>标签<em>可选，用逗号隔开</em></span>
+        <input name="tags" maxlength="300" placeholder="例如：插座多, 安静, 奶龙">
+      </label>
+
+      <label class="cx-check"><input type="checkbox" name="rightsConfirmed"> 照片是我拍的，或者我有权分享。</label>
+      <label class="cx-check"><input type="checkbox" name="publicLocationConfirmed"> 这是可以公开说明的公共区域，我分享的是地点，不是某个人的行踪。</label>
+
+      <p class="cx-err" id="cx-err" role="alert" hidden></p>
+      <div class="cx-form-actions">
+        <button class="btn btn-outline" type="button" id="cx-save">存为草稿</button>
+        <button class="btn btn-primary" type="submit" id="cx-submit">提交审核</button>
+      </div>
+      <p class="cx-hint">提交后由维护者核对，通过了才会出现在地图上。审核结果会出现在“我的”里。</p>
+    </form>
+    <div id="cx-done" hidden></div>
+  </div>
+</dialog>
+
+<dialog class="dlg dlg-wide glass cx-dlg" id="cx-review" aria-labelledby="cx-review-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <div class="cx-dlg-body">
+    <p class="eyebrow">维护者</p>
+    <h2 class="sheet-title" id="cx-review-title">待审核的地点</h2>
+    <div id="cx-review-body"><p class="muted">正在载入…</p></div>
+  </div>
+</dialog>
+
+<dialog class="dlg dlg-wide glass cx-dlg" id="cx-me" aria-labelledby="cx-me-title">
+  <button class="dlg-close" type="button" data-close aria-label="关闭">×</button>
+  <div class="cx-dlg-body">
+    <p class="eyebrow">我的校园</p>
+    <h2 class="sheet-title" id="cx-me-title">每个人的地图都不一样。</h2>
+    <p class="cx-hint">学院、专业和课表只保存在这个浏览器里，不会上传。换手机或电脑之前，先导出备份。</p>
+
+    <form class="cx-form" id="cx-profile">
+      <div class="cx-field-row">
+        <label class="cx-field"><span>学院</span><input name="faculty" maxlength="80" placeholder="例如：机电与信息工程学院"></label>
+        <label class="cx-field"><span>专业</span><input name="major" maxlength="80" placeholder="例如：机械工程"></label>
+      </div>
+      <div class="cx-field-row">
+        <label class="cx-field"><span>入学年份</span><input name="year" inputmode="numeric" pattern="20[0-9]{2}" maxlength="4" placeholder="2026"></label>
+        <fieldset class="cx-fs"><legend>主要在哪个校区</legend>
+          <div class="cx-seg">
+            <label><input type="radio" name="campus" value="xueyuanlu"><span>学院路</span></label>
+            <label><input type="radio" name="campus" value="shahe"><span>沙河</span></label>
+          </div>
+        </fieldset>
+      </div>
+      <label class="cx-check" id="cx-sync-wrap" hidden><input type="checkbox" name="sync"> 同时存到我的社区账号（只有我自己看得到，用来推荐和我相关的内容）</label>
+      <div class="cx-form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
+    </form>
+
+    <h3 class="cx-h3">我的课</h3>
+    <p class="cx-hint">按每周的固定时间填。上课地点从地图上的楼里选，地图会把它变成你的任务点。</p>
+    <ul class="cx-courses" id="cx-courses" role="list"></ul>
+
+    <form class="cx-form cx-course-form" id="cx-course-form">
+      <div class="cx-field-row">
+        <label class="cx-field"><span>课程名</span><input name="name" maxlength="80" required list="cx-course-names" placeholder="例如：高等数学 A1"></label>
+        <label class="cx-field"><span>教室<em>可选</em></span><input name="room" maxlength="60" placeholder="例如：302"></label>
+      </div>
+      <datalist id="cx-course-names"></datalist>
+      <div class="cx-field">
+        <span>上课地点</span>
+        <div class="cx-loc">
+          <p class="cx-loc-text" id="cx-course-building">还没有选楼。</p>
+          <select name="building" id="cx-building-select" aria-label="从有名字的楼里选"></select>
+          <button class="btn btn-secondary btn-sm" type="button" id="cx-building-pick">在地图上点选</button>
+        </div>
+      </div>
+      <div class="cx-slots" id="cx-slots"></div>
+      <button class="btn-link" type="button" id="cx-slot-add">再加一个上课时间</button>
+      <p class="cx-err" id="cx-course-err" role="alert" hidden></p>
+      <div class="cx-form-actions"><button class="btn btn-primary" type="submit">添加这门课</button></div>
+    </form>
+
+    <div class="cx-me-foot">
+      <button class="btn btn-outline btn-sm" type="button" id="cx-me-export">导出备份</button>
+      <label class="btn btn-outline btn-sm">导入备份<input type="file" id="cx-me-import" accept="application/json,.json" hidden></label>
+      <button class="btn-link cx-danger" type="button" id="cx-me-clear">清空我的校园</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="cx-toast glass" id="cx-toast" role="status" aria-live="polite" hidden></div>
+
+<!-- @include footer -->
+</body>
+</html>

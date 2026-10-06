@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>我的 · Luokixi</title>
+<meta name="description" content="我的投稿、收藏、搭建清单、通知与资料设置。">
+<script type="module" src="/src/pages/me.js"></script>
+</head>
+<body data-page="me">
+<!-- @include nav -->
+
+<main id="main" class="me wrap">
+  <aside class="me-side">
+    <div class="me-who" id="me-who"></div>
+    <nav class="me-nav" aria-label="我的" id="me-nav">
+      <a href="#account" data-sec="account">账户</a>
+      <a href="#entries" data-sec="entries">我的投稿</a>
+      <a href="#stars" data-sec="stars">收藏</a>
+      <a href="#plans" data-sec="plans">搭建清单</a>
+      <a href="#notices" data-sec="notices">通知 <span class="me-badge num" id="me-unread" hidden></span></a>
+      <a href="#profile" data-sec="profile">资料设置</a>
+      <a href="#local" data-sec="local">本机足迹</a>
+    </nav>
+  </aside>
+  <section class="me-main" id="me-main" aria-live="polite">
+    <p class="acct-sub">正在载入…</p>
+  </section>
+</main>
+
+<!-- @include footer -->
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "title": "ODrive",
+  "summary": "高性能电机控制器的固件与工具链，可以拿来对照学习工业级的电流环和位置环设计。",
+  "category": "embedded",
+  "tags": [
+    "电机驱动",
+    "控制",
+    "固件"
+  ],
+  "origin": "external",
+  "credit": "ODrive Robotics",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/odriverobotics/ODrive"
+  }
+}

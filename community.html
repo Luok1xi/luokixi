@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>社区 · Luokixi</title>
+<meta name="description" content="Luokixi 社区：贡献热力图、刷题榜（洛谷 / 力扣 / Codeforces）与贡献者。">
+<script type="module" src="/src/pages/community.js"></script>
+</head>
+<body data-page="community">
+<!-- @include nav -->
+
+<main id="main">
+  <header class="cm-hero">
+    <div class="wrap center">
+      <p class="eyebrow" data-reveal>社区</p>
+      <h1 class="headline headline-xl" data-reveal>每一格，<br><span class="glow-text">都算数。</span></h1>
+      <p class="lead" data-reveal>本站的每一次提交，每位同学每天的刷题，都会在这座城市里升起一根光柱。</p>
+    </div>
+    <div class="city-stage wrap" id="city-stage">
+      <canvas class="city" id="city" aria-label="过去一年的社区贡献，3D 热力图"></canvas>
+      <p class="city-legend" id="city-legend"></p>
+      <p class="city-empty" id="city-empty" hidden>还没有记录。地面的波纹只是装饰，<a href="contribute.html#people">点亮第一格</a>的会是你。</p>
+    </div>
+    <div class="wrap">
+      <dl class="stat-row stat-row-center" id="cm-stats" data-reveal></dl>
+    </div>
+  </header>
+
+  <section class="section section-alt" id="board">
+    <div class="wrap">
+      <header class="sec-head-row" data-reveal>
+        <div>
+          <p class="eyebrow">刷题榜</p>
+          <h2 class="headline">洛谷、力扣、Codeforces，<br>一张榜。</h2>
+          <p class="muted sec-note">每天自动同步一次。只展示本人自愿登记的账号，随时可以退出。</p>
+        </div>
+        <div class="segmented" role="group" aria-label="排序方式" id="board-sort">
+          <button type="button" data-sort="total" aria-pressed="true">累计解题</button>
+          <button type="button" data-sort="luogu" aria-pressed="false">洛谷</button>
+          <button type="button" data-sort="leetcode" aria-pressed="false">力扣</button>
+          <button type="button" data-sort="codeforces" aria-pressed="false">CF 分数</button>
+        </div>
+      </header>
+      <ol class="board" id="board-list" role="list"></ol>
+    </div>
+  </section>
+
+  <section class="section" id="contributors">
+    <div class="wrap">
+      <header class="sec-head-row" data-reveal>
+        <div>
+          <p class="eyebrow">贡献者</p>
+          <h2 class="headline">是他们，<br>让这里变得更好。</h2>
+        </div>
+        <a class="btn btn-outline" href="contribute.html">成为贡献者</a>
+      </header>
+      <div class="contrib-wall" id="contrib-wall"></div>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="promo-grid">
+      <div class="promo promo-dark" data-reveal>
+        <h3>加入名录。</h3>
+        <p>登记洛谷、力扣、Codeforces 账号，拥有自己的主页和热力图。</p>
+        <div class="btn-group"><a class="btn btn-primary" href="contribute.html#people">加入名录</a><a class="btn btn-outline" href="contribute.html#rules">了解隐私规则</a></div>
+        <div class="promo-visual"><div class="mini-heat" id="promo-heat" aria-hidden="true"></div></div>
+      </div>
+      <div class="promo" data-reveal>
+        <h3>发布项目。</h3>
+        <p>课程设计、竞赛作品、实验室工具，都值得被看见。</p>
+        <div class="btn-group"><a class="btn btn-primary" href="contribute.html#project">发布项目</a><a class="btn btn-outline" href="projects.html">逛逛开源广场</a></div>
+        <div class="promo-visual"><div class="fan" id="promo-fan" aria-hidden="true"></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- @include footer -->
+</body>
+</html>

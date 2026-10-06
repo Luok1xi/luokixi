@@ -1,0 +1,16 @@
+{
+  "title": "OpenCat 四足机器人",
+  "summary": "开源的四足机器宠物框架，基于 Arduino，适合研究步态规划和姿态控制。",
+  "category": "mech",
+  "tags": [
+    "四足",
+    "步态",
+    "Arduino"
+  ],
+  "origin": "external",
+  "credit": "Petoi",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot"
+  }
+}

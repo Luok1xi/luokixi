@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>选课与口碑 · Luokixi</title>
+<meta name="description" content="参考矿大同学的教学体验、课程评价和学习资源，找到适合自己的下一步。">
+<script type="module" src="/src/pages/reputation.js"></script>
+</head>
+<body data-page="reputation">
+<!-- @include nav -->
+<main id="main" class="rp-main">
+  <header class="wrap rp-hero">
+    <p class="eyebrow">矿大 · 学习引导</p>
+    <h1>下一门课，<br><span class="muted">听听过来人的话。</span></h1>
+    <p class="rp-lead">看看真实的教学体验，找到适合自己的课程与资源。</p>
+    <nav class="rp-tabs" aria-label="口碑栏目">
+      <a href="reputation.html" data-tab="teachers">教师口碑</a>
+      <a href="reputation.html?view=courses" data-tab="courses">课程与引导</a>
+      <a href="reputation.html?view=mine" data-tab="mine">我的评价</a>
+      <a href="reputation.html?view=moderation" data-tab="moderation" id="rp-mod-link" hidden>维护与审核</a>
+    </nav>
+  </header>
+  <div class="wrap">
+    <p id="rp-message" role="status" class="rp-message" hidden></p>
+    <div id="rp-content" aria-live="polite"><p class="rp-empty">正在读取课程与教师资料…</p></div>
+  </div>
+</main>
+<dialog id="rp-editor" class="rp-dialog" aria-labelledby="rp-editor-title">
+  <form id="rp-review-form">
+    <header><h2 id="rp-editor-title">分享教学体验</h2><button type="button" data-close aria-label="关闭评价窗口">×</button></header>
+    <p id="rp-subject-label"></p>
+    <fieldset class="rp-rating-input"><legend>你的整体体验</legend>
+      <label><input type="radio" name="rating" value="1" required><span>★</span><small>1 星</small></label>
+      <label><input type="radio" name="rating" value="2"><span>★</span><small>2 星</small></label>
+      <label><input type="radio" name="rating" value="3"><span>★</span><small>3 星</small></label>
+      <label><input type="radio" name="rating" value="4"><span>★</span><small>4 星</small></label>
+      <label><input type="radio" name="rating" value="5"><span>★</span><small>5 星</small></label>
+    </fieldset>
+    <label>你的评价<textarea name="body" rows="5" maxlength="5000" required placeholder="哪些地方有帮助？哪里可以改进？给后来同学一个具体建议。"></textarea></label>
+    <div id="rp-context-fields" class="rp-two">
+      <label>相关课程（可选）<select name="courseId"><option value="">暂不填写</option></select></label>
+      <label>修读学期（可选）<input name="term" maxlength="80" placeholder="例如 2026 年秋季"></label>
+    </div>
+    <label class="rp-check"><input type="checkbox" name="anonymous" checked>匿名发表</label>
+    <p class="rp-fine">匿名隐藏账号署名；请避免在正文中写入不想公开的个人信息。评价审核后公开，负面体验也可以具体表达。</p>
+    <p id="rp-editor-error" role="alert"></p>
+    <button class="btn btn-primary" type="submit">提交审核</button>
+  </form>
+</dialog>
+<dialog id="rp-action-dialog" class="rp-dialog" aria-labelledby="rp-action-title">
+  <form id="rp-action-form">
+    <header><h2 id="rp-action-title">补充说明</h2><button type="button" data-close aria-label="关闭">×</button></header>
+    <label>说明<textarea name="reason" maxlength="2000" rows="4" required></textarea></label>
+    <p id="rp-action-error" role="alert"></p>
+    <button class="btn btn-primary" type="submit">确认</button>
+  </form>
+</dialog>
+<!-- @include footer -->
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "title": "ElectronBot 桌面机器人",
+  "summary": "巴掌大的桌面机器人，带屏幕和六个舵机关节，PCB、结构和上位机程序都公开了。",
+  "category": "embedded",
+  "tags": [
+    "PCB",
+    "舵机",
+    "USB"
+  ],
+  "origin": "external",
+  "credit": "稚晖君 peng-zhihui",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/peng-zhihui/ElectronBot"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "purpose": "Codex content suggestions for Opus; merge selectively into the maintained community catalog, not a replacement.",
+  "verified": "2026-10-06",
+  "projects": [
+    {
+      "title": "SimpleFOC",
+      "url": "https://github.com/simplefoc/Arduino-FOC",
+      "license": "MIT",
+      "external": true,
+      "category": "embedded",
+      "tags": [
+        "电机控制",
+        "C++",
+        "嵌入式"
+      ],
+      "summary": "Arduino 平台的无刷与步进电机 FOC 控制库，适合电机控制课程与机器人学习。",
+      "note": "已出现在 Opus 主目录；建议补充复现条件和新手文档入口，不重复建条目。"
+    },
+    {
+      "title": "LeRobot",
+      "url": "https://github.com/huggingface/lerobot",
+      "license": "Apache-2.0",
+      "external": true,
+      "category": "research",
+      "tags": [
+        "机器人",
+        "Python",
+        "机器学习"
+      ],
+      "summary": "连接机器人数据采集、模型训练与设备执行的开源项目。",
+      "setup": "按选定上游教程检查 Python 环境、训练资源和设备兼容性。"
+    },
+    {
+      "title": "The Algorithms / Python",
+      "url": "https://github.com/TheAlgorithms/Python",
+      "license": "MIT",
+      "external": true,
+      "category": "algo",
+      "tags": [
+        "算法",
+        "Python",
+        "数据结构"
+      ],
+      "summary": "按主题阅读 Python 算法实现，适合搭配原题和自己的复杂度、边界笔记。",
+      "note": "不是力扣或洛谷官方题解；保留出处，不把实现直接冒充个人解法。"
+    }
+  ]
+}

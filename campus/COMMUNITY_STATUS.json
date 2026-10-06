@@ -1,0 +1,23 @@
+{
+  "updated": "2026-10-06T10:28:00+08:00",
+  "phase": "content-and-data-layer-handed-off",
+  "layoutOwner": "Opus",
+  "contentOwners": ["Opus", "Codex"],
+  "layoutChangedByCodex": false,
+  "finalCommunityPageVerified": false,
+  "backendTestsPassed": 16,
+  "notebookTestsPassed": 5,
+  "browserDataFlowChecksPassed": 8,
+  "browserScriptErrors": 0,
+  "realGitHubLookupVerified": true,
+  "staticModeZeroApiRequestsVerified": true,
+  "activeBackendVersion": "1.1",
+  "userDocuments": 218,
+  "userCommunityEntries": 0,
+  "userContributionEvents": 0,
+  "art": "public/art/community-engineering.webp",
+  "recommendations": "docs/CODEX_DESIGN_RECOMMENDATIONS.md",
+  "contentPlan": "docs/COMMUNITY_CONTENT.md",
+  "apiContract": "docs/COMMUNITY_API.md",
+  "limitations": ["local-only workbench", "no public authentication or roles", "no platform ownership verification", "no public deployment", "final Opus page integration and visual acceptance pending"]
+}

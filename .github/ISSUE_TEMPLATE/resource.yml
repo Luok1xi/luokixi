@@ -1,0 +1,56 @@
+name: 投稿资料
+description: 上传期中期末试卷、复习提纲或课程笔记，维护者核对来源后收录到“矿大资料”。
+title: "[资料] 课程 · 学年 · 类型"
+labels: ["资料投稿"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        谢谢你愿意分享！请把文件**直接拖进下面的“附件”框**（PDF、图片都可以，单个不超过 25 MB）。
+        只上传你有权分享的内容：不传盗版教材、付费课程资料，以及老师明确要求不外传的材料。
+  - type: input
+    id: course
+    attributes:
+      label: 课程
+      placeholder: 例如：高等数学 A1、线性代数、大学物理
+    validations:
+      required: true
+  - type: input
+    id: year
+    attributes:
+      label: 学年
+      placeholder: 例如：2024-2025；不确定就写“待核”
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: 类型
+      options: [期末试卷, 期中试卷, 复习提纲, 课程笔记, 作业与答案, 其他]
+    validations:
+      required: true
+  - type: checkboxes
+    id: answers
+    attributes:
+      label: 内容
+      options:
+        - label: 含参考答案或评分标准
+  - type: textarea
+    id: files
+    attributes:
+      label: 附件
+      description: 把文件拖到这里。
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: 来源说明
+      description: 资料是怎么来的？（例如：自己整理、课程群里老师发的、学长学姐留下的）
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: 确认
+      options:
+        - label: 我有权分享这些资料，并同意以 CC BY-SA 4.0 许可公开我自己整理的部分。
+          required: true

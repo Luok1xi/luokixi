@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<!-- 邮件链接里的令牌不能通过 Referer 泄露给其他网站 -->
+<meta name="referrer" content="no-referrer">
+<title>登录 · Luokixi</title>
+<meta name="description" content="登录或注册 Luokixi 社区账号。">
+<script type="module" src="/src/pages/auth.js"></script>
+</head>
+<body data-page="auth">
+<!-- @include nav -->
+
+<main id="main" class="acct">
+  <div class="acct-glow" aria-hidden="true"></div>
+  <section class="acct-card glass" aria-live="polite">
+    <svg class="acct-mark" viewBox="0 0 28 28" aria-hidden="true">
+      <defs><linearGradient id="acct-g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0894ff"/><stop offset=".45" stop-color="#c959dd"/><stop offset=".75" stop-color="#ff2e54"/><stop offset="1" stop-color="#ff9004"/></linearGradient></defs>
+      <path d="M5 6v16h18M10 17l5-10 4 6 5-9"/>
+    </svg>
+    <div id="acct-body"><p class="acct-sub">正在连接社区服务…</p></div>
+  </section>
+  <p class="acct-foot">注册即表示同意<a href="contribute.html#rules">社区规则</a>。我们只收集登录所需的邮箱，不要求学号或实名信息。</p>
+</main>
+
+<!-- @include footer -->
+</body>
+</html>

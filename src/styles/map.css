@@ -1,0 +1,2881 @@
+/* ==========================================================================
+   校园探索（map.html）：首屏插画 → 共建地图 → 怎么上图 / 规矩 / 以后
+   桌面：地图铺满，左侧浮一块玻璃面板（搜索、分类、地点卡）。
+   手机：地图铺满，面板变成可以收起的底部抽屉。
+   ========================================================================== */
+
+/* ---------- 首屏 ---------- */
+
+.cx-hero {
+  --fg: #f5f5f7;
+  --fg-2: #a1a1a6;
+  --fg-3: #86868b;
+  --link: #2997ff;
+  --fill: rgba(255, 255, 255, 0.07);
+  --fill-2: rgba(255, 255, 255, 0.12);
+  position: relative;
+  padding-block: clamp(64px, 9vw, 120px) 28px;
+  overflow: hidden;
+  background: #000;
+  color: var(--fg);
+  isolation: isolate;
+}
+
+/* 背后一团很淡的招牌渐变光，和地块的位置对齐 */
+.cx-hero::before {
+  content: "";
+  position: absolute;
+  right: -10%;
+  top: 6%;
+  z-index: -1;
+  width: min(900px, 90vw);
+  aspect-ratio: 1.3;
+  background:
+    radial-gradient(closest-side at 40% 50%, color-mix(in srgb, var(--g1) 40%, transparent), transparent),
+    radial-gradient(closest-side at 62% 58%, color-mix(in srgb, var(--g2) 30%, transparent), transparent);
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.cx-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+}
+
+/* 左右分栏时标题只有半屏宽，用比通栏标题小一档的字号，避免“地 / 图”被拆到两行 */
+.cx-hero-copy .headline {
+  font-size: clamp(34px, 4.2vw, 60px);
+}
+
+.cx-hero-copy .lead {
+  max-width: 30em;
+  margin: 22px 0 30px;
+}
+
+.cx-hero-copy .btn-group {
+  justify-content: flex-start;
+}
+
+.cx-diorama {
+  margin: 0;
+}
+
+.cx-diorama svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* 图钉轻轻上下浮动；只在可见时播放，离屏暂停 */
+.cx-diorama .d-bob,
+.cx-diorama .d-shadow {
+  animation: 3.4s var(--ease-in-out) var(--d, 0s) infinite alternate paused;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.cx-diorama .d-bob { animation-name: d-bob; }
+.cx-diorama .d-shadow { animation-name: d-shadow; }
+
+.cx-diorama .d-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: d-ring 2.6s var(--ease-out) infinite paused;
+}
+
+.cx-diorama.is-live .d-bob,
+.cx-diorama.is-live .d-shadow,
+.cx-diorama.is-live .d-ring {
+  animation-play-state: running;
+}
+
+@keyframes d-bob {
+  to { transform: translateY(-7px); }
+}
+
+@keyframes d-shadow {
+  to { transform: scale(0.78); opacity: 0.6; }
+}
+
+@keyframes d-ring {
+  from { transform: scale(0.7); opacity: 0.9; }
+  to { transform: scale(1.6); opacity: 0; }
+}
+
+.cx-themes {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: clamp(28px, 4vw, 48px);
+}
+
+.cx-themes-label {
+  flex: none;
+  color: var(--fg-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.cx-themes-row {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-block: 4px;
+}
+
+.cx-themes-row::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-theme {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 8px;
+  border-radius: var(--r-pill);
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  color: var(--fg);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  transition: background var(--dur-1) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+
+.cx-theme:hover {
+  text-decoration: none;
+  background: var(--fill-2);
+}
+
+.cx-theme:active {
+  transform: scale(0.97);
+}
+
+.cx-theme-glyph {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: hsl(var(--h) 80% 55% / 0.2);
+  color: hsl(var(--h) 90% 70%);
+}
+
+.cx-theme-n {
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+.cx-art-note {
+  margin-top: 18px;
+  color: var(--fg-3);
+  font-size: var(--fs-micro);
+}
+
+.glyph {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- 地图区 ---------- */
+
+.cx-explore {
+  position: relative;
+  height: calc(100vh - var(--nav-h));
+  height: calc(100svh - var(--nav-h));
+  min-height: 560px;
+  max-height: 1000px;
+  overflow: hidden;
+  background: var(--bg-alt);
+  /* html 的 scroll-padding 为本地导航留了位置，这里没有本地导航：让地图正好贴着全局导航 */
+  scroll-margin-top: calc(-1 * (var(--localnav-h) + 24px));
+}
+
+.cx-map {
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* 把 Leaflet 自己的 z-index 关在这一层里，不会盖过全局导航 */
+}
+
+.cx-map .leaflet-container,
+.cx-map.leaflet-container {
+  background: var(--bg-alt);
+  font: inherit;
+  font-size: 12px;
+}
+
+.cx-map .leaflet-control-zoom {
+  border: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-elev) 78%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 0 0 1px var(--line-soft), 0 8px 24px -10px rgba(0, 0, 0, 0.3);
+}
+
+.cx-map .leaflet-control-zoom a {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font: 400 22px/40px var(--font-num);
+}
+
+.cx-map .leaflet-control-zoom a:hover {
+  background: var(--fill-2);
+}
+
+.cx-map .leaflet-control-zoom-in {
+  border-bottom: 1px solid var(--line-soft) !important;
+}
+
+.cx-map .leaflet-bar a.leaflet-disabled {
+  background: transparent;
+  color: var(--fg-4);
+}
+
+.cx-map .leaflet-control-attribution {
+  padding: 2px 8px;
+  border-top-left-radius: 8px;
+  background: color-mix(in srgb, var(--bg-elev) 80%, transparent);
+  color: var(--fg-2);
+  font-size: 11px;
+}
+
+.cx-map .leaflet-control-attribution a {
+  color: var(--link);
+}
+
+/* ---------- 图钉 ---------- */
+
+.cx-pin-wrap {
+  background: none;
+  border: 0;
+}
+
+.cx-pin {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 44px;
+  transform-origin: 50% 100%;
+  transition: transform 320ms var(--ease-spring);
+}
+
+.cx-pin > i {
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 4px;
+  background: hsl(var(--h) 72% 46%);
+  color: #fff;
+  transform: rotate(-45deg);
+  box-shadow: 0 0 0 2px #fff, 0 6px 14px -4px hsl(var(--h) 60% 20% / 0.6);
+}
+
+.cx-pin > i .glyph {
+  width: 16px;
+  height: 16px;
+  transform: rotate(45deg);
+}
+
+.cx-pin:hover,
+.cx-pin.is-on {
+  transform: scale(1.22);
+}
+
+.cx-pin.is-on > i {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 6px hsl(var(--h) 80% 55% / 0.35), 0 10px 20px -6px hsl(var(--h) 60% 20% / 0.7);
+}
+
+.cx-pin.is-expired > i {
+  background: var(--fg-4);
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* 临时发现：脚下一圈慢慢扩散的光 */
+.cx-pin.is-temp::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 22px;
+  height: 10px;
+  margin-left: -11px;
+  border-radius: 50%;
+  background: hsl(var(--h) 90% 55% / 0.55);
+  animation: cx-ripple 2.2s var(--ease-out) infinite;
+}
+
+@keyframes cx-ripple {
+  from { transform: scale(0.6); opacity: 0.9; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+
+/* 审核预览：虚线空心图钉，和正式地点区分开 */
+.cx-pin.is-preview > i {
+  background: transparent;
+  border: 2px dashed var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--bg) 80%, transparent);
+}
+
+.cx-acc {
+  fill: var(--accent);
+  fill-opacity: 0.12;
+  stroke: var(--accent);
+  stroke-opacity: 0.5;
+  stroke-width: 1.5;
+}
+
+/* ---------- 面板 ---------- */
+
+.cx-panel {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  bottom: 16px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: min(392px, calc(100% - 32px));
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.cx-handle {
+  display: none;
+}
+
+.cx-panel-head {
+  display: grid;
+  gap: 12px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.cx-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cx-add-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  transition: transform var(--dur-2) var(--ease-spring), background var(--dur-1);
+}
+
+.cx-add-btn:hover {
+  background: var(--accent-hover);
+}
+
+.cx-add-btn:active {
+  transform: scale(0.9);
+}
+
+.cx-add-btn svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.cx-search {
+  position: relative;
+  display: block;
+}
+
+.cx-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: var(--fg-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.cx-search input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px 8px 38px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--fill-2);
+  color: var(--fg);
+  font: inherit;
+  font-size: 16px;
+}
+
+.cx-search input::placeholder {
+  color: var(--fg-3);
+}
+
+.cx-search input:focus {
+  outline: 0;
+  box-shadow: 0 0 0 3px var(--accent-soft), inset 0 0 0 1px var(--accent);
+}
+
+.cx-types {
+  display: flex;
+  gap: 6px;
+  margin: 2px -8px 6px;
+  padding: 4px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cx-types::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-types button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--fill);
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+
+.cx-types button:hover {
+  color: var(--fg);
+}
+
+.cx-types button[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.cx-types button[aria-pressed="true"] .seg-count {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.cx-types button .glyph {
+  width: 15px;
+  height: 15px;
+  color: hsl(var(--h) 70% 48%);
+}
+
+.cx-types button[aria-pressed="true"] .glyph {
+  color: inherit;
+}
+
+.cx-panel-body {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 8px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.cx-panel-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+.cx-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.cx-toggle input {
+  accent-color: var(--accent);
+}
+
+.cx-fetched .btn-link {
+  font-size: 12px;
+}
+
+.cx-fetched .btn-link::after {
+  content: none;
+}
+
+.cx-mod-btn {
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-weight: 700;
+}
+
+/* ---------- 列表 ---------- */
+
+.cx-count {
+  padding: 6px 10px 8px;
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.cx-list {
+  display: grid;
+  gap: 2px;
+}
+
+.cx-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 14px;
+  text-align: left;
+  transition: background var(--dur-1);
+}
+
+.cx-row:hover {
+  background: var(--fill);
+}
+
+.cx-row.is-on {
+  background: var(--fill-2);
+}
+
+.cx-row.is-expired {
+  opacity: 0.6;
+}
+
+.cx-thumb {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: hsl(var(--h) 70% 50% / 0.14);
+  color: hsl(var(--h) 70% 45%);
+}
+
+.cx-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cx-thumb .glyph {
+  width: 24px;
+  height: 24px;
+}
+
+.cx-row-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cx-row-title {
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cx-row-sub {
+  overflow: hidden;
+  color: var(--fg-2);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cx-row-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.cx-row-obs {
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+.cx-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 18px 12px;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+
+.cx-empty b {
+  color: var(--fg);
+}
+
+.cx-empty .btn {
+  margin-top: 6px;
+}
+
+.cx-empty-title {
+  color: var(--fg);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.cx-skel {
+  display: grid;
+  gap: 8px;
+  padding: 8px;
+}
+
+.cx-skel span {
+  height: 64px;
+  border-radius: 14px;
+  background: var(--fill);
+  animation: cx-skel 1.4s var(--ease-in-out) infinite alternate;
+}
+
+.cx-skel span:nth-child(2) { animation-delay: 0.15s; }
+.cx-skel span:nth-child(3) { animation-delay: 0.3s; }
+.cx-skel span:nth-child(4) { animation-delay: 0.45s; }
+
+@keyframes cx-skel {
+  to { opacity: 0.4; }
+}
+
+/* ---------- 地点卡 ---------- */
+
+.cx-detail {
+  display: grid;
+  gap: 12px;
+  padding: 4px 8px 8px;
+}
+
+.cx-back {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 2px;
+  padding: 6px 10px 6px 4px;
+  border-radius: var(--r-pill);
+  color: var(--link);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cx-back:hover {
+  background: var(--fill);
+}
+
+.cx-back svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cx-photos {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: 8px;
+  margin-inline: -8px;
+  padding-inline: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.cx-photos.is-multi {
+  grid-auto-columns: 88%;
+}
+
+.cx-photos::-webkit-scrollbar {
+  display: none;
+}
+
+.cx-photos img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  object-fit: cover;
+  background: var(--fill);
+  scroll-snap-align: start;
+}
+
+.cx-credit {
+  margin-top: -6px;
+  color: var(--fg-3);
+  font-size: 12px;
+}
+
+.cx-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.cx-type-tag {
+  background: hsl(var(--h) 70% 50% / 0.14);
+  color: hsl(var(--h) 65% 40%);
+}
+
+:root[data-theme="dark"] .cx-type-tag {
+  color: hsl(var(--h) 85% 72%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cx-type-tag { color: hsl(var(--h) 85% 72%); }
+}
+
+.cx-type-tag .glyph {
+  width: 13px;
+  height: 13px;
+}
+
+.cx-title {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.cx-title:focus {
+  outline: 0;
+}
+
+.cx-summary {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.cx-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--fill);
+  font-size: 14px;
+}
+
+.cx-facts div {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
+  gap: 10px;
+}
+
+.cx-facts dt {
+  color: var(--fg-2);
+}
+
+.cx-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.cx-taglist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cx-cta {
+  display: grid;
+  gap: 6px;
+}
+
+.cx-cta .btn {
+  width: 100%;
+}
+
+.cx-nonav {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--fill);
+  color: var(--fg-2);
+  font-size: 14px;
+  text-align: center;
+}
+
+.cx-hint {
+  color: var(--fg-2);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.cx-warn {
+  color: var(--warn);
+}
+
+.cx-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cx-act {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  background: var(--fill);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 600;
+  transition: background var(--dur-1), transform var(--dur-2) var(--ease-spring);
+}
+
+.cx-act:hover {
+  background: var(--fill-2);
+}
+
+.cx-act:active {
+  transform: scale(0.95);
+}
+
+.cx-act:disabled {
+  opacity: 0.6;
+}
+
+.cx-act svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cx-act .num {
+  color: var(--fg-2);
+  font-size: 11px;
+}
+
+.cx-act.is-on {
+  background: hsl(var(--h) 70% 50% / 0.16);
+  color: hsl(var(--h) 65% 42%);
+}
+
+.cx-act[data-act="star"].is-on svg {
+  fill: currentColor;
+}
+
+:root[data-theme="dark"] .cx-act.is-on {
+  color: hsl(var(--h) 85% 72%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cx-act.is-on { color: hsl(var(--h) 85% 72%); }
+}
+
+.cx-obs {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.cx-obs h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.cx-obs-n {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 14px;
+}
+
+.cx-obs-n b {
+  font-size: 17px;
+}
+
+.cx-obs-btns {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cx-obs-btns .btn-link {
+  font-size: 13px;
+}
+
+.cx-source {
+  color: var(--fg-3);
+  font-size: 12px;
+}
+
+.cx-report {
+  font-size: 13px;
+}
+
+.cx-report summary {
+  width: fit-content;
+  color: var(--fg-2);
+  cursor: pointer;
+}
+
+.cx-report form {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cx-report textarea,
+.cx-form input:not([type="radio"], [type="checkbox"], [type="file"]),
+.cx-form textarea,
+.cx-form select,
+.cx-rv textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-elev);
+  color: var(--fg);
+  font: inherit;
+  font-size: 16px; /* 16px 以上，iOS 不会自动放大 */
+  font-weight: 400;
+  line-height: 1.5;
+  transition: border-color var(--dur-1), box-shadow var(--dur-1);
+}
+
+.cx-report textarea:focus,
+.cx-form input:focus,
+.cx-form textarea:focus,
+.cx-form select:focus,
+.cx-rv textarea:focus {
+  outline: 0;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.cx-form textarea,
+.cx-rv textarea,
+.cx-report textarea {
+  resize: vertical;
+}
+
+/* ---------- 浮层：提示、滚轮、选点 ---------- */
+
+.cx-map-note {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  z-index: 3;
+  max-width: min(360px, calc(100% - 32px));
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+.cx-wheel-hint {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  padding: 10px 16px;
+  border-radius: var(--r-pill);
+  background: rgba(0, 0, 0, 0.66);
+  color: #fff;
+  font-size: 14px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition: opacity 200ms var(--ease-out), transform 260ms var(--ease-out);
+  pointer-events: none;
+}
+
+.cx-wheel-hint.is-on {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+.cx-explore.is-picking .cx-panel,
+.cx-explore.is-picking .cx-map-note {
+  display: none;
+}
+
+.cx-pick {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.cx-cross {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+}
+
+.cx-cross::before,
+.cx-cross::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.cx-cross::before {
+  left: 23px;
+  top: 0;
+  width: 2px;
+  height: 48px;
+}
+
+.cx-cross::after {
+  left: 0;
+  top: 23px;
+  width: 48px;
+  height: 2px;
+}
+
+.cx-cross i {
+  position: absolute;
+  inset: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+}
+
+.cx-pick-bar,
+.cx-preview-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  z-index: 4;
+  display: grid;
+  gap: 8px;
+  width: min(560px, calc(100% - 32px));
+  padding: 16px 18px;
+  border-radius: 20px;
+  font-size: 14px;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.cx-pick-bar b {
+  margin-right: 6px;
+}
+
+.cx-pick-bar span {
+  color: var(--fg-2);
+}
+
+.cx-pick-coord {
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.cx-pick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cx-pick-actions .btn-secondary {
+  margin-right: auto;
+}
+
+.cx-preview-bar {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.cx-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 60;
+  max-width: min(92vw, 520px);
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+  opacity: 0;
+  transform: translate(-50%, 10px);
+  transition: opacity 240ms var(--ease-out), transform 300ms var(--ease-out);
+}
+
+.cx-toast.is-on {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* ---------- 投稿与审核对话框 ---------- */
+
+/* 表单要长时间阅读和填写，玻璃材质调得更实一些，背后的首屏插画不会干扰文字 */
+.cx-dlg {
+  width: min(720px, calc(100vw - 32px));
+}
+
+.cx-dlg.glass {
+  background: color-mix(in srgb, var(--bg-elev) 94%, transparent);
+}
+
+.cx-dlg-body {
+  max-height: 90vh;
+  padding: 36px clamp(20px, 4vw, 40px) 32px;
+  overflow-y: auto;
+}
+
+.cx-dlg .sheet-title {
+  margin-bottom: 18px;
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+#cx-gate:not(:empty) {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.cx-form {
+  display: grid;
+  gap: 18px;
+}
+
+.cx-form.is-locked {
+  opacity: 0.45;
+}
+
+.cx-fs {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.cx-fs legend,
+.cx-field > span {
+  margin-bottom: 0;
+  padding: 0;
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cx-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cx-field em {
+  margin-left: 6px;
+  color: var(--fg-3);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.cx-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cx-seg {
+  display: inline-flex;
+  justify-self: start;
+  padding: 3px;
+  border-radius: var(--r-pill);
+  background: var(--fill-2);
+}
+
+.cx-seg label {
+  position: relative;
+}
+
+.cx-seg input,
+.cx-typepick input,
+.cx-dur input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cx-seg span {
+  display: block;
+  padding: 7px 18px;
+  border-radius: var(--r-pill);
+  color: var(--fg-2);
+  font-size: var(--fs-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cx-seg input:checked + span {
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.cx-typepick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cx-typepick span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 8px 10px;
+  border-radius: var(--r-pill);
+  background: var(--fill);
+  color: var(--fg);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-1), box-shadow var(--dur-1);
+}
+
+.cx-typepick .glyph {
+  color: hsl(var(--h) 70% 48%);
+}
+
+.cx-typepick input:checked + span {
+  background: hsl(var(--h) 70% 50% / 0.16);
+  box-shadow: inset 0 0 0 1.5px hsl(var(--h) 70% 48%);
+}
+
+.cx-dur {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cx-dur label {
+  position: relative;
+  display: block;
+}
+
+.cx-dur span {
+  display: grid;
+  gap: 2px;
+  height: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--fill);
+  color: var(--fg-2);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.cx-dur b {
+  color: var(--fg);
+  font-size: 15px;
+}
+
+.cx-dur input:checked + span {
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.cx-seg input:focus-visible + span,
+.cx-typepick input:focus-visible + span,
+.cx-dur input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cx-loc {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--fill);
+}
+
+.cx-loc-text {
+  color: var(--fg-2);
+  font-size: 14px;
+}
+
+.cx-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -8px;
+}
+
+.cx-quick button {
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--fill-2);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cx-quick button:hover {
+  background: color-mix(in srgb, var(--fg) 14%, transparent);
+}
+
+.cx-up {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cx-up-item,
+.cx-up-add {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.cx-up-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cx-up-item figcaption {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.cx-up-item.is-err {
+  box-shadow: inset 0 0 0 2px #ff3b30;
+}
+
+.cx-up-item button {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.cx-up-add {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  border: 1.5px dashed var(--line);
+  color: var(--fg-2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cx-up-add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.cx-up-add:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cx-up-add input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.cx-up-add svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.cx-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.cx-check input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.cx-err {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 59, 48, 0.1);
+  color: #d70015;
+  font-size: 14px;
+}
+
+:root[data-theme="dark"] .cx-err {
+  color: #ff6961;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cx-err { color: #ff6961; }
+}
+
+.cx-err ul {
+  margin: 4px 0 0;
+  padding-left: 1.2em;
+}
+
+.cx-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cx-done {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px 0 8px;
+  text-align: center;
+}
+
+.cx-done h3 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.cx-done p {
+  max-width: 32em;
+  color: var(--fg-2);
+}
+
+.cx-done-mark {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--glow);
+  color: #fff;
+}
+
+.cx-done-mark .glyph {
+  width: 30px;
+  height: 30px;
+}
+
+.cx-done .btn-group {
+  margin-top: 8px;
+}
+
+.cx-rv {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+.cx-rv h3 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.cx-rv > .btn {
+  justify-self: start;
+}
+
+.cx-rv-photos {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.cx-rv-photos img {
+  width: 140px;
+  height: 105px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.cx-rv-checks {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--fill);
+}
+
+.cx-rv-checks legend {
+  float: left;
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---------- 下方说明 ---------- */
+
+.cx-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: clamp(40px, 6vw, 72px);
+}
+
+.cx-steps li {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: clamp(24px, 3vw, 36px);
+}
+
+.cx-steps h3,
+.cx-routes h3 {
+  font-size: var(--fs-h4);
+  font-weight: 700;
+}
+
+.cx-steps p,
+.cx-routes p {
+  color: var(--fg-2);
+  font-size: 15px;
+}
+
+.cx-step-n {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--glow);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.cx-rules-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+}
+
+.cx-rules {
+  display: grid;
+  gap: 22px;
+}
+
+.cx-rules li {
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--fg-2);
+}
+
+.cx-rules li:last-child {
+  border-bottom: 0;
+}
+
+.cx-rules b {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--fg);
+  font-size: 19px;
+}
+
+.cx-routes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: clamp(40px, 6vw, 64px);
+}
+
+.cx-routes article {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 10px;
+  padding: clamp(24px, 3vw, 32px);
+}
+
+/* ---------- 手机 ---------- */
+
+@media (max-width: 960px) {
+  .cx-hero-inner { grid-template-columns: 1fr; }
+  .cx-diorama { max-width: 560px; margin-inline: auto; }
+  .cx-steps, .cx-routes { grid-template-columns: 1fr; }
+  .cx-rules-wrap { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .cx-hero { padding-top: 48px; }
+  .cx-hero-copy { text-align: center; }
+  .cx-hero-copy .lead { margin-inline: auto; }
+  .cx-hero-copy .btn-group { justify-content: center; }
+  .cx-themes { flex-direction: column; align-items: stretch; gap: 8px; }
+  .cx-themes-row { margin-inline: calc(-1 * var(--gutter)); padding-inline: var(--gutter); }
+
+  .cx-explore {
+    min-height: 520px;
+  }
+
+  /* 底部抽屉：收起时只露出搜索和分类，展开到 82% 高 */
+  .cx-panel {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    height: 82%;
+    border-radius: 22px 22px 0 0;
+    transform: translateY(calc(100% - var(--peek, 168px)));
+    transition: transform 420ms var(--ease-out);
+  }
+
+  .cx-panel.is-open {
+    transform: none;
+  }
+
+  .cx-handle {
+    display: block;
+    flex: none;
+    width: 100%;
+    height: 22px;
+  }
+
+  .cx-handle::before {
+    content: "";
+    display: block;
+    width: 38px;
+    height: 5px;
+    margin: 9px auto 0;
+    border-radius: 3px;
+    background: var(--fg-4);
+  }
+
+  .cx-panel-head {
+    padding-top: 4px;
+  }
+
+  .cx-map-note {
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+
+  .cx-map .leaflet-bottom {
+    bottom: var(--peek, 168px);
+  }
+
+  .cx-field-row,
+  .cx-dur {
+    grid-template-columns: 1fr;
+  }
+
+  .cx-pick-bar {
+    bottom: 16px;
+  }
+
+  .cx-pick-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .cx-dlg {
+    width: 100vw;
+    max-width: none;
+    max-height: 92vh;
+    margin: auto auto 0;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .cx-dlg-body {
+    max-height: 92vh;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-pin.is-temp::before { animation: none; opacity: 0.6; }
+}
+
+/* ==========================================================================
+   游戏地图：只画矿大
+   楼、路、操场都来自 OpenStreetMap 的真实轮廓（campus-map.js），这里只管画法。
+   白天是粉彩色的游乐园导览图，深色外观换成夜景。
+   ========================================================================== */
+
+body[data-page="map"] {
+  --cm-paper: #e9e2d1;
+  --cm-ground: #f8f1df;
+  --cm-edge: #8fc57c;
+  --cm-green: #c6e4a8;
+  --cm-water: #a3d9f0;
+  --cm-pitch: #8fcb7d;
+  --cm-pitch-line: rgba(255, 255, 255, 0.9);
+  --cm-track: #e08a6a;
+  --cm-sport: #b8dd9c;
+  --cm-plaza: #eee3cb;
+  --cm-parking: #e2dccf;
+  --cm-road: #ffffff;
+  --cm-road-case: #dbcbaa;
+  --cm-main: #fff5d6;
+  --cm-main-case: #d2bb8c;
+  --cm-path: #fffaf0;
+  --cm-context: #d4cab4;
+  --cm-wall: rgba(112, 82, 50, 0.4);
+  --cm-label: #3b3227;
+  --cm-label-bg: rgba(255, 255, 255, 0.9);
+  --b-teaching: #f6c391;
+  --b-library: #c9b5f1;
+  --b-canteen: #ffd46f;
+  --b-dorm: #a9cef3;
+  --b-sports: #f6a9a2;
+  --b-lab: #a8dccb;
+  --b-hall: #f4b3d6;
+  --b-clinic: #ffbaba;
+  --b-shop: #ffe28c;
+  --b-other: #e6dbc9;
+}
+
+:root[data-theme="dark"] body[data-page="map"] {
+  --cm-paper: #0e0f13;
+  --cm-ground: #1b1d24;
+  --cm-edge: #2e5b3b;
+  --cm-green: #20372a;
+  --cm-water: #1b3a4e;
+  --cm-pitch: #24472f;
+  --cm-pitch-line: rgba(255, 255, 255, 0.35);
+  --cm-track: #6a3427;
+  --cm-sport: #223a2b;
+  --cm-plaza: #24262d;
+  --cm-parking: #22242a;
+  --cm-road: #31343d;
+  --cm-road-case: #15161b;
+  --cm-main: #3c3e48;
+  --cm-main-case: #111216;
+  --cm-path: #2b2d35;
+  --cm-context: #25262c;
+  --cm-wall: rgba(0, 0, 0, 0.62);
+  --cm-label: #f2f2f5;
+  --cm-label-bg: rgba(30, 31, 36, 0.88);
+  --b-teaching: #b9773f;
+  --b-library: #7d66b8;
+  --b-canteen: #b8902e;
+  --b-dorm: #4f7cab;
+  --b-sports: #b25a54;
+  --b-lab: #3f8c78;
+  --b-hall: #a85a8a;
+  --b-clinic: #ad5f5f;
+  --b-shop: #a99036;
+  --b-other: #5d564c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body[data-page="map"] {
+    --cm-paper: #0e0f13;
+    --cm-ground: #1b1d24;
+    --cm-edge: #2e5b3b;
+    --cm-green: #20372a;
+    --cm-water: #1b3a4e;
+    --cm-pitch: #24472f;
+    --cm-pitch-line: rgba(255, 255, 255, 0.35);
+    --cm-track: #6a3427;
+    --cm-sport: #223a2b;
+    --cm-plaza: #24262d;
+    --cm-parking: #22242a;
+    --cm-road: #31343d;
+    --cm-road-case: #15161b;
+    --cm-main: #3c3e48;
+    --cm-main-case: #111216;
+    --cm-path: #2b2d35;
+    --cm-context: #25262c;
+    --cm-wall: rgba(0, 0, 0, 0.62);
+    --cm-label: #f2f2f5;
+    --cm-label-bg: rgba(30, 31, 36, 0.88);
+    --b-teaching: #b9773f;
+    --b-library: #7d66b8;
+    --b-canteen: #b8902e;
+    --b-dorm: #4f7cab;
+    --b-sports: #b25a54;
+    --b-lab: #3f8c78;
+    --b-hall: #a85a8a;
+    --b-clinic: #ad5f5f;
+    --b-shop: #a99036;
+    --b-other: #5d564c;
+  }
+}
+
+.cx-map.cm,
+.cx-map .leaflet-container {
+  background: var(--cm-paper);
+}
+
+/* base.css 给所有 svg 加了 max-width: 100%。Leaflet 的图层容器宽度是 0，
+   它自己只给默认的 overlay pane 解除了这条限制，自定义图层要另外解除，否则整层被压成 0 宽 */
+.cx-map .leaflet-pane > svg {
+  max-width: none;
+  max-height: none;
+}
+
+/* ---------- 校园地面与校外 ---------- */
+
+.cm-mask {
+  fill: var(--cm-paper);
+  fill-opacity: 1;
+  stroke: none;
+}
+
+.cm-campus {
+  fill: var(--cm-ground);
+  fill-opacity: 1;
+  stroke: none;
+}
+
+.cm-edge {
+  stroke: var(--cm-edge);
+  stroke-width: calc(7px * var(--cm-s, 1));
+  stroke-opacity: 0.9;
+  stroke-linejoin: round;
+}
+
+.cm-a {
+  stroke: none;
+  fill-opacity: 1;
+}
+
+.cm-a-green { fill: var(--cm-green); }
+.cm-a-water { fill: var(--cm-water); }
+.cm-a-track { fill: var(--cm-track); }
+.cm-a-sportsground { fill: var(--cm-sport); }
+.cm-a-plaza { fill: var(--cm-plaza); }
+.cm-a-parking { fill: var(--cm-parking); }
+
+.cm-a-pitch {
+  fill: var(--cm-pitch);
+  stroke: var(--cm-pitch-line);
+  stroke-width: calc(1.6px * var(--cm-s, 1));
+}
+
+/* ---------- 路 ---------- */
+
+.cm-r {
+  fill: none;
+}
+
+.cm-r-case.cm-r-road { stroke: var(--cm-road-case); stroke-width: calc(9px * var(--cm-s, 1)); }
+.cm-r-fill.cm-r-road { stroke: var(--cm-road); stroke-width: calc(6.5px * var(--cm-s, 1)); }
+.cm-r-case.cm-r-mainroad { stroke: var(--cm-main-case); stroke-width: calc(15px * var(--cm-s, 1)); }
+.cm-r-fill.cm-r-mainroad { stroke: var(--cm-main); stroke-width: calc(12px * var(--cm-s, 1)); }
+.cm-r-case.cm-r-path { stroke: none; }
+
+.cm-r-fill.cm-r-path {
+  stroke: var(--cm-path);
+  stroke-width: calc(3px * var(--cm-s, 1));
+  stroke-dasharray: 0.1 calc(7px * var(--cm-s, 1));
+}
+
+/* 校外的路只画淡淡一笔，交代周围的街道 */
+.cm-r.is-context.cm-r-case { stroke: none; }
+
+.cm-r.is-context.cm-r-fill {
+  stroke: var(--cm-context);
+  stroke-width: calc(5px * var(--cm-s, 1));
+  stroke-dasharray: none;
+}
+
+/* ---------- 楼：顶面按用途上色，下方的投影当作“墙”，楼越高墙越厚 ---------- */
+
+.cm-b {
+  --wall: 3px;
+  fill-opacity: 1;
+  stroke: rgba(90, 64, 38, 0.35);
+  stroke-width: 1px;
+  filter: drop-shadow(0 calc(var(--wall) * var(--cm-s, 1)) 0 var(--cm-wall));
+  cursor: pointer;
+}
+
+.cm-b.lv-m { --wall: 6px; }
+.cm-b.lv-l { --wall: 10px; }
+
+.cm-b-teaching { fill: var(--b-teaching); }
+.cm-b-library { fill: var(--b-library); }
+.cm-b-canteen { fill: var(--b-canteen); }
+.cm-b-dorm { fill: var(--b-dorm); }
+.cm-b-sports { fill: var(--b-sports); }
+.cm-b-lab { fill: var(--b-lab); }
+.cm-b-hall { fill: var(--b-hall); }
+.cm-b-clinic { fill: var(--b-clinic); }
+.cm-b-shop { fill: var(--b-shop); }
+.cm-b-other { fill: var(--b-other); }
+
+.cm-b.is-hover {
+  stroke: #fff;
+  stroke-width: 2px;
+}
+
+.cm-b.is-course {
+  stroke: var(--accent);
+  stroke-width: 2.5px;
+}
+
+.cm-b.is-visited {
+  stroke: #e3a512;
+  stroke-width: 2.5px;
+}
+
+.cm-b.is-target {
+  stroke: #e3a512;
+  stroke-width: 3px;
+  stroke-dasharray: 6 4;
+}
+
+.cm-b.is-on {
+  stroke: var(--accent);
+  stroke-width: 4px;
+  stroke-dasharray: none;
+}
+
+/* Codex 的重绘插画交付以后：插画模式改用那张整图，矢量的地面、路和楼顶都不再画，
+   楼只留透明的点击区域，鼠标移上去和选中时描边 */
+.cm[data-art="on"][data-mode="illustrated"] .cm-a,
+.cm[data-art="on"][data-mode="illustrated"] .cm-r:not(.is-context) {
+  display: none;
+}
+
+.cm[data-art="on"][data-mode="illustrated"] .cm-b {
+  fill-opacity: 0;
+  stroke: transparent;
+  filter: none;
+}
+
+/* ---------- 名字标签 ---------- */
+
+.cm-label-wrap {
+  background: none;
+  border: 0;
+}
+
+.cm-label {
+  --dot: var(--b-other);
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 6px;
+  border-radius: 999px;
+  background: var(--cm-label-bg);
+  color: var(--cm-label);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.cm-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dot);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.cm-l-teaching { --dot: var(--b-teaching); }
+.cm-l-library { --dot: var(--b-library); }
+.cm-l-canteen { --dot: var(--b-canteen); }
+.cm-l-dorm { --dot: var(--b-dorm); }
+.cm-l-sports { --dot: var(--b-sports); }
+.cm-l-lab { --dot: var(--b-lab); }
+.cm-l-hall { --dot: var(--b-hall); }
+.cm-l-clinic { --dot: var(--b-clinic); }
+.cm-l-shop { --dot: var(--b-shop); }
+
+.cm-l-poi {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.cm-l-poi::before {
+  background: var(--fg-3);
+}
+
+/* 远看只留几类重要的楼，近看才显示全部 */
+.cm[data-zoom="far"] .cm-label,
+.cm[data-zoom="mid"] .cm-label.is-minor,
+.cm[data-zoom="mid"] .cm-l-other,
+.cm[data-zoom="mid"] .cm-l-dorm,
+.cm[data-zoom="mid"] .cm-l-shop,
+.cm[data-zoom="mid"] .cm-l-clinic {
+  display: none;
+}
+
+.cm-gate {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: #86613c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 2px #fff, 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.cm[data-zoom="far"] .cm-gate {
+  display: none;
+}
+
+/* ---------- 今天的课：金色序号和顺序虚线 ---------- */
+
+.cx-cls {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffd860, #f0a514);
+  color: #5b3900;
+  font-family: var(--font-num);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 0 0 2.5px #fff, 0 4px 10px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.cx-cls.is-now {
+  background: linear-gradient(180deg, #4cd97b, #1fa64f);
+  color: #fff;
+}
+
+.cx-cls.is-next::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid #f0a514;
+  animation: cx-cls 1.8s var(--ease-out) infinite;
+}
+
+@keyframes cx-cls {
+  from { transform: scale(0.9); opacity: 1; }
+  to { transform: scale(1.7); opacity: 0; }
+}
+
+.cx-route {
+  fill: none;
+  stroke: #f0a514;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-dasharray: 1 9;
+}
+
+/* ---------- 图例 ---------- */
+
+.cx-legend {
+  position: absolute;
+  left: 424px;
+  right: 80px;
+  bottom: 16px;
+  z-index: 3;
+  width: fit-content;
+  max-width: calc(100% - 504px);
+  padding: 7px 12px;
+  border-radius: 12px;
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+/* ---------- 面板：标签页 ---------- */
+
+.cx-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--fill-2);
+}
+
+.cx-tabs button {
+  padding: 6px 4px;
+  border-radius: 9px;
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cx-tabs button[aria-selected="true"] {
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.cx-panel.is-detail {
+  width: min(440px, calc(100% - 32px));
+}
+
+/* ---------- 任务页：玩家卡、今天、限时事件、探索任务 ---------- */
+
+.cx-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 4px 0 6px;
+  padding: 12px;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--g1) 16%, transparent), color-mix(in srgb, var(--g2) 14%, transparent) 60%, color-mix(in srgb, var(--g4) 12%, transparent));
+  text-align: left;
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+
+.cx-player:active {
+  transform: scale(0.98);
+}
+
+.cx-ring {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: conic-gradient(#f0a514 calc(var(--p) * 360deg), var(--fill-2) 0);
+}
+
+.cx-ring span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--bg-elev);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.cx-player-main {
+  display: grid;
+  min-width: 0;
+}
+
+.cx-player-main b {
+  font-size: 16px;
+}
+
+.cx-player-main span {
+  overflow: hidden;
+  color: var(--fg-2);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cx-player-n {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  margin-left: auto;
+  line-height: 1.2;
+}
+
+.cx-player-n b {
+  font-size: 22px;
+}
+
+.cx-player-n span {
+  color: var(--fg-2);
+  font-size: 11px;
+}
+
+.cx-q {
+  padding: 14px 4px 4px;
+}
+
+.cx-q-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-inline: 4px;
+}
+
+.cx-q-head h3 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cx-q-head .btn-link {
+  font-size: 13px;
+}
+
+.cx-quiet {
+  padding: 2px 4px 8px;
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.cx-empty-sm {
+  padding: 4px;
+}
+
+.cx-today,
+.cx-events {
+  display: grid;
+  gap: 6px;
+}
+
+.cx-class,
+.cx-event {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--fill);
+  text-align: left;
+  transition: background var(--dur-1);
+}
+
+.cx-class:hover:not(:disabled),
+.cx-event:hover {
+  background: var(--fill-2);
+}
+
+.cx-class time {
+  min-width: 3.2em;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cx-class.is-done {
+  opacity: 0.5;
+}
+
+.cx-class.is-next {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.cx-class.is-now {
+  box-shadow: inset 0 0 0 1.5px var(--ok);
+}
+
+.cx-class .tag + .tag {
+  grid-column: 3;
+}
+
+.cx-class-main {
+  display: grid;
+  min-width: 0;
+}
+
+.cx-class-main b,
+.cx-class-main span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cx-class-main b {
+  font-size: 14px;
+}
+
+.cx-class-main span {
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+.cx-event {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.cx-event-glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: hsl(var(--h) 80% 55%);
+  color: #fff;
+}
+
+.cx-event-glyph::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--h) 85% 58%);
+  animation: cx-cls 2.2s var(--ease-out) infinite;
+}
+
+/* 学习地点不是限时事件，不要扩散的光圈 */
+.cx-event-glyph.is-still::after {
+  content: none;
+}
+
+.cx-study-ctl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 4px 8px;
+}
+
+.cx-study-ctl button {
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--fill);
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cx-study-ctl button[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+.cx-study-socket {
+  margin-left: auto;
+}
+
+.cx-study .cx-hint {
+  margin: 8px 4px 0;
+}
+
+.cx-event-glyph .glyph {
+  width: 18px;
+  height: 18px;
+}
+
+.cx-quest {
+  margin-bottom: 8px;
+  border-radius: 16px;
+  background: var(--fill);
+  overflow: hidden;
+}
+
+.cx-quest.is-personal {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.cx-quest-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.cx-quest-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.cx-quest-n {
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.cx-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--fill-2);
+  overflow: hidden;
+}
+
+.cx-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ffd860, #f0a514);
+  transform-origin: left;
+  transition: transform 600ms var(--ease-out);
+}
+
+.cx-quest.is-complete .cx-bar i {
+  background: var(--ok);
+}
+
+.cx-quest-body {
+  padding: 0 14px 12px;
+}
+
+.cx-steps-list li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.cx-steps-list .btn-link {
+  font-size: 13px;
+}
+
+.cx-check-dot {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--line);
+}
+
+.cx-steps-list .is-done .cx-check-dot {
+  background: var(--ok);
+  box-shadow: none;
+}
+
+.cx-steps-list .is-done .cx-check-dot::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.cx-steps-list .is-done b {
+  color: var(--fg-2);
+}
+
+.cx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.cx-chip {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--bg-elev);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cx-chip.is-done {
+  background: color-mix(in srgb, #f0a514 20%, transparent);
+  box-shadow: inset 0 0 0 1px #f0a514;
+}
+
+.cx-group-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 10px 4px;
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cm-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.cm-sw-teaching { background: var(--b-teaching); }
+.cm-sw-library { background: var(--b-library); }
+.cm-sw-canteen { background: var(--b-canteen); }
+.cm-sw-dorm { background: var(--b-dorm); }
+.cm-sw-sports { background: var(--b-sports); }
+.cm-sw-lab { background: var(--b-lab); }
+.cm-sw-hall { background: var(--b-hall); }
+.cm-sw-clinic { background: var(--b-clinic); }
+.cm-sw-shop { background: var(--b-shop); }
+.cm-sw-other { background: var(--b-other); }
+
+.cx-brow {
+  justify-content: space-between;
+}
+
+.cx-panel-body > .notice {
+  margin: 6px 4px 4px;
+}
+
+/* ---------- 楼和地点的介绍卡片：参照 Apple Park 访客页，大图、大标题、几行克制的信息 ---------- */
+
+.bc,
+.cx-detail {
+  display: grid;
+  gap: 14px;
+  padding: 4px 8px 12px;
+}
+
+.cm-tone-teaching { --tone: var(--b-teaching); }
+.cm-tone-library { --tone: var(--b-library); }
+.cm-tone-canteen { --tone: var(--b-canteen); }
+.cm-tone-dorm { --tone: var(--b-dorm); }
+.cm-tone-sports { --tone: var(--b-sports); }
+.cm-tone-lab { --tone: var(--b-lab); }
+.cm-tone-hall { --tone: var(--b-hall); }
+.cm-tone-clinic { --tone: var(--b-clinic); }
+.cm-tone-shop { --tone: var(--b-shop); }
+.cm-tone-other { --tone: var(--b-other); }
+
+.bc-hero {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin: 0 -8px;
+  padding: 22px 16px 12px;
+  border-radius: 22px;
+  background:
+    radial-gradient(70% 70% at 50% 38%, color-mix(in srgb, var(--tone) 45%, transparent), transparent 75%),
+    linear-gradient(180deg, var(--bg-alt), color-mix(in srgb, var(--tone) 12%, var(--bg-alt)));
+}
+
+.bc-hero figcaption {
+  color: var(--fg-3);
+  font-size: 11px;
+}
+
+.bm {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+}
+
+.bm-roof {
+  fill: color-mix(in srgb, var(--tone) 92%, #fff);
+  stroke: rgba(0, 0, 0, 0.18);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.bm-wall-l { fill: color-mix(in srgb, var(--tone) 80%, #000); }
+.bm-wall-r { fill: color-mix(in srgb, var(--tone) 62%, #000); }
+
+.bm-floor {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 1;
+}
+
+.bm-shadow {
+  fill: rgba(0, 0, 0, 0.12);
+}
+
+.bc-eyebrow {
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bc-title {
+  margin-top: -8px;
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.bc-title:focus {
+  outline: 0;
+}
+
+.bc-lead {
+  margin-top: -4px;
+  color: var(--fg-2);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.bc-cta {
+  display: grid;
+  gap: 8px;
+}
+
+.bc-cta .btn {
+  width: 100%;
+}
+
+.bc-rows {
+  margin: 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+.bc-rows > div {
+  display: grid;
+  grid-template-columns: 5.5em minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 14px;
+}
+
+.bc-rows dt {
+  color: var(--fg-2);
+}
+
+.bc-rows dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.bc-rows ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bc-rows li span {
+  display: block;
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+.cx-photo-empty {
+  display: grid;
+  place-items: center;
+  margin: 0 -8px;
+  aspect-ratio: 16 / 9;
+  border-radius: 22px;
+  background: hsl(var(--h) 70% 50% / 0.14);
+  color: hsl(var(--h) 70% 45%);
+}
+
+.cx-photo-empty .glyph {
+  width: 52px;
+  height: 52px;
+  stroke-width: 1.4;
+}
+
+.cx-detail .cx-photos {
+  margin-inline: -8px;
+  padding-inline: 0;
+}
+
+.cx-detail .cx-photos img {
+  border-radius: 22px;
+}
+
+/* ---------- 我的校园对话框 ---------- */
+
+.cx-h3 {
+  margin: 30px 0 4px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.cx-courses {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.cx-course {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--fill);
+}
+
+.cx-course div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cx-course span {
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.cx-course-form {
+  padding: 16px;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+
+.cx-course-form .cx-loc select {
+  flex: 1 1 200px;
+  width: auto;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 15px;
+}
+
+.cx-slots {
+  display: grid;
+  gap: 8px;
+}
+
+.cx-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cx-form .cx-slot select,
+.cx-form .cx-slot input {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+}
+
+.cx-slot-x {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--fill-2);
+  color: var(--fg-2);
+}
+
+#cx-slot-add {
+  justify-self: start;
+  font-size: 14px;
+}
+
+.cx-me-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.cx-danger {
+  color: #d70015;
+}
+
+.cx-danger::after {
+  content: none;
+}
+
+.cx-explore.is-picking .cx-legend {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .cx-legend { display: none; }
+}
+
+@media (max-width: 760px) {
+  
+
+  
+
+  .cx-panel.is-detail {
+    width: auto;
+  }
+
+  .cx-slot {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-cls.is-next::after,
+  .cx-event-glyph::after {
+    animation: none;
+  }
+}

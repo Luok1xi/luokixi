@@ -1,0 +1,17 @@
+{
+  "title": "OI Wiki",
+  "summary": "算法竞赛知识整合站，从基础数据结构到 ICPC 常用技巧，洛谷、力扣刷题时的必备参考。",
+  "category": "algo",
+  "tags": [
+    "算法竞赛",
+    "数据结构",
+    "ICPC"
+  ],
+  "origin": "external",
+  "credit": "OI Wiki 社区",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/OI-wiki/OI-wiki",
+    "site": "https://oi-wiki.org/"
+  }
+}

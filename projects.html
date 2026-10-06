@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>开源广场 · Luokixi</title>
+<meta name="description" content="矿大（北京）同学的开源项目：机电、嵌入式、软件、算法、课程资料，以及值得学习的外部开源作品。">
+<script type="module" src="/src/pages/projects.js"></script>
+</head>
+<body data-page="projects">
+<!-- @include nav -->
+
+<main id="main">
+  <header class="pj-hero">
+    <div class="poster-wall" aria-hidden="true" data-live><div class="poster-plane" id="poster-plane"></div></div>
+    <div class="pj-vignette" aria-hidden="true"></div>
+    <div class="pj-hero-copy wrap">
+      <p class="eyebrow" data-reveal>开源广场</p>
+      <h1 class="headline headline-xl" data-reveal>把作品，<br><span class="glow-text">开源出来。</span></h1>
+      <p class="lead" data-reveal>机电、嵌入式、软件、算法。矿大同学的项目，和值得一读再读的开源作品，都在这里。</p>
+      <div class="btn-group" data-reveal>
+        <a class="btn btn-primary" href="contribute.html#project">发布你的项目</a>
+        <a class="btn btn-outline" href="contribute.html#guide">怎么开源</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <dl class="stat-row" id="pj-stats" data-reveal></dl>
+      <div class="pj-toolbar" data-reveal>
+        <div class="segmented scroll-x" role="group" aria-label="按分类筛选" id="cat-filter"></div>
+        <div class="pj-toolbar-end">
+          <div class="segmented" role="group" aria-label="按来源筛选" id="origin-filter">
+            <button type="button" data-origin="all" aria-pressed="true">全部</button>
+            <button type="button" data-origin="cumtb" aria-pressed="false">矿大同学</button>
+            <button type="button" data-origin="external" aria-pressed="false">外部推荐</button>
+          </div>
+          <label class="select">
+            <span class="sr-only">排序</span>
+            <select id="sort">
+              <option value="stars">最多 Star</option>
+              <option value="updated">最近更新</option>
+              <option value="name">按名称</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="pj-grid" id="pj-grid"></div>
+      <div class="empty-card" id="pj-empty" hidden>
+        <p class="empty-title">这里还没有矿大同学的项目。</p>
+        <p>课程设计、竞赛作品、实验室里的小工具，都值得被看见。第一个，可以是你的。</p>
+        <a class="btn btn-primary" href="contribute.html#project">发布第一个项目</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- @include footer -->
+</body>
+</html>

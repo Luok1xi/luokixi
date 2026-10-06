@@ -1,0 +1,79 @@
+{
+  "asset": "public/art/cumtb/_review/campus-xueyuanlu-20261006-v3.png",
+  "campus": "xueyuanlu",
+  "title": "学院路校区",
+  "created": "2026-10-06",
+  "tool": "OpenAI built-in image_gen.imagegen (model version not returned)",
+  "prompt": "Use case: style-transfer, geometry-preserving.\nImage 1 is the exact geometry-locked map of the Xueyuanlu campus, and is the edit target. Image 2 is a supporting satellite reference for architectural character.\nThe user REJECTED previous maps because they enlarged the campus and invented a sprawling complex. PRECISION AND RESTRAINT take priority over spectacle.\nKeep every visible building's ground outline, its centroid, the amount of empty space, the campus boundary (including the large exterior notch), roads, sport fields, orientation, crop and canvas aspect ratio EXACTLY as in image 1. Do not add buildings or rearrange anything. Do not fill courtyard holes. Keep all illustration INSIDE the existing campus boundary. Keep the surrounding paper almost empty.\nOnly refine the existing map's surfaces and small-scale architectural appearance into a carefully drawn university visitor-guide illustration: realistic low roof profiles, restrained 2.5D south-facing facades, tiny windows, warm cream building walls and slate grey or muted terracotta roofs as supported by satellite. Use modest height, not tower-like landmarks. Refine the existing trees into soft little canopies, but keep their overall zones and do not create forests across open courts. Warm quiet daylight, finely inked outlines with delicate gouache shading. The image must look like the SAME compact campus plan with hand-painted architectural detail, not a larger theme park.\nThe red athletics ground at upper right has a real running track visible in satellite: add its rounded track markings within the existing red athletics area, without enlarging that area. Restore small roof details from the satellite only within the existing building footprint envelope; do not transform the big rectangular northern building into a whole invented village.\nDo not render rows of generic roof dots: replace those decorative dots with restrained roof material. Keep university proportions as real-world coordinates suggest.\nNo labels, numbers, names, logos, emblems, people, event pins, compass art, rides, castles or mountains. Interactive pins are a separate layer. Maintain Image 1's entire composition and fixed geographic ground plane; no perspective rotation or scenic re-composition. Output same aspect ratio as Image 1.",
+  "referencePaths": [
+    "C:\\Users\\user\\Documents\\Codex\\2026-10-06\\zhe\\map-precision-review/xueyuanlu-geometry-locked-v1.png",
+    "C:/Users/user/Documents/GitHub/luokixi/campus/.data/map-capture/luokixi-xueyuanlu-satellite-z18.png"
+  ],
+  "usage": "校园导览插画候选；非实拍，非导航测绘底图",
+  "review": "pending",
+  "integrationReady": false,
+  "size": {
+    "width": 1489,
+    "height": 1056,
+    "bytes": 1792689
+  },
+  "sha256": "6f60afa2dc7923918ea95a8727704d0be07a3aab54b8803d4ae1444972af40c0",
+  "sourceGeneration": "C:/Users/user/.codex/generated_images/01a10e82-fd80-7c51-b9a4-513abc936e17/exec-34a6c4c7-9e13-4286-a0b9-e8dffd982f27.png",
+  "intendedGeographicFrame": {
+    "bounds": [
+      [
+        39.994452,
+        116.33730999999999
+      ],
+      [
+        39.999798,
+        116.34714100000001
+      ]
+    ],
+    "projection": "EPSG:3857",
+    "coordinateSystem": "WGS84",
+    "zoom": 19,
+    "width": 3666,
+    "height": 2602,
+    "status": "reference only; output not proven registered"
+  },
+  "geometryAudit": {
+    "sourceBuildingFeatures": 53,
+    "observedRoofOutlines": 0,
+    "scope": "Input vertices only; does not test generated image alignment",
+    "roundtripMaxPixels": 7.450580596923828e-9,
+    "sourceHash": "ac0c6a5c3c54b5ffa23570667fea8ab4d12abf0c3f788ae6e1e4b9f0b52ba01f"
+  },
+  "traced": [],
+  "sources": [
+    {
+      "name": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/way/1003833559",
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors"
+    },
+    {
+      "name": "Local satellite reference supplied by project capture",
+      "path": "campus/.data/map-capture/luokixi-xueyuanlu-satellite-z18.png",
+      "attribution": "Esri / Maxar / Earthstar Geographics and imagery providers; see capture metadata",
+      "usage": "private drawing reference; raw imagery not copied into public assets"
+    }
+  ],
+  "issues": [
+    "小球场被概括成足球线型，需要按实际用途和范围重绘。",
+    "北部大型建筑的屋顶细节过度简化；外观和高度未实测。",
+    "绿化和屋顶点状装饰为插画细节，不是逐点采集记录。"
+  ],
+  "validation": {
+    "decoded": true,
+    "visuallyInspected": true,
+    "groundAlignment4PixelsAtZ19": "not passed / not measured",
+    "productionSizeAndFormat": "not ready: review PNG and smaller than prescribed z19 canvas"
+  },
+  "rejectedPriorCandidates": [
+    "exec-7166c6bd-911b-4ef6-a35c-74727a9f0f42.png",
+    "exec-270dc0e7-3d68-40e2-969f-eefa4f378475.png"
+  ],
+  "privateComparison": "C:\\Users\\user\\Documents\\Codex\\2026-10-06\\zhe\\map-precision-review/compare.html",
+  "next": "Review illustration style and building identity, correct court/roof details, then register and measure ground footprints before Opus approves a production WebP."
+}

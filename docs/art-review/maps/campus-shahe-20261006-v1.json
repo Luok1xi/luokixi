@@ -1,0 +1,429 @@
+{
+  "asset": "public/art/cumtb/_review/campus-shahe-20261006-v1.png",
+  "campus": "shahe",
+  "title": "沙河校区",
+  "created": "2026-10-06",
+  "tool": "OpenAI built-in image_gen.imagegen (model version not returned)",
+  "prompt": "Use case: geometry-constrained campus map illustration / style transfer.\nCreate a restrained illustrated visitor map of China University of Mining and Technology (Beijing), SHAHE campus, using these two references.\nImage 1 is a coordinate-based map scaffold defining the EXACT campus boundary, location, north-up orientation, full crop, ground scale and main building-group envelopes. Image 2 is the actual satellite reference of that same location and controls the actual architectural layout, rooftop forms and internal courtyards.\nThe user rejected earlier campus maps that made the campus much too large. Do not invent an expanded campus or grand landmarks. Keep this a compact, modest university site at the exact size in image 1. Retain the deep rectangular exclusion at the top-right/northeast of the campus polygon. Leave the river park to the west and the other institution across the eastern road OUTSIDE the campus illustration. Preserve all outer building envelope positions and roads.\nIMPORTANT accuracy correction: Image 1 contains simplified polygon roof envelopes, not a construction plan. Reconstruct visible courtyard holes, separated roof wings and smaller structures only where directly supported by satellite image 2. In particular the irregular northwest-middle polygon must be a small cluster of connected low buildings with courtyard gaps as seen in image 2, NOT a gigantic solid-roof hall. The top/northern cluster contains visibly small rectangular courtyard buildings; do not turn all four envelopes into giant slabs. Preserve their ground location, overall envelope and compact proportions. Do not fill the open U-shaped courtyards in the eastern/southern wings. Do not invent rooftop towers, monumental facades or building names.\nWest/southwest: one real running track enclosing a soccer pitch; preserve its size, angle and exact ground location. Smaller courts north/northeast of the track are tennis/basketball courts, not additional soccer fields; reproduce the visible satellite court arrangement at its actual extent.\nKeep the image as a near-top-down map with only subtle low 2.5D south-facing walls, so every building remains anchored to its true footprint. Fine architectural linework, pale warm walls, muted slate roofs, soft warm daylight, delicate gouache/colored-pencil shading, small individual tree canopies and restrained real-world vegetation zones. Original theme-park visitor-guide illustration quality without rides or fantasy architecture. Clear and detailed, not flashy, no gigantic trees or exaggerated height. No pattern of generic roof dots.\nKeep outside context as very pale paper and understated perimeter roads, like image 1. No scenic perspective rotation, no horizon, no mountains, no labels, no text/numbers, no names, no logos, no compass decorations, no people, no event pins. Pins and labels will be added later by the website. Output the same nearly-square aspect ratio and exact geographic framing as image 1.",
+  "referencePaths": [
+    "C:\\Users\\user\\Documents\\Codex\\2026-10-06\\zhe\\map-precision-review/shahe-geometry-locked-v1.png",
+    "C:/Users/user/Documents/GitHub/luokixi/campus/.data/map-capture/luokixi-shahe-satellite-z18.png"
+  ],
+  "usage": "校园导览插画候选；非实拍，非导航测绘底图",
+  "review": "pending",
+  "integrationReady": false,
+  "size": {
+    "width": 1264,
+    "height": 1244,
+    "bytes": 2043732
+  },
+  "sha256": "4e90d50bf0847ed7b73be4c643e68ae8e5ffc55544b7b914b1a52520a6c62154",
+  "sourceGeneration": "C:/Users/user/.codex/generated_images/01a10e82-fd80-7c51-b9a4-513abc936e17/exec-cf215ee9-21db-4c7a-86cf-7868b64baa2c.png",
+  "intendedGeographicFrame": {
+    "bounds": [
+      [
+        40.148812,
+        116.25201299999999
+      ],
+      [
+        40.154239,
+        116.25923
+      ]
+    ],
+    "projection": "EPSG:3857",
+    "coordinateSystem": "WGS84",
+    "zoom": 19,
+    "width": 2691,
+    "height": 2648,
+    "status": "reference only; output not proven registered"
+  },
+  "geometryAudit": {
+    "sourceBuildingFeatures": 8,
+    "observedRoofOutlines": 6,
+    "scope": "Input vertices only; does not test generated image alignment",
+    "roundtripMaxPixels": 7.450580596923828e-9,
+    "sourceHash": "3ce765c7060f3ef1eb793ed3ec38c5b36c06158d354955ca8e545a313d8ffee5"
+  },
+  "traced": [
+    {
+      "id": "observed-sh-01",
+      "role": "visible-roof",
+      "ring": [
+        [
+          385,
+          326
+        ],
+        [
+          474,
+          300
+        ],
+        [
+          507,
+          407
+        ],
+        [
+          414,
+          432
+        ],
+        [
+          385,
+          326
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25407831668855,
+          40.15290237756201
+        ],
+        [
+          116.2545557498932,
+          40.15300898179463
+        ],
+        [
+          116.25473277568818,
+          40.15257026330304
+        ],
+        [
+          116.25423388481141,
+          40.15246775857414
+        ],
+        [
+          116.25407831668855,
+          40.15290237756201
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-02",
+      "role": "visible-roof",
+      "ring": [
+        [
+          243,
+          536
+        ],
+        [
+          299,
+          482
+        ],
+        [
+          366,
+          458
+        ],
+        [
+          391,
+          516
+        ],
+        [
+          359,
+          584
+        ],
+        [
+          286,
+          609
+        ],
+        [
+          266,
+          571
+        ],
+        [
+          243,
+          536
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25331656932832,
+          40.15204133724139
+        ],
+        [
+          116.25361697673799,
+          40.15226274865219
+        ],
+        [
+          116.25397639274598,
+          40.15236115349196
+        ],
+        [
+          116.25411050319673,
+          40.15212334155178
+        ],
+        [
+          116.25393884181977,
+          40.15184452649249
+        ],
+        [
+          116.2535472393036,
+          40.15174202066822
+        ],
+        [
+          116.253439950943,
+          40.15189782945996
+        ],
+        [
+          116.25331656932832,
+          40.15204133724139
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-03",
+      "role": "visible-roof",
+      "ring": [
+        [
+          364,
+          503
+        ],
+        [
+          422,
+          485
+        ],
+        [
+          443,
+          544
+        ],
+        [
+          382,
+          562
+        ],
+        [
+          364,
+          503
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25396566390992,
+          40.152176644300425
+        ],
+        [
+          116.25427680015565,
+          40.152250448037194
+        ],
+        [
+          116.25438945293428,
+          40.152008535489514
+        ],
+        [
+          116.25406222343446,
+          40.15193473148987
+        ],
+        [
+          116.25396566390992,
+          40.152176644300425
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-04",
+      "role": "visible-roof",
+      "ring": [
+        [
+          728,
+          965
+        ],
+        [
+          811,
+          939
+        ],
+        [
+          839,
+          1020
+        ],
+        [
+          756,
+          1047
+        ],
+        [
+          728,
+          965
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25591831207277,
+          40.15028232094311
+        ],
+        [
+          116.25636355876924,
+          40.15038892928834
+        ],
+        [
+          116.25651376247407,
+          40.15005680273835
+        ],
+        [
+          116.2560685157776,
+          40.14994609352745
+        ],
+        [
+          116.25591831207277,
+          40.15028232094311
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-05",
+      "role": "visible-roof",
+      "ring": [
+        [
+          343,
+          251
+        ],
+        [
+          388,
+          237
+        ],
+        [
+          395,
+          260
+        ],
+        [
+          426,
+          250
+        ],
+        [
+          437,
+          286
+        ],
+        [
+          362,
+          310
+        ],
+        [
+          343,
+          251
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.2538530111313,
+          40.15320988931664
+        ],
+        [
+          116.25409440994264,
+          40.15326729135662
+        ],
+        [
+          116.25413196086885,
+          40.1531729879796
+        ],
+        [
+          116.25429825782777,
+          40.153213989463964
+        ],
+        [
+          116.2543572664261,
+          40.15306638400442
+        ],
+        [
+          116.25395493507386,
+          40.1529679801865
+        ],
+        [
+          116.2538530111313,
+          40.15320988931664
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-06",
+      "role": "visible-roof",
+      "ring": [
+        [
+          499,
+          229
+        ],
+        [
+          540,
+          217
+        ],
+        [
+          571,
+          317
+        ],
+        [
+          530,
+          330
+        ],
+        [
+          499,
+          229
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25468986034394,
+          40.15330009250054
+        ],
+        [
+          116.25490980148317,
+          40.15334929418671
+        ],
+        [
+          116.25507609844209,
+          40.15293927904608
+        ],
+        [
+          116.25485615730287,
+          40.15288597689597
+        ],
+        [
+          116.25468986034394,
+          40.15330009250054
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    }
+  ],
+  "sources": [
+    {
+      "name": "OpenStreetMap contributors",
+      "url": "https://www.openstreetmap.org/way/683349458",
+      "license": "ODbL 1.0",
+      "attribution": "© OpenStreetMap contributors"
+    },
+    {
+      "name": "Local satellite reference supplied by project capture",
+      "path": "campus/.data/map-capture/luokixi-shahe-satellite-z18.png",
+      "attribution": "Esri / Maxar / Earthstar Geographics and imagery providers; see capture metadata",
+      "usage": "private drawing reference; raw imagery not copied into public assets"
+    }
+  ],
+  "issues": [
+    "北部及西侧屋顶在原 OSM 数据中不全，6 处人工观察只登记屋顶位置，不能当作地面测绘。",
+    "跑道北侧小球场仍出现足球线型；中部球场与树木分布需进一步对照原图。",
+    "模型补充的庭院、屋顶层次和树木为视觉解释，尚未逐栋核验。"
+  ],
+  "validation": {
+    "decoded": true,
+    "visuallyInspected": true,
+    "groundAlignment4PixelsAtZ19": "not passed / not measured",
+    "productionSizeAndFormat": "not ready: review PNG and smaller than prescribed z19 canvas"
+  },
+  "rejectedPriorCandidates": [],
+  "privateComparison": "C:\\Users\\user\\Documents\\Codex\\2026-10-06\\zhe\\map-precision-review/compare.html",
+  "next": "Review illustration style and building identity, correct court/roof details, then register and measure ground footprints before Opus approves a production WebP."
+}

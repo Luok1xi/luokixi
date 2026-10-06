@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "nextExam": {
+    "label": "2026 年 12 月四六级笔试",
+    "date": "2026-12-12",
+    "sessions": [
+      {
+        "exam": "四级",
+        "time": "09:00 – 11:20"
+      },
+      {
+        "exam": "六级",
+        "time": "15:00 – 17:25"
+      }
+    ],
+    "source": "多所高校 2026 年 9 月教务通知；以教育部教育考试院公告为准",
+    "sourceUrl": "https://cet.neea.edu.cn/"
+  },
+  "repo": {
+    "owner": null,
+    "name": "luokixi",
+    "branch": "main",
+    "_note": "仓库发布到 GitHub 后填写 owner（用户名或组织名），投稿按钮才会直接跳到 GitHub"
+  }
+}

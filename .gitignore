@@ -1,0 +1,41 @@
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
+*.log
+__pycache__/
+.venv/
+
+# 本机开发配置（桌面应用的预览启动项）
+.claude/launch.json
+
+# 矿大校内试卷 PDF：是否公开上传待定（版权与隐私），先只留在本地
+public/files/
+
+# 美术待审稿件不发布
+public/art/cumtb/_review/
+
+# Private-machine state and generated output (archive organization 2026-10-06)
+.env
+.env.*
+!.env.example
+.secrets/
+.mcp.json
+.claude/
+.serena/
+node_modules/
+.venv/
+.data/
+__pycache__/
+*.pyc
+*.log
+*.pid
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.pem
+*.key
+*.pfx
+dist/

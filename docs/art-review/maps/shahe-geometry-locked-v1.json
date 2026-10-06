@@ -1,0 +1,1019 @@
+{
+  "campus": "shahe",
+  "created": "2026-10-06",
+  "tool": "Deterministic SVG cartographic illustration; no generative rearrangement",
+  "usage": "坐标约束概念底图，未现场测绘",
+  "review": "pending",
+  "integrationReady": false,
+  "sourceHash": "3ce765c7060f3ef1eb793ed3ec38c5b36c06158d354955ca8e545a313d8ffee5",
+  "width": 2691,
+  "height": 2648,
+  "bounds": [
+    [
+      40.148812,
+      116.25201299999999
+    ],
+    [
+      40.154239,
+      116.25923
+    ]
+  ],
+  "projection": "EPSG:3857",
+  "coordinateSystem": "WGS84",
+  "pixelOrigin": [
+    110450755.83,
+    50736882.67
+  ],
+  "zoom": 19,
+  "geometryRoundingMaxPixels": 0.002,
+  "roundtripMaxPixels": 7.450580596923828e-9,
+  "boundaryPoints": [
+    [
+      111.85,
+      300.966
+    ],
+    [
+      539.483,
+      146.337
+    ],
+    [
+      631.385,
+      417.059
+    ],
+    [
+      998.06,
+      306.576
+    ],
+    [
+      1233.5,
+      903.127
+    ],
+    [
+      1223.434,
+      935.076
+    ],
+    [
+      932.815,
+      1030.19
+    ],
+    [
+      922.935,
+      1007.265
+    ],
+    [
+      894.041,
+      1016.289
+    ],
+    [
+      754.604,
+      1059.7
+    ],
+    [
+      765.043,
+      1085.063
+    ],
+    [
+      483.559,
+      1177.25
+    ],
+    [
+      302.365,
+      819.474
+    ],
+    [
+      111.85,
+      300.966
+    ]
+  ],
+  "sourceBuildingCount": 8,
+  "drawnOsmBuildings": 8,
+  "excludedOutsideBuildings": 0,
+  "observedBuildings": [
+    {
+      "id": "observed-sh-01",
+      "role": "visible-roof",
+      "ring": [
+        [
+          385,
+          326
+        ],
+        [
+          474,
+          300
+        ],
+        [
+          507,
+          407
+        ],
+        [
+          414,
+          432
+        ],
+        [
+          385,
+          326
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25407831668855,
+          40.15290237756201
+        ],
+        [
+          116.2545557498932,
+          40.15300898179463
+        ],
+        [
+          116.25473277568818,
+          40.15257026330304
+        ],
+        [
+          116.25423388481141,
+          40.15246775857414
+        ],
+        [
+          116.25407831668855,
+          40.15290237756201
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-02",
+      "role": "visible-roof",
+      "ring": [
+        [
+          243,
+          536
+        ],
+        [
+          299,
+          482
+        ],
+        [
+          366,
+          458
+        ],
+        [
+          391,
+          516
+        ],
+        [
+          359,
+          584
+        ],
+        [
+          286,
+          609
+        ],
+        [
+          266,
+          571
+        ],
+        [
+          243,
+          536
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25331656932832,
+          40.15204133724139
+        ],
+        [
+          116.25361697673799,
+          40.15226274865219
+        ],
+        [
+          116.25397639274598,
+          40.15236115349196
+        ],
+        [
+          116.25411050319673,
+          40.15212334155178
+        ],
+        [
+          116.25393884181977,
+          40.15184452649249
+        ],
+        [
+          116.2535472393036,
+          40.15174202066822
+        ],
+        [
+          116.253439950943,
+          40.15189782945996
+        ],
+        [
+          116.25331656932832,
+          40.15204133724139
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-03",
+      "role": "visible-roof",
+      "ring": [
+        [
+          364,
+          503
+        ],
+        [
+          422,
+          485
+        ],
+        [
+          443,
+          544
+        ],
+        [
+          382,
+          562
+        ],
+        [
+          364,
+          503
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25396566390992,
+          40.152176644300425
+        ],
+        [
+          116.25427680015565,
+          40.152250448037194
+        ],
+        [
+          116.25438945293428,
+          40.152008535489514
+        ],
+        [
+          116.25406222343446,
+          40.15193473148987
+        ],
+        [
+          116.25396566390992,
+          40.152176644300425
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-04",
+      "role": "visible-roof",
+      "ring": [
+        [
+          728,
+          965
+        ],
+        [
+          811,
+          939
+        ],
+        [
+          839,
+          1020
+        ],
+        [
+          756,
+          1047
+        ],
+        [
+          728,
+          965
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25591831207277,
+          40.15028232094311
+        ],
+        [
+          116.25636355876924,
+          40.15038892928834
+        ],
+        [
+          116.25651376247407,
+          40.15005680273835
+        ],
+        [
+          116.2560685157776,
+          40.14994609352745
+        ],
+        [
+          116.25591831207277,
+          40.15028232094311
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-05",
+      "role": "visible-roof",
+      "ring": [
+        [
+          343,
+          251
+        ],
+        [
+          388,
+          237
+        ],
+        [
+          395,
+          260
+        ],
+        [
+          426,
+          250
+        ],
+        [
+          437,
+          286
+        ],
+        [
+          362,
+          310
+        ],
+        [
+          343,
+          251
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.2538530111313,
+          40.15320988931664
+        ],
+        [
+          116.25409440994264,
+          40.15326729135662
+        ],
+        [
+          116.25413196086885,
+          40.1531729879796
+        ],
+        [
+          116.25429825782777,
+          40.153213989463964
+        ],
+        [
+          116.2543572664261,
+          40.15306638400442
+        ],
+        [
+          116.25395493507386,
+          40.1529679801865
+        ],
+        [
+          116.2538530111313,
+          40.15320988931664
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    },
+    {
+      "id": "observed-sh-06",
+      "role": "visible-roof",
+      "ring": [
+        [
+          499,
+          229
+        ],
+        [
+          540,
+          217
+        ],
+        [
+          571,
+          317
+        ],
+        [
+          530,
+          330
+        ],
+        [
+          499,
+          229
+        ]
+      ],
+      "sourceImage": "luokixi-shahe-satellite-z18.png",
+      "sourceUnits": "z18 reference pixels",
+      "coordinates": [
+        [
+          116.25468986034394,
+          40.15330009250054
+        ],
+        [
+          116.25490980148317,
+          40.15334929418671
+        ],
+        [
+          116.25507609844209,
+          40.15293927904608
+        ],
+        [
+          116.25485615730287,
+          40.15288597689597
+        ],
+        [
+          116.25468986034394,
+          40.15330009250054
+        ]
+      ],
+      "review": "needs-ground-footprint-verification",
+      "geometryType": "roof-outline-observation-not-survey"
+    }
+  ],
+  "landscapeNote": "Trees are illustrative within manually observed vegetation regions; individual tree positions unverified",
+  "groundGeometry": "OSM footprint ground vertices unchanged; facade thickness capped, roof moved only for visual volume",
+  "geometryAudit": [
+    {
+      "source": "observed-sh-05",
+      "name": null,
+      "observed": true,
+      "geometryGround": [
+        [
+          343.005,
+          250.995
+        ],
+        [
+          388.005,
+          236.995
+        ],
+        [
+          395.005,
+          259.995
+        ],
+        [
+          426.005,
+          249.995
+        ],
+        [
+          437.005,
+          285.995
+        ],
+        [
+          362.005,
+          309.995
+        ],
+        [
+          343.005,
+          250.995
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "observed-sh-06",
+      "name": null,
+      "observed": true,
+      "geometryGround": [
+        [
+          499.005,
+          228.995
+        ],
+        [
+          540.005,
+          216.995
+        ],
+        [
+          571.005,
+          316.995
+        ],
+        [
+          530.005,
+          329.995
+        ],
+        [
+          499.005,
+          228.995
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683351168",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          851.539,
+          367.549
+        ],
+        [
+          949.965,
+          334.379
+        ],
+        [
+          960.964,
+          366.573
+        ],
+        [
+          862.537,
+          399.986
+        ],
+        [
+          851.539,
+          367.549
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "observed-sh-01",
+      "name": null,
+      "observed": true,
+      "geometryGround": [
+        [
+          385.005,
+          325.995
+        ],
+        [
+          474.005,
+          299.995
+        ],
+        [
+          507.005,
+          406.995
+        ],
+        [
+          414.005,
+          431.995
+        ],
+        [
+          385.005,
+          325.995
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683350575",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          277.572,
+          324.38
+        ],
+        [
+          331.259,
+          305.112
+        ],
+        [
+          364.44,
+          396.816
+        ],
+        [
+          358.662,
+          399.011
+        ],
+        [
+          369.287,
+          428.034
+        ],
+        [
+          321.193,
+          445.35
+        ],
+        [
+          277.572,
+          324.38
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683351167",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          708.933,
+          406.571
+        ],
+        [
+          822.086,
+          369.5
+        ],
+        [
+          865.334,
+          502.42
+        ],
+        [
+          754.604,
+          538.516
+        ],
+        [
+          743.419,
+          504.372
+        ],
+        [
+          827.864,
+          477.056
+        ],
+        [
+          808.291,
+          416.815
+        ],
+        [
+          721.422,
+          444.862
+        ],
+        [
+          708.933,
+          406.571
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "observed-sh-03",
+      "name": null,
+      "observed": true,
+      "geometryGround": [
+        [
+          364.005,
+          502.995
+        ],
+        [
+          422.005,
+          484.995
+        ],
+        [
+          443.005,
+          543.995
+        ],
+        [
+          382.005,
+          561.995
+        ],
+        [
+          364.005,
+          502.995
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683351166",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          636.977,
+          480.47
+        ],
+        [
+          706.509,
+          457.789
+        ],
+        [
+          735.963,
+          548.516
+        ],
+        [
+          666.43,
+          571.197
+        ],
+        [
+          636.977,
+          480.47
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "observed-sh-02",
+      "name": null,
+      "observed": true,
+      "geometryGround": [
+        [
+          243.005,
+          535.995
+        ],
+        [
+          299.005,
+          481.995
+        ],
+        [
+          366.005,
+          457.995
+        ],
+        [
+          391.005,
+          515.995
+        ],
+        [
+          359.005,
+          583.995
+        ],
+        [
+          286.005,
+          608.995
+        ],
+        [
+          266.005,
+          570.995
+        ],
+        [
+          243.005,
+          535.995
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683351165",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          483.559,
+          487.787
+        ],
+        [
+          602.304,
+          454.862
+        ],
+        [
+          612.557,
+          491.933
+        ],
+        [
+          540.974,
+          511.688
+        ],
+        [
+          556.446,
+          568.027
+        ],
+        [
+          626.911,
+          548.516
+        ],
+        [
+          636.231,
+          582.66
+        ],
+        [
+          518.791,
+          615.097
+        ],
+        [
+          483.559,
+          487.787
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683350572",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          669.413,
+          797.769
+        ],
+        [
+          1001.415,
+          688.751
+        ],
+        [
+          1016.888,
+          736.065
+        ],
+        [
+          685.072,
+          845.326
+        ],
+        [
+          669.413,
+          797.769
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683350574",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          889.754,
+          439.741
+        ],
+        [
+          1027.513,
+          391.206
+        ],
+        [
+          1176.831,
+          815.084
+        ],
+        [
+          1067.406,
+          853.618
+        ],
+        [
+          1053.238,
+          813.621
+        ],
+        [
+          1131.905,
+          785.818
+        ],
+        [
+          1103.011,
+          703.628
+        ],
+        [
+          1027.327,
+          730.212
+        ],
+        [
+          1012.414,
+          688.02
+        ],
+        [
+          1078.031,
+          665.094
+        ],
+        [
+          1051.561,
+          590.221
+        ],
+        [
+          954.066,
+          624.365
+        ],
+        [
+          936.73,
+          575.343
+        ],
+        [
+          1025.09,
+          544.369
+        ],
+        [
+          999.365,
+          471.446
+        ],
+        [
+          911.751,
+          502.42
+        ],
+        [
+          889.754,
+          439.741
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/683350573",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          651.89,
+          869.227
+        ],
+        [
+          699.985,
+          853.618
+        ],
+        [
+          722.727,
+          924.101
+        ],
+        [
+          1040.003,
+          822.157
+        ],
+        [
+          1051.561,
+          858.252
+        ],
+        [
+          686.19,
+          975.56
+        ],
+        [
+          651.89,
+          869.227
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "observed-sh-04",
+      "name": null,
+      "observed": true,
+      "geometryGround": [
+        [
+          728.005,
+          964.995
+        ],
+        [
+          811.005,
+          938.995
+        ],
+        [
+          839.005,
+          1019.995
+        ],
+        [
+          756.005,
+          1046.995
+        ],
+        [
+          728.005,
+          964.995
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    }
+  ],
+  "source": [
+    "https://www.openstreetmap.org/way/683349458",
+    "https://www.openstreetmap.org/copyright"
+  ],
+  "referenceMetadata": "campus/.data/map-capture/luokixi-shahe-z19.json",
+  "rejectedPriorGenerations": []
+}

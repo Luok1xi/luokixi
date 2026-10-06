@@ -1,0 +1,686 @@
+{
+  "version": 1,
+  "exam": "cet4",
+  "name": "大学英语四级",
+  "short": "四级",
+  "sessions": [
+    {
+      "id": "cet4-2026-06",
+      "year": 2026,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2026-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2026-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2026-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2025-12",
+      "year": 2025,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2025-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2025-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2025-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2025-06",
+      "year": 2025,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2025-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2025-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2025-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2024-12",
+      "year": 2024,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2024-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2024-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2024-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2024-06",
+      "year": 2024,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2024-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2024-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2024-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2023-12",
+      "year": 2023,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2023-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2023-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2023-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2023-06",
+      "year": 2023,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2023-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2023-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2023-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2023-03",
+      "year": 2023,
+      "month": 3,
+      "sets": [
+        {
+          "id": "cet4-2023-03-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2023-03-2-3",
+          "label": "第2-3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2022-12",
+      "year": 2022,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2022-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2022-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2022-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2022-09",
+      "year": 2022,
+      "month": 9,
+      "sets": [
+        {
+          "id": "cet4-2022-09-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2022-09-2-3",
+          "label": "第2-3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2022-06",
+      "year": 2022,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2022-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2022-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2022-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2021-12",
+      "year": 2021,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2021-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2021-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2021-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2021-06",
+      "year": 2021,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2021-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2021-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2021-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2020-12",
+      "year": 2020,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2020-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2020-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2020-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null,
+          "note": "暂无公开答案"
+        }
+      ]
+    },
+    {
+      "id": "cet4-2020-09",
+      "year": 2020,
+      "month": 9,
+      "sets": [
+        {
+          "id": "cet4-2020-09-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2020-09-2",
+          "label": "第2套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2020-09-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null,
+          "note": "暂无公开答案"
+        }
+      ]
+    },
+    {
+      "id": "cet4-2020-07",
+      "year": 2020,
+      "month": 7,
+      "sets": [
+        {
+          "id": "cet4-2020-07-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2019-12",
+      "year": 2019,
+      "month": 12,
+      "sets": [
+        {
+          "id": "cet4-2019-12-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2019-12-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2019-12-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    },
+    {
+      "id": "cet4-2019-06",
+      "year": 2019,
+      "month": 6,
+      "sets": [
+        {
+          "id": "cet4-2019-06-1",
+          "label": "第1套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2019-06-2",
+          "label": "第2套",
+          "listening": true,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        },
+        {
+          "id": "cet4-2019-06-3",
+          "label": "第3套",
+          "listening": false,
+          "resources": {
+            "paper": null,
+            "answer": null,
+            "audio": null
+          },
+          "practice": null
+        }
+      ]
+    }
+  ]
+}

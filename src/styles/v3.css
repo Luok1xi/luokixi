@@ -1,0 +1,754 @@
+/* ==========================================================================
+   第三版组件：排版学虎扑，界面学 App Store（规范见 docs/DESIGN.md 第三版）
+   只用 tokens.css 里的变量；组件名前缀统一为 v3-，方便和旧组件区分、逐页迁移。
+   ========================================================================== */
+
+/* ---------- 板块页头：小字日期 + 34px 大标题 ---------- */
+
+.v3-head {
+  padding: 28px 0 8px;
+}
+
+.v3-date {
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.v3-title {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+/* 虎扑式顶部标签：推荐 / 关注 / 热榜，下划线跟着滑 */
+.v3-tabs {
+  position: relative;
+  display: flex;
+  gap: 24px;
+  margin-top: 12px;
+  border-bottom: 1px solid var(--line-soft);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.v3-tabs::-webkit-scrollbar { display: none; }
+
+.v3-tabs button {
+  flex: none;
+  padding: 10px 0 12px;
+  color: var(--fg-2);
+  font-size: 17px;
+  font-weight: 600;
+  transition: color var(--dur-2);
+}
+
+.v3-tabs button[aria-selected="true"] {
+  color: var(--fg);
+}
+
+.v3-tabs-bar {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--fg);
+  transition: transform 380ms var(--ease-out), width 380ms var(--ease-out);
+}
+
+/* ---------- 分区标题：22px + 右侧“查看全部” ---------- */
+
+.v3-sec {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 36px 0 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.v3-sec h2 {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.v3-sec a {
+  font-size: 17px;
+}
+
+/* ---------- 精选大卡（App Store Today） ---------- */
+
+.v3-today {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  aspect-ratio: 4 / 5;
+  max-height: 560px;
+  padding: 22px;
+  border-radius: 22px;
+  overflow: hidden;
+  color: #fff;
+  background: var(--today-bg, linear-gradient(160deg, #1b2a4a, #0b0f1a));
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: transform 400ms var(--ease-out);
+  isolation: isolate;
+}
+
+.v3-today:hover { transform: scale(1.012); }
+.v3-today:active { transform: scale(0.985); }
+
+.v3-today img,
+.v3-today .v3-today-art {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.v3-today::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 32%, transparent 58%, rgba(0, 0, 0, 0.62));
+}
+
+.v3-today-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.v3-today-title {
+  margin-top: 4px;
+  font-size: clamp(26px, 3vw, 32px);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.v3-today-dek {
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.v3-today-meta {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* 展开后的文章（View Transitions 从卡片位置放大而来） */
+.v3-article {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.v3-article-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 62vh;
+  padding: 28px max(var(--gutter), calc((100vw - 760px) / 2));
+  color: #fff;
+  background: var(--today-bg);
+  isolation: isolate;
+}
+
+.v3-article-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.6));
+}
+
+.v3-article-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px var(--gutter) 80px;
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.v3-article-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 81;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 18px;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* ---------- 横向货架 ---------- */
+
+.v3-shelf {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 31%);
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 2px;
+  padding: 2px 2px 14px;
+  scrollbar-width: none;
+}
+
+.v3-shelf::-webkit-scrollbar { display: none; }
+.v3-shelf > * { scroll-snap-align: start; }
+
+@media (max-width: 760px) {
+  .v3-shelf { grid-auto-columns: 84%; }
+}
+
+/* ---------- 列表行（App Store 应用列表） ---------- */
+
+.v3-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.v3-row {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+}
+
+.v3-row + .v3-row .v3-row-text {
+  /* 分隔线从文字开始，图标下面不画线（iOS 的内缩分隔） */
+  box-shadow: 0 -10px 0 -9.5px var(--line);
+}
+
+.v3-row-text {
+  min-width: 0;
+  padding: 6px 0;
+}
+
+.v3-row-title {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v3-row-sub {
+  color: var(--fg-2);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v3-icon {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 13px;
+  background: linear-gradient(145deg, hsl(var(--h, 215) 85% 58%), hsl(calc(var(--h, 215) + 40) 80% 46%));
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.v3-icon svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 灰底蓝字胶囊（App Store “获取”按钮） */
+.v3-pill {
+  display: inline-grid;
+  place-items: center;
+  min-width: 72px;
+  height: 30px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  background: var(--fill-2);
+  color: var(--link);
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform var(--dur-2) var(--ease-out), background var(--dur-1);
+}
+
+.v3-pill:hover { text-decoration: none; background: color-mix(in srgb, var(--fg) 12%, transparent); }
+.v3-pill:active { transform: scale(0.94); }
+.v3-pill[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+/* ---------- 评分块（App Store 评分与评论） ---------- */
+
+.v3-rating {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 8px 28px;
+}
+
+.v3-score {
+  font-family: var(--font-num);
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+.v3-score-of {
+  margin-top: 6px;
+  color: var(--fg-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.v3-hist {
+  display: grid;
+  gap: 3px;
+}
+
+.v3-hist-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.v3-hist-stars {
+  color: var(--fg-2);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-align: right;
+}
+
+.v3-hist-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--fill-2);
+  overflow: hidden;
+}
+
+.v3-hist-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--fg-2);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+  transition: transform 900ms var(--ease-out);
+}
+
+.v3-count {
+  grid-column: 2;
+  justify-self: end;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+
+.v3-score-low {
+  color: var(--fg-2);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ---------- 评论卡 ---------- */
+
+.v3-review {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 200px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: var(--bg-alt);
+}
+
+.v3-review-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v3-review-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.v3-review-meta {
+  color: var(--fg-2);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.v3-stars {
+  color: #ff9f0a;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.v3-review-body {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.v3-review-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+/* ---------- 热榜（虎扑） ---------- */
+
+.v3-hot {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: hot;
+}
+
+.v3-hot li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+  counter-increment: hot;
+}
+
+.v3-hot li::before {
+  content: counter(hot);
+  font-family: var(--font-num);
+  font-size: 20px;
+  font-weight: 800;
+  font-style: italic;
+  color: var(--fg-3);
+  text-align: center;
+}
+
+.v3-hot li:nth-child(1)::before { color: #ff3b30; }
+.v3-hot li:nth-child(2)::before { color: #ff7a00; }
+.v3-hot li:nth-child(3)::before { color: #ffb300; }
+
+.v3-hot-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.v3-hot-heat {
+  color: var(--fg-2);
+  font-family: var(--font-num);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.v3-up { color: #ff3b30; }
+.v3-new { color: var(--link); font-weight: 700; }
+
+.v3-note {
+  margin-top: 8px;
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+/* ---------- 帖子行（虎扑步行街） ---------- */
+
+.v3-post {
+  display: grid;
+  gap: 6px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--fg);
+}
+
+.v3-post:hover { text-decoration: none; }
+.v3-post:hover .v3-post-title { color: var(--link); }
+
+.v3-post-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.4;
+  transition: color var(--dur-1);
+}
+
+.v3-post-ex {
+  color: var(--fg-2);
+  font-size: 14px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.v3-post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  color: var(--fg-2);
+  font-size: 12px;
+}
+
+.v3-board-tag {
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: var(--fill);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.v3-lit { color: #ff3b30; font-weight: 700; }
+
+/* ---------- 亮回复 ---------- */
+
+.v3-litbox {
+  padding: 4px 18px;
+  border-radius: 16px;
+  background: var(--bg-alt);
+}
+
+.v3-litbox-head {
+  padding: 12px 0 4px;
+  color: #ff3b30;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.v3-reply {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.v3-reply:last-child { border-bottom: 0; }
+
+.v3-reply-who {
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.v3-reply-body {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.v3-reply-lit {
+  margin-top: 4px;
+  color: #ff3b30;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- 评分墙（虎扑评分） ---------- */
+
+.v3-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.v3-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow), inset 0 0 0 1px var(--card-border);
+  color: var(--fg);
+  transition: transform var(--dur-3) var(--ease-out);
+}
+
+.v3-tile:hover { text-decoration: none; transform: translateY(-3px); }
+
+.v3-tile-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.v3-tile-name {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.v3-tile-score {
+  font-family: var(--font-num);
+  font-size: 28px;
+  font-weight: 800;
+  color: #ff7a00;
+}
+
+.v3-tile-score.is-low {
+  color: var(--fg-3);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.v3-tile-sub {
+  color: var(--fg-2);
+  font-size: 13px;
+}
+
+.v3-tile-quote {
+  margin-top: auto;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--fill);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.v3-tile-quote b {
+  margin-left: 6px;
+  color: #ff3b30;
+  font-size: 12px;
+}
+
+/* ---------- 话题宫格（虎扑专区） ---------- */
+
+.v3-boards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.v3-board {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg-alt);
+  color: var(--fg);
+}
+
+.v3-board:hover { text-decoration: none; background: var(--fill-2); }
+.v3-board .v3-icon { width: 44px; height: 44px; border-radius: 10px; font-size: 18px; }
+.v3-board b { display: block; font-size: 15px; }
+.v3-board span { color: var(--fg-2); font-size: 12px; }
+
+/* ---------- 手机底部标签栏 + 悬浮发布按钮 ---------- */
+
+.v3-tabbar {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .v3-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    background: var(--nav-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .v3-tabbar a {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    color: var(--fg-3);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .v3-tabbar a:hover { text-decoration: none; }
+  .v3-tabbar a[aria-current="page"] { color: var(--accent); }
+
+  .v3-tabbar svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .v3-fab {
+    position: fixed;
+    right: 18px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    z-index: 61;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    font-size: 28px;
+    box-shadow: 0 10px 24px -8px rgba(0, 113, 227, 0.6);
+  }
+
+  body.has-tabbar { padding-bottom: 72px; }
+}
+
+@media (min-width: 761px) {
+  .v3-fab { display: none; }
+}
+
+/* View Transitions：卡片放大成文章 */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+/* 样张页专用 */
+.wrap-narrow-plus { max-width: calc(1080px + var(--gutter) * 2); }
+.dz-banner { margin-top: 24px; }

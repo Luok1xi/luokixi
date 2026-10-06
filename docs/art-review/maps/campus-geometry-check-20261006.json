@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-06",
+  "scope": "Projection and retention of input coordinates; not real-world survey accuracy",
+  "campuses": [
+    {
+      "campus": "xueyuanlu",
+      "width": 3666,
+      "height": 2602,
+      "sourceBuildings": 53,
+      "drawnBuildings": 53,
+      "observed": 0,
+      "excluded": 0,
+      "roundtripMaxPixels": 7.450580596923828e-9
+    },
+    {
+      "campus": "shahe",
+      "width": 2691,
+      "height": 2648,
+      "sourceBuildings": 8,
+      "drawnBuildings": 8,
+      "observed": 6,
+      "excluded": 0,
+      "roundtripMaxPixels": 7.450580596923828e-9
+    }
+  ]
+}

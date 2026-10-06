@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>全校知识库 · Luokixi</title>
+<meta name="description" content="矿大北京课程资料全文检索、公开来源采集和可追溯的复习卡。">
+<script type="module" src="/src/pages/knowledge.js"></script>
+</head>
+<body data-page="knowledge">
+<!-- @include nav -->
+<main id="main" class="kb wrap">
+  <header class="kb-heading">
+    <div><p class="kb-school">中国矿业大学（北京）</p><h1>把资料找到，<br>把知识留下。</h1><p class="kb-lead">从一张原卷，到下一次真正掌握。全校课程都可以收录。</p></div>
+    <button class="btn btn-primary" id="open-crawl" type="button">收录公开网址</button>
+  </header>
+  <p id="connection" class="notice" role="status">正在连接知识库…</p>
+  <div class="kb-summary" id="summary" aria-live="polite"></div>
+  <nav class="kb-tabs" aria-label="知识库功能">
+    <button type="button" data-mode="local" aria-current="page">资料检索</button>
+    <button type="button" data-mode="web">全网找资料</button>
+    <button type="button" data-mode="pending">待核对 <span id="pending-count"></span></button>
+    <button type="button" data-mode="cards">我的复习 <span id="due-count"></span></button>
+  </nav>
+  <section id="search-section">
+    <form id="search-form" class="kb-search" role="search">
+      <label class="sr-only" for="query">课程、年份、关键词或题目片段</label>
+      <input id="query" name="q" type="search" placeholder="搜索课程、年份，或粘贴题目中的一句话" maxlength="160" autocomplete="off">
+      <button class="btn btn-primary" type="submit">搜索</button>
+    </form>
+    <div class="kb-filters" id="local-filters">
+      <label>课程 <select id="course-filter"><option value="">全部课程</option></select></label>
+      <label>来源 <select id="scope-filter"><option value="">全部来源</option><option>本校资料</option><option>通用考试</option><option>外部资料</option></select></label>
+      <label>类型 <select id="kind-filter"><option value="">全部类型</option><option>试卷</option><option>试卷与答案</option><option>答案解析</option><option>听力音频</option><option>资料</option></select></label>
+      <button class="btn btn-link" id="add-course" type="button">添加课程</button>
+    </div>
+    <div id="web-hint" class="kb-explain" hidden>检索公开网站，结果保留原始链接。收录前需要核对学校、课程和使用许可。</div>
+  </section>
+  <div id="review-toolbar" class="kb-filters" hidden><button id="backup" class="btn btn-secondary" type="button">导出复习记录</button><button id="restore" class="btn btn-secondary" type="button">导入备份</button><input id="backup-file" type="file" accept="application/json,.json" hidden><span>先自己作答，再展开参考笔记。记录保存在本机。</span></div>
+  <section id="jobs" class="kb-jobs" aria-label="采集进度" hidden></section>
+  <div class="kb-result-heading"><h2 id="result-title">课程资料</h2><span id="result-count" aria-live="polite"></span></div>
+  <section id="results" class="kb-results" aria-live="polite"></section>
+  <div class="kb-pagination"><button id="previous" class="btn btn-secondary" type="button" hidden>上一页</button><button id="next" class="btn btn-secondary" type="button" hidden>下一页</button></div>
+  <p class="kb-footnote">同学整理的学习资料，非学校官方题库。扫描件、公式与字体编码请以原卷为准；未提供 OCR 或整卷自动判分。</p>
+</main>
+<!-- @include footer -->
+<dialog id="crawl-dialog" class="kb-dialog kb-small">
+  <div class="kb-dialog-head"><h2>收录公开网址</h2><button type="button" class="btn btn-secondary" data-close="crawl-dialog" aria-label="关闭收录窗口">关闭</button></div>
+  <form id="crawl-form" class="kb-form">
+    <label>资料网页或 PDF 网址<input id="crawl-url" type="url" required placeholder="https://…"></label>
+    <label>归属课程<input id="crawl-course" list="course-names" value="未分类" maxlength="80"></label>
+    <label>此次范围<select id="crawl-limit"><option value="1">仅当前页面</option><option value="3">当前页面及同站链接，最多 3 页</option><option value="5">当前页面及同站链接，最多 5 页</option><option value="10">当前页面及同站链接，最多 10 页</option></select></label>
+    <label class="kb-check"><input id="crawl-dynamic" type="checkbox">使用浏览器读取动态内容</label>
+    <p>仅采集公开页面，并遵守网站的采集规则。结果先进入“待核对”，不会自动认定为本校真题。</p>
+    <button type="submit" class="btn btn-primary">开始采集</button>
+  </form>
+</dialog>
+<dialog id="document-dialog" class="kb-dialog kb-reader"><div id="document-content"></div></dialog>
+<dialog id="course-dialog" class="kb-dialog kb-small"><div class="kb-dialog-head"><h2>添加课程</h2><button type="button" class="btn btn-secondary" data-close="course-dialog">关闭</button></div><form id="course-form" class="kb-form"><label>课程名称<input id="new-course" required maxlength="80" placeholder="例如：机械原理"></label><button class="btn btn-primary" type="submit">保存课程</button></form></dialog>
+<datalist id="course-names"></datalist>
+<div id="kb-toast" role="status" hidden></div>
+</body>
+</html>

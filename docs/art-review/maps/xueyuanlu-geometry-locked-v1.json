@@ -1,0 +1,2477 @@
+{
+  "campus": "xueyuanlu",
+  "created": "2026-10-06",
+  "tool": "Deterministic SVG cartographic illustration; no generative rearrangement",
+  "usage": "坐标约束概念底图，未现场测绘",
+  "review": "pending",
+  "integrationReady": false,
+  "sourceHash": "ac0c6a5c3c54b5ffa23570667fea8ab4d12abf0c3f788ae6e1e4b9f0b52ba01f",
+  "width": 3666,
+  "height": 2602,
+  "bounds": [
+    [
+      39.994452,
+      116.33730999999999
+    ],
+    [
+      39.999798,
+      116.34714100000001
+    ]
+  ],
+  "projection": "EPSG:3857",
+  "coordinateSystem": "WGS84",
+  "pixelOrigin": [
+    110482556.86,
+    50812132.73
+  ],
+  "zoom": 19,
+  "geometryRoundingMaxPixels": 0.002,
+  "roundtripMaxPixels": 7.450580596923828e-9,
+  "boundaryPoints": [
+    [
+      1720.783,
+      1119.349
+    ],
+    [
+      697.56,
+      1154.875
+    ],
+    [
+      596.71,
+      1130.056
+    ],
+    [
+      357.355,
+      1137.356
+    ],
+    [
+      122.66,
+      1142.222
+    ],
+    [
+      111.848,
+      790.366
+    ],
+    [
+      336.663,
+      786.229
+    ],
+    [
+      335.545,
+      388.375
+    ],
+    [
+      558.309,
+      383.751
+    ],
+    [
+      558.682,
+      503.96
+    ],
+    [
+      579.001,
+      503.717
+    ],
+    [
+      582.17,
+      611.758
+    ],
+    [
+      558.309,
+      612.245
+    ],
+    [
+      561.105,
+      785.743
+    ],
+    [
+      711.727,
+      780.633
+    ],
+    [
+      823.016,
+      776.496
+    ],
+    [
+      849.3,
+      775.523
+    ],
+    [
+      848.555,
+      757.029
+    ],
+    [
+      846.318,
+      704.226
+    ],
+    [
+      869.433,
+      681.352
+    ],
+    [
+      855.452,
+      374.018
+    ],
+    [
+      854.893,
+      367.934
+    ],
+    [
+      975.502,
+      364.041
+    ],
+    [
+      975.875,
+      261.838
+    ],
+    [
+      971.588,
+      171.071
+    ],
+    [
+      971.401,
+      159.878
+    ],
+    [
+      981.467,
+      159.391
+    ],
+    [
+      1314.216,
+      146.007
+    ],
+    [
+      1324.282,
+      296.149
+    ],
+    [
+      1338.822,
+      334.597
+    ],
+    [
+      1478.819,
+      328.513
+    ],
+    [
+      1492.986,
+      758.489
+    ],
+    [
+      1710.531,
+      749.486
+    ],
+    [
+      1714.445,
+      890.619
+    ],
+    [
+      1720.783,
+      1119.349
+    ]
+  ],
+  "sourceBuildingCount": 53,
+  "drawnOsmBuildings": 53,
+  "excludedOutsideBuildings": 0,
+  "observedBuildings": [],
+  "landscapeNote": "Trees are illustrative within manually observed vegetation regions; individual tree positions unverified",
+  "groundGeometry": "OSM footprint ground vertices unchanged; facade thickness capped, roof moved only for visual volume",
+  "geometryAudit": [
+    {
+      "source": "way/167354537",
+      "name": "艺海大厦",
+      "observed": false,
+      "geometryGround": [
+        [
+          1001.6,
+          184.699
+        ],
+        [
+          1008.684,
+          281.548
+        ],
+        [
+          1273.205,
+          270.355
+        ],
+        [
+          1274.509,
+          158.661
+        ],
+        [
+          1000.668,
+          170.585
+        ],
+        [
+          1001.6,
+          184.699
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351554",
+      "name": "教学楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1357.091,
+          401.515
+        ],
+        [
+          1425.318,
+          399.812
+        ],
+        [
+          1448.247,
+          399.082
+        ],
+        [
+          1476.023,
+          398.352
+        ],
+        [
+          1474.904,
+          356.984
+        ],
+        [
+          1355.786,
+          360.147
+        ],
+        [
+          1357.091,
+          401.515
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351556",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1425.504,
+          410.275
+        ],
+        [
+          1425.318,
+          399.812
+        ],
+        [
+          1448.247,
+          399.082
+        ],
+        [
+          1448.06,
+          409.545
+        ],
+        [
+          1425.504,
+          410.275
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351555",
+      "name": "教学楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1411.523,
+          410.762
+        ],
+        [
+          1425.504,
+          410.275
+        ],
+        [
+          1448.06,
+          409.545
+        ],
+        [
+          1475.65,
+          408.815
+        ],
+        [
+          1477.514,
+          473.056
+        ],
+        [
+          1457.381,
+          473.543
+        ],
+        [
+          1433.147,
+          474.273
+        ],
+        [
+          1413.388,
+          474.76
+        ],
+        [
+          1411.523,
+          410.762
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/1044668364",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          355.677,
+          478.167
+        ],
+        [
+          354.745,
+          419.035
+        ],
+        [
+          415.516,
+          418.062
+        ],
+        [
+          416.262,
+          477.193
+        ],
+        [
+          355.677,
+          478.167
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351557",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1434.452,
+          501.527
+        ],
+        [
+          1433.147,
+          474.273
+        ],
+        [
+          1457.381,
+          473.543
+        ],
+        [
+          1457.381,
+          500.554
+        ],
+        [
+          1434.452,
+          501.527
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351553",
+      "name": "教学楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1361.565,
+          542.894
+        ],
+        [
+          1482.361,
+          538.271
+        ],
+        [
+          1480.869,
+          499.824
+        ],
+        [
+          1457.381,
+          500.554
+        ],
+        [
+          1434.452,
+          501.527
+        ],
+        [
+          1360.073,
+          504.447
+        ],
+        [
+          1361.565,
+          542.894
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351559",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1240.769,
+          561.388
+        ],
+        [
+          1338.449,
+          557.008
+        ],
+        [
+          1337.144,
+          528.537
+        ],
+        [
+          1239.464,
+          532.917
+        ],
+        [
+          1240.769,
+          561.388
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/829192257",
+      "name": "逸夫实验楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          385.876,
+          516.127
+        ],
+        [
+          444.597,
+          514.424
+        ],
+        [
+          445.715,
+          547.518
+        ],
+        [
+          503.876,
+          545.571
+        ],
+        [
+          502.944,
+          515.884
+        ],
+        [
+          565.952,
+          513.694
+        ],
+        [
+          567.629,
+          567.958
+        ],
+        [
+          429.124,
+          572.338
+        ],
+        [
+          387.181,
+          556.278
+        ],
+        [
+          385.876,
+          516.127
+        ]
+      ],
+      "roofOffset": [
+        -1.728,
+        -10.8
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351561",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1393.255,
+          598.132
+        ],
+        [
+          1395.119,
+          588.155
+        ],
+        [
+          1402.948,
+          579.395
+        ],
+        [
+          1415.252,
+          573.311
+        ],
+        [
+          1427.741,
+          577.448
+        ],
+        [
+          1434.639,
+          583.288
+        ],
+        [
+          1438.181,
+          592.048
+        ],
+        [
+          1435.757,
+          601.782
+        ],
+        [
+          1430.91,
+          610.298
+        ],
+        [
+          1424.2,
+          616.382
+        ],
+        [
+          1417.116,
+          619.059
+        ],
+        [
+          1408.354,
+          616.869
+        ],
+        [
+          1396.797,
+          609.325
+        ],
+        [
+          1393.255,
+          598.132
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351548",
+      "name": "体育馆",
+      "observed": false,
+      "geometryGround": [
+        [
+          890.87,
+          502.5
+        ],
+        [
+          942.507,
+          500.554
+        ],
+        [
+          947.54,
+          645.339
+        ],
+        [
+          895.904,
+          647.042
+        ],
+        [
+          890.87,
+          502.5
+        ]
+      ],
+      "roofOffset": [
+        -0.584,
+        -3.65
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351560",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1367.53,
+          571.121
+        ],
+        [
+          1387.103,
+          570.391
+        ],
+        [
+          1388.781,
+          623.439
+        ],
+        [
+          1443.4,
+          621.735
+        ],
+        [
+          1441.722,
+          566.255
+        ],
+        [
+          1465.583,
+          565.525
+        ],
+        [
+          1468.193,
+          650.692
+        ],
+        [
+          1370.14,
+          653.612
+        ],
+        [
+          1367.53,
+          571.121
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351558",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1237.972,
+          654.829
+        ],
+        [
+          1262.206,
+          653.856
+        ],
+        [
+          1262.02,
+          648.015
+        ],
+        [
+          1324.655,
+          645.825
+        ],
+        [
+          1324.841,
+          650.935
+        ],
+        [
+          1349.821,
+          650.205
+        ],
+        [
+          1348.329,
+          608.108
+        ],
+        [
+          1323.163,
+          609.082
+        ],
+        [
+          1323.35,
+          614.678
+        ],
+        [
+          1262.393,
+          616.869
+        ],
+        [
+          1262.206,
+          612.245
+        ],
+        [
+          1236.481,
+          613.218
+        ],
+        [
+          1237.972,
+          654.829
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/831143099",
+      "name": "矿业大学气膜馆",
+      "observed": false,
+      "geometryGround": [
+        [
+          947.167,
+          536.324
+        ],
+        [
+          1007.193,
+          534.377
+        ],
+        [
+          1011.666,
+          661.886
+        ],
+        [
+          951.641,
+          663.832
+        ],
+        [
+          947.167,
+          536.324
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351547",
+      "name": "矿大图书馆",
+      "observed": false,
+      "geometryGround": [
+        [
+          1028.257,
+          574.528
+        ],
+        [
+          1195.47,
+          571.365
+        ],
+        [
+          1197.148,
+          662.129
+        ],
+        [
+          1029.935,
+          665.536
+        ],
+        [
+          1028.257,
+          574.528
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351728",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          451.867,
+          686.949
+        ],
+        [
+          543.769,
+          684.272
+        ],
+        [
+          543.023,
+          660.426
+        ],
+        [
+          550.666,
+          660.182
+        ],
+        [
+          549.547,
+          622.709
+        ],
+        [
+          523.449,
+          623.439
+        ],
+        [
+          524.382,
+          656.289
+        ],
+        [
+          468.83,
+          657.992
+        ],
+        [
+          467.712,
+          626.845
+        ],
+        [
+          442.732,
+          627.575
+        ],
+        [
+          443.851,
+          662.616
+        ],
+        [
+          450.935,
+          662.616
+        ],
+        [
+          451.867,
+          686.949
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351582",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          980.163,
+          742.429
+        ],
+        [
+          1026.02,
+          740.969
+        ],
+        [
+          1025.834,
+          734.886
+        ],
+        [
+          1033.85,
+          734.399
+        ],
+        [
+          1032.918,
+          709.093
+        ],
+        [
+          986.128,
+          710.796
+        ],
+        [
+          986.314,
+          715.906
+        ],
+        [
+          979.23,
+          716.149
+        ],
+        [
+          980.163,
+          742.429
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351585",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1265.002,
+          708.119
+        ],
+        [
+          1327.637,
+          706.903
+        ],
+        [
+          1328.569,
+          761.653
+        ],
+        [
+          1266.121,
+          762.869
+        ],
+        [
+          1265.002,
+          708.119
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351583",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1078.962,
+          764.329
+        ],
+        [
+          1189.505,
+          757.759
+        ],
+        [
+          1186.709,
+          711.283
+        ],
+        [
+          1076.166,
+          717.609
+        ],
+        [
+          1078.962,
+          764.329
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351726",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          447.393,
+          772.116
+        ],
+        [
+          550.666,
+          768.466
+        ],
+        [
+          549.734,
+          746.079
+        ],
+        [
+          446.647,
+          749.729
+        ],
+        [
+          447.393,
+          772.116
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351727",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          358.101,
+          773.333
+        ],
+        [
+          413.838,
+          770.899
+        ],
+        [
+          412.347,
+          738.779
+        ],
+        [
+          356.609,
+          741.213
+        ],
+        [
+          358.101,
+          773.333
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351571",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          893.48,
+          774.793
+        ],
+        [
+          927.78,
+          772.846
+        ],
+        [
+          926.289,
+          745.349
+        ],
+        [
+          979.603,
+          742.429
+        ],
+        [
+          977.739,
+          710.066
+        ],
+        [
+          890.125,
+          714.933
+        ],
+        [
+          893.48,
+          774.793
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351581",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          979.603,
+          784.526
+        ],
+        [
+          1030.121,
+          783.309
+        ],
+        [
+          1030.681,
+          803.993
+        ],
+        [
+          1022.851,
+          804.236
+        ],
+        [
+          1023.038,
+          808.616
+        ],
+        [
+          990.602,
+          809.346
+        ],
+        [
+          990.602,
+          803.749
+        ],
+        [
+          979.976,
+          803.993
+        ],
+        [
+          979.603,
+          784.526
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351584",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1085.486,
+          820.296
+        ],
+        [
+          1184.658,
+          817.863
+        ],
+        [
+          1183.913,
+          790.123
+        ],
+        [
+          1084.741,
+          792.799
+        ],
+        [
+          1085.486,
+          820.296
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/831143097",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          617.402,
+          797.179
+        ],
+        [
+          657.667,
+          795.963
+        ],
+        [
+          659.718,
+          831.489
+        ],
+        [
+          618.707,
+          813.726
+        ],
+        [
+          617.402,
+          797.179
+        ]
+      ],
+      "roofOffset": [
+        -0.584,
+        -3.65
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351572",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          897.581,
+          831.489
+        ],
+        [
+          906.716,
+          831.246
+        ],
+        [
+          906.716,
+          837.086
+        ],
+        [
+          935.983,
+          836.599
+        ],
+        [
+          937.101,
+          830.759
+        ],
+        [
+          946.049,
+          830.516
+        ],
+        [
+          945.676,
+          811.779
+        ],
+        [
+          897.209,
+          812.509
+        ],
+        [
+          897.581,
+          831.489
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/829192256",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          140.743,
+          813.969
+        ],
+        [
+          283.722,
+          813.239
+        ],
+        [
+          283.908,
+          854.119
+        ],
+        [
+          140.929,
+          854.849
+        ],
+        [
+          140.743,
+          813.969
+        ]
+      ],
+      "roofOffset": [
+        -1.104,
+        -6.9
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351579",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          985.382,
+          869.692
+        ],
+        [
+          993.771,
+          869.449
+        ],
+        [
+          993.957,
+          876.749
+        ],
+        [
+          1024.715,
+          876.506
+        ],
+        [
+          1024.343,
+          869.692
+        ],
+        [
+          1033.29,
+          869.692
+        ],
+        [
+          1033.104,
+          849.739
+        ],
+        [
+          985.196,
+          850.226
+        ],
+        [
+          985.382,
+          869.692
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351550",
+      "name": "一号办公楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1256.614,
+          799.126
+        ],
+        [
+          1367.53,
+          794.746
+        ],
+        [
+          1367.53,
+          808.859
+        ],
+        [
+          1390.645,
+          808.129
+        ],
+        [
+          1388.781,
+          822.243
+        ],
+        [
+          1345.16,
+          821.026
+        ],
+        [
+          1340.686,
+          825.649
+        ],
+        [
+          1330.434,
+          825.649
+        ],
+        [
+          1322.045,
+          829.299
+        ],
+        [
+          1320.181,
+          836.356
+        ],
+        [
+          1320.181,
+          844.873
+        ],
+        [
+          1325.214,
+          852.416
+        ],
+        [
+          1323.909,
+          882.102
+        ],
+        [
+          1257.919,
+          883.319
+        ],
+        [
+          1256.614,
+          799.126
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/532870375",
+      "name": "科技会堂",
+      "observed": false,
+      "geometryGround": [
+        [
+          691.594,
+          801.559
+        ],
+        [
+          835.133,
+          800.343
+        ],
+        [
+          835.879,
+          910.086
+        ],
+        [
+          800.833,
+          910.329
+        ],
+        [
+          756.094,
+          910.572
+        ],
+        [
+          709.863,
+          911.059
+        ],
+        [
+          692.34,
+          911.059
+        ],
+        [
+          691.594,
+          801.559
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351580",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          898.141,
+          903.516
+        ],
+        [
+          905.97,
+          903.516
+        ],
+        [
+          905.97,
+          911.546
+        ],
+        [
+          936.355,
+          911.302
+        ],
+        [
+          936.355,
+          905.219
+        ],
+        [
+          944.558,
+          905.219
+        ],
+        [
+          944.371,
+          886.482
+        ],
+        [
+          898.141,
+          886.726
+        ],
+        [
+          898.141,
+          903.516
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351549",
+      "name": "综合楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1455.517,
+          818.349
+        ],
+        [
+          1522.812,
+          817.376
+        ],
+        [
+          1522.626,
+          805.453
+        ],
+        [
+          1522.439,
+          791.096
+        ],
+        [
+          1522.253,
+          777.713
+        ],
+        [
+          1452.534,
+          778.686
+        ],
+        [
+          1452.162,
+          764.573
+        ],
+        [
+          1434.639,
+          764.816
+        ],
+        [
+          1413.76,
+          765.059
+        ],
+        [
+          1415.252,
+          879.426
+        ],
+        [
+          1341.991,
+          880.399
+        ],
+        [
+          1342.178,
+          896.946
+        ],
+        [
+          1342.364,
+          912.276
+        ],
+        [
+          1342.55,
+          924.199
+        ],
+        [
+          1437.248,
+          922.982
+        ],
+        [
+          1454.771,
+          922.739
+        ],
+        [
+          1453.839,
+          865.069
+        ],
+        [
+          1479.192,
+          864.583
+        ],
+        [
+          1479.192,
+          853.876
+        ],
+        [
+          1479.005,
+          844.629
+        ],
+        [
+          1455.89,
+          844.873
+        ],
+        [
+          1455.517,
+          818.349
+        ]
+      ],
+      "roofOffset": [
+        -1.52,
+        -9.5
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351578",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          987.433,
+          946.342
+        ],
+        [
+          993.771,
+          946.099
+        ],
+        [
+          993.957,
+          952.912
+        ],
+        [
+          1027.139,
+          951.939
+        ],
+        [
+          1026.952,
+          943.909
+        ],
+        [
+          1035.714,
+          943.422
+        ],
+        [
+          1035.341,
+          926.632
+        ],
+        [
+          986.873,
+          928.092
+        ],
+        [
+          987.433,
+          946.342
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/255743007",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          579.187,
+          967.512
+        ],
+        [
+          688.239,
+          964.592
+        ],
+        [
+          687.68,
+          943.909
+        ],
+        [
+          578.628,
+          946.829
+        ],
+        [
+          579.187,
+          967.512
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/1044613331",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          134.777,
+          968.728
+        ],
+        [
+          133.472,
+          898.892
+        ],
+        [
+          171.314,
+          898.162
+        ],
+        [
+          172.619,
+          968.242
+        ],
+        [
+          134.777,
+          968.728
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/829192255",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          295.652,
+          825.163
+        ],
+        [
+          339.086,
+          824.433
+        ],
+        [
+          341.323,
+          971.648
+        ],
+        [
+          297.889,
+          972.135
+        ],
+        [
+          295.652,
+          825.163
+        ]
+      ],
+      "roofOffset": [
+        -1.104,
+        -6.9
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351577",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          1005.515,
+          970.432
+        ],
+        [
+          1042.238,
+          968.972
+        ],
+        [
+          1043.916,
+          1010.825
+        ],
+        [
+          1007.193,
+          1012.284
+        ],
+        [
+          1005.515,
+          970.432
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/245754401",
+      "name": "科技楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1615.46,
+          782.823
+        ],
+        [
+          1657.403,
+          781.363
+        ],
+        [
+          1665.791,
+          1012.284
+        ],
+        [
+          1623.848,
+          1013.744
+        ],
+        [
+          1615.46,
+          782.823
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/831143098",
+      "name": "矿业大学校史馆",
+      "observed": false,
+      "geometryGround": [
+        [
+          1064.049,
+          932.472
+        ],
+        [
+          1203.3,
+          926.632
+        ],
+        [
+          1206.655,
+          1011.068
+        ],
+        [
+          1067.404,
+          1013.744
+        ],
+        [
+          1064.049,
+          932.472
+        ]
+      ],
+      "roofOffset": [
+        -0.584,
+        -3.65
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351731",
+      "name": "学生公寓10号楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          709.863,
+          911.059
+        ],
+        [
+          710.981,
+          1021.044
+        ],
+        [
+          759.263,
+          1020.558
+        ],
+        [
+          758.89,
+          990.628
+        ],
+        [
+          800.087,
+          990.385
+        ],
+        [
+          800.274,
+          1017.394
+        ],
+        [
+          842.217,
+          1016.908
+        ],
+        [
+          841.098,
+          906.679
+        ],
+        [
+          835.879,
+          910.086
+        ],
+        [
+          800.833,
+          910.329
+        ],
+        [
+          801.206,
+          950.722
+        ],
+        [
+          756.466,
+          951.209
+        ],
+        [
+          756.094,
+          910.572
+        ],
+        [
+          709.863,
+          911.059
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/831143096",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          391.096,
+          1006.931
+        ],
+        [
+          391.842,
+          1036.131
+        ],
+        [
+          368.726,
+          1036.617
+        ],
+        [
+          367.981,
+          1007.661
+        ],
+        [
+          391.096,
+          1006.931
+        ]
+      ],
+      "roofOffset": [
+        -1.104,
+        -6.9
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/255743013",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          409.737,
+          1043.674
+        ],
+        [
+          547.31,
+          1039.051
+        ],
+        [
+          546.378,
+          1012.528
+        ],
+        [
+          408.992,
+          1017.151
+        ],
+        [
+          409.737,
+          1043.674
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351576",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          916.782,
+          968.242
+        ],
+        [
+          962.64,
+          965.565
+        ],
+        [
+          965.436,
+          1009.608
+        ],
+        [
+          968.232,
+          1047.811
+        ],
+        [
+          921.442,
+          1046.837
+        ],
+        [
+          916.782,
+          968.242
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/255743009",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          586.83,
+          1024.938
+        ],
+        [
+          691.222,
+          1021.044
+        ],
+        [
+          692.34,
+          1047.324
+        ],
+        [
+          587.762,
+          1051.217
+        ],
+        [
+          586.83,
+          1024.938
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/245754515",
+      "name": "中国矿业大学民族楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1292.219,
+          1086.5
+        ],
+        [
+          1377.596,
+          1083.823
+        ],
+        [
+          1375.546,
+          1019.828
+        ],
+        [
+          1533.997,
+          1014.961
+        ],
+        [
+          1535.861,
+          1079.93
+        ],
+        [
+          1621.052,
+          1077.253
+        ],
+        [
+          1620.307,
+          1056.327
+        ],
+        [
+          1563.823,
+          1058.03
+        ],
+        [
+          1561.027,
+          971.648
+        ],
+        [
+          1347.024,
+          978.218
+        ],
+        [
+          1349.821,
+          1065.087
+        ],
+        [
+          1291.66,
+          1066.79
+        ],
+        [
+          1292.219,
+          1086.5
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351573",
+      "name": "理化楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          1086.232,
+          1097.206
+        ],
+        [
+          1222.687,
+          1094.773
+        ],
+        [
+          1222.314,
+          1068.737
+        ],
+        [
+          1201.995,
+          1068.98
+        ],
+        [
+          1201.808,
+          1053.894
+        ],
+        [
+          1107.669,
+          1055.597
+        ],
+        [
+          1108.042,
+          1073.117
+        ],
+        [
+          1085.859,
+          1073.36
+        ],
+        [
+          1086.232,
+          1097.206
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/829192253",
+      "name": "西一楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          295.279,
+          1036.131
+        ],
+        [
+          263.589,
+          1014.961
+        ],
+        [
+          246.439,
+          1050.001
+        ],
+        [
+          266.944,
+          1064.6
+        ],
+        [
+          264.148,
+          1105.966
+        ],
+        [
+          304.414,
+          1106.696
+        ],
+        [
+          334.799,
+          1107.913
+        ],
+        [
+          336.104,
+          1071.657
+        ],
+        [
+          336.85,
+          1059.977
+        ],
+        [
+          356.609,
+          1046.107
+        ],
+        [
+          330.139,
+          1017.638
+        ],
+        [
+          311.684,
+          1038.077
+        ],
+        [
+          295.279,
+          1036.131
+        ]
+      ],
+      "roofOffset": [
+        -1.92,
+        -12
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/829192252",
+      "name": "西二楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          179.889,
+          1040.754
+        ],
+        [
+          148.199,
+          1019.584
+        ],
+        [
+          131.049,
+          1054.624
+        ],
+        [
+          151.555,
+          1069.224
+        ],
+        [
+          148.945,
+          1110.59
+        ],
+        [
+          189.024,
+          1111.32
+        ],
+        [
+          219.409,
+          1112.536
+        ],
+        [
+          220.714,
+          1076.28
+        ],
+        [
+          221.46,
+          1064.6
+        ],
+        [
+          241.219,
+          1050.731
+        ],
+        [
+          214.749,
+          1022.261
+        ],
+        [
+          196.294,
+          1042.701
+        ],
+        [
+          179.889,
+          1040.754
+        ]
+      ],
+      "roofOffset": [
+        -1.92,
+        -12
+      ],
+      "heightNote": "OSM floor count used for capped illustrative height"
+    },
+    {
+      "source": "way/247351575",
+      "name": "裕园餐厅",
+      "observed": false,
+      "geometryGround": [
+        [
+          1013.344,
+          1033.454
+        ],
+        [
+          1047.831,
+          1031.994
+        ],
+        [
+          1051.559,
+          1114.726
+        ],
+        [
+          1016.886,
+          1116.429
+        ],
+        [
+          1013.344,
+          1033.454
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/255743012",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          376.742,
+          1124.459
+        ],
+        [
+          550.852,
+          1115.699
+        ],
+        [
+          549.547,
+          1089.907
+        ],
+        [
+          375.437,
+          1098.666
+        ],
+        [
+          376.742,
+          1124.459
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/255743010",
+      "name": null,
+      "observed": false,
+      "geometryGround": [
+        [
+          569.866,
+          1114.969
+        ],
+        [
+          615.351,
+          1114.483
+        ],
+        [
+          629.892,
+          1126.406
+        ],
+        [
+          650.956,
+          1130.056
+        ],
+        [
+          679.85,
+          1125.433
+        ],
+        [
+          680.41,
+          1086.987
+        ],
+        [
+          611.437,
+          1088.447
+        ],
+        [
+          612.369,
+          1077.983
+        ],
+        [
+          574.34,
+          1079.443
+        ],
+        [
+          574.34,
+          1089.42
+        ],
+        [
+          569.307,
+          1088.933
+        ],
+        [
+          569.866,
+          1114.969
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351574",
+      "name": "矿大交流中心",
+      "observed": false,
+      "geometryGround": [
+        [
+          905.597,
+          1133.706
+        ],
+        [
+          1009.616,
+          1134.436
+        ],
+        [
+          1009.802,
+          1102.073
+        ],
+        [
+          905.97,
+          1101.343
+        ],
+        [
+          905.597,
+          1133.706
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    },
+    {
+      "source": "way/247351730",
+      "name": "学八楼",
+      "observed": false,
+      "geometryGround": [
+        [
+          714.15,
+          1137.112
+        ],
+        [
+          851.724,
+          1133.949
+        ],
+        [
+          850.046,
+          1059.977
+        ],
+        [
+          813.882,
+          1060.707
+        ],
+        [
+          814.814,
+          1101.586
+        ],
+        [
+          748.451,
+          1103.046
+        ],
+        [
+          747.705,
+          1062.654
+        ],
+        [
+          712.473,
+          1063.384
+        ],
+        [
+          714.15,
+          1137.112
+        ]
+      ],
+      "roofOffset": [
+        -0.88,
+        -5.5
+      ],
+      "heightNote": "Unknown height; modest fixed illustration thickness, not surveyed height"
+    }
+  ],
+  "source": [
+    "https://www.openstreetmap.org/way/1003833559",
+    "https://www.openstreetmap.org/copyright"
+  ],
+  "referenceMetadata": "campus/.data/map-capture/luokixi-xueyuanlu-z19.json",
+  "rejectedPriorGenerations": [
+    "exec-7166c6bd",
+    "exec-270dc0e7"
+  ]
+}

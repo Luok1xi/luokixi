@@ -1,0 +1,37 @@
+<div class="localnav">
+  <div class="wrap localnav-inner">
+    <span class="localnav-title" data-lib="name">大学英语</span>
+    <nav class="jumpbar" id="jumpbar" aria-label="按年份跳转"><span class="jumpbar-pill" aria-hidden="true"></span></nav>
+    <div class="segmented" role="tablist" aria-label="切换考试">
+      <a href="cet4.html" data-seg="cet4">四级</a>
+      <a href="cet6.html" data-seg="cet6">六级</a>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+  <header class="lib-hero">
+    <div class="wrap">
+      <p class="eyebrow" data-reveal data-lib="eyebrow">CET 真题库</p>
+      <h1 class="headline headline-xl" data-reveal><span data-lib="title">真题。</span><br><span class="muted" data-lib="subtitle">按考次排好。</span></h1>
+      <dl class="lib-stats" data-reveal>
+        <div><dt>考次</dt><dd class="num" data-lib-stat="sessions">—</dd></div>
+        <div><dt>套卷</dt><dd class="num" data-lib-stat="sets">—</dd></div>
+        <div><dt>含听力</dt><dd class="num" data-lib-stat="listening">—</dd></div>
+        <div><dt>已上线资源</dt><dd class="num" data-lib-stat="ready">—</dd></div>
+      </dl>
+      <div class="lib-tools" data-reveal>
+        <div class="segmented" role="group" aria-label="筛选">
+          <button type="button" data-filter="all" aria-pressed="true">全部</button>
+          <button type="button" data-filter="listening" aria-pressed="false">只看含听力</button>
+        </div>
+      </div>
+      <p class="notice lib-notice" id="lib-notice" data-reveal hidden>
+        <span class="notice-dot" aria-hidden="true"></span>
+        <span><strong>真题文件正在陆续接入。</strong>目录已按考次排好，试卷、答案和听力上线后会直接出现在对应的卡片里。</span>
+      </p>
+    </div>
+  </header>
+
+  <div id="years-list"></div>
+</main>

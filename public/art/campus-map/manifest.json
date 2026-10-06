@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "_note": "Codex 交付的校园重绘插画。格式和审稿流程见 docs/CAMPUS_MAP_ART.md。只有 review 为 approved 的条目会被地图使用；没有条目时，插画模式继续用 OpenStreetMap 轮廓画的矢量插画。",
+  "campuses": {}
+}

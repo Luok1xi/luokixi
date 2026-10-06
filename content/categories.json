@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "_note": "Claude 与 Codex 共用的分类表：前端 src/js/schema.js 和服务端 campus/hub 都读这一份。新增分类先在 OPUS_TO_CODEX.md 里商量。",
+  "categories": {
+    "mech": {
+      "name": "机电与机器人",
+      "short": "机电",
+      "hue": 205,
+      "glyph": "gear"
+    },
+    "embedded": {
+      "name": "嵌入式",
+      "short": "嵌入式",
+      "hue": 158,
+      "glyph": "chip"
+    },
+    "software": {
+      "name": "软件与 AI",
+      "short": "软件",
+      "hue": 262,
+      "glyph": "code"
+    },
+    "algo": {
+      "name": "算法与编程",
+      "short": "算法",
+      "hue": 24,
+      "glyph": "graph"
+    },
+    "course": {
+      "name": "课程与资料",
+      "short": "课程",
+      "hue": 228,
+      "glyph": "book"
+    },
+    "research": {
+      "name": "科研",
+      "short": "科研",
+      "hue": 318,
+      "glyph": "atom"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "title": "SimpleFOC",
+  "summary": "在 Arduino 上实现无刷电机和步进电机的磁场定向控制（FOC），文档清楚，入门电机控制首选。",
+  "category": "embedded",
+  "tags": [
+    "FOC",
+    "无刷电机",
+    "Arduino"
+  ],
+  "origin": "external",
+  "credit": "SimpleFOC 社区",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/simplefoc/Arduino-FOC",
+    "site": "https://simplefoc.com/"
+  }
+}

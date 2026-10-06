@@ -1,0 +1,16 @@
+{
+  "title": "Dummy 超迷你机械臂",
+  "summary": "六轴桌面机械臂，作者公开了结构件、驱动板与固件设计，是学习伺服驱动与运动控制的好范本。",
+  "category": "mech",
+  "tags": [
+    "机械臂",
+    "运动控制",
+    "STM32"
+  ],
+  "origin": "external",
+  "credit": "稚晖君 peng-zhihui",
+  "authors": [],
+  "links": {
+    "repo": "https://github.com/peng-zhihui/Dummy-Robot"
+  }
+}
