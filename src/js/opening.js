@@ -70,26 +70,27 @@ export function playOpening(tasks = []) {
     el.style.pointerEvents = 'none';
     document.body.style.overflow = '';
     // 每个板块名从开场的位置飞到导航里的位置（FLIP：先量两边的位置，再只用 transform 过去）
+    const chipRects = chips.map((chip, i) => ({ from: chip.getBoundingClientRect(), to: targets[i]?.getBoundingClientRect() }));
+    const brand = document.querySelector('.gn-brand')?.getBoundingClientRect();
+    const mark = el.querySelector('.op-mark');
+    const m = mark.getBoundingClientRect();
     chips.forEach((chip, i) => {
-      const to = targets[i]?.getBoundingClientRect();
-      const from = chip.getBoundingClientRect();
+      const { from, to } = chipRects[i];
       if (!to?.width) return;
       const dx = to.left + to.width / 2 - (from.left + from.width / 2);
       const dy = to.top + to.height / 2 - (from.top + from.height / 2);
       const k = Math.min(1, (to.height || 12) / from.height);
       anim(chip, [{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${k})`, opacity: 0.2 }], { duration: 620, delay: i * 24, easing: 'cubic-bezier(0.5, 0, 0.2, 1)' });
     });
-    const brand = document.querySelector('.gn-brand')?.getBoundingClientRect();
-    const mark = el.querySelector('.op-mark');
     if (brand) {
-      const m = mark.getBoundingClientRect();
       anim(mark, [{ transform: 'none' }, { transform: `translate(${brand.left + 11 - (m.left + m.width / 2)}px, ${brand.top + brand.height / 2 - (m.top + m.height / 2)}px) scale(${22 / m.width})` }], { duration: 620, easing: 'cubic-bezier(0.5, 0, 0.2, 1)' });
     }
     anim(el.querySelector('.op-word'), [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.96)' }], { duration: 320 });
     anim(el.querySelector('.op-sub'), [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
     anim(el.querySelector('.op-bar'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
-    anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 300, easing: 'ease-out' }).finished.then(() => el.remove());
-    setTimeout(() => resolveStart(true), 260);
+    // Reveal the rendered page once, without overlapping another hero entrance.
+    const complete = () => { el.remove(); resolveStart(true); };
+    anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 300, easing: 'ease-out' }).finished.then(complete, complete);
   };
 
   Promise.race([

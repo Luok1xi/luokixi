@@ -19,7 +19,19 @@
       "checkedAt": "2026-10-06T12:00:00+08:00",
       "startsAt": "2026-10-01T00:00:00+08:00",
       "expiresAt": "2026-10-16T00:00:00+08:00",
-      "editor": "来源核对：Codex"
+      "editor": "来源核对：Codex",
+      "media": {
+        "src": "https://news8.cumtb.edu.cn/virtual_attach_file.vsb?afc=MnmVo2M47aUNUaUumviLlLYnlMVMzAURM4M7MzNYMmr7UlL0gihFp2hmCIa0M1h2LYhRU1h7U4QRU8rRL4rkL77DozffnzM2U8QfMllanRTFnln7L8QRL8QFolWVMRUJqjfjo4OeosAs6DZ0qIbtpYyPLRG4g4UaMm9DgtA8pUncc&oid=1403571202&tid=1003&nid=40686&e=.jpg",
+        "alt": "2026 年国庆，沙河校区操场升旗仪式现场，五星红旗在仪仗队前升起。",
+        "width": 2048,
+        "height": 1365,
+        "priority": true,
+        "credit": "矿大新闻网原报道 · 摄影：李昕潞 / 来源：党委武装部",
+        "sourceUrl": "https://news8.cumtb.edu.cn/info/1003/40686.htm",
+        "usage": "引用官方原图链接；未将原图复制到本站仓库，摄影版权归原权利人。",
+        "checkedAt": "2026-10-06",
+        "focal": "50% 43%"
+      }
     }
   ]
 }

@@ -4,6 +4,8 @@
 
 **v0.3 · 纵向资料与校园报**：单列资料与打包下载、新闻 / 搜索 / 吧讨论首页、共用口碑导航、一次性开场与页面过渡，以及贡献可视化、图书馆座位提醒助手。保留 Collins 风格轮播、校园地图、竖向项目发现流和本机站主 AI 工作室。当前是可本机运行的开发版本；本次公开源码，未部署在线网站。
 
+**v0.3.1 更新**：首页轮播改为浏览器合成动画，修复慢帧拖长与详情关闭延迟；国庆新闻使用对应官方现场照片。见 [性能与配图记录](docs/HOME_MOTION.md)。
+
 ## 六个入口
 
 | 板块 | 已有功能 | 入口 |
@@ -65,6 +67,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File campus/start.ps1
 npm run validate
 npm run test:materials
 npm run test:client
+npm run test:motion
 python campus/manage_hub.py test hub
 npm run build
 ```

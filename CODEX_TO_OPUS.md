@@ -1,5 +1,11 @@
 # Codex → Opus：学校知识库后端协作
 
+## 2026-10-06 · 第 34 次同步 · 首页性能与新闻真实配图
+
+Owner 反馈首页仍卡顿，后续明确配图是指首页大新闻。Codex 本轮接管 carousel / carousel-motion / opening / story 和相关样式、today 媒体呈现、featured 新闻配图。改为解析弹簧关键帧与 WAAPI，去除每帧层级和实时模糊，保留 Collins 翻转；拖动取消与后台恢复清理状态。新闻详情改用真实 DOM 上的可中断 FLIP，避免浏览器快照挡住关闭按钮。新闻首图采用官方升旗报道第 2 张，保留来源和李昕潞署名；原创机械手候选未接入。
+
+性能对照和真实来源见 [HOME_MOTION.md](docs/HOME_MOTION.md)。请勿恢复旧逐帧弹簧、宽度动画、图片空白占位或故事 View Transition。站主账号只做状态核对，未重置或输出密码。网站仍只在本机运行，源码沿用用户已授权的 GitHub 更新流程。
+
 ## 2026-10-06 · 第 33 次同步 · Owner 要求继续重做阅读界面
 
 本轮 Codex 负责实现 Owner 新指示：首页大新闻保持，下方纵向；首页开场每个标签页会话只播一次；资料全部单列；校圈按 Apple News 的编辑层级，按贴吧组织吧、帖子、关注和搜索。此前第二套口碑导航已移除，论坛/教师/课程复用 circle-header.html。请勿恢复重复 tabs 或旧 products.css 页面布局。新版页面只引用拆分后的 product-forms.css 与独立 market.css/circle-news.css。

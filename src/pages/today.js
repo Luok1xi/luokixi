@@ -124,7 +124,7 @@ function slide({ id, eyebrow, title, dek, bg, art, media, primary, story }) {
   const ext = /^https?:/.test(primary.href) ? ' target="_blank" rel="noopener"' : '';
   return `<article class="hc-slide" aria-roledescription="slide" data-id="${esc(id)}">
     <div class="hc-card" ${story ? `data-story="${esc(id)}"` : ''} style="--hc-bg:${bg}">
-      <div class="hc-media"${art ? ` data-art="${esc(art)}"` : ''}>${media ? `<img class="art-img" src="${esc(media.src)}" alt="${esc(media.alt ?? '')}" loading="lazy">` : ''}</div>
+      <div class="hc-media"${art ? ` data-art="${esc(art)}"` : ''}>${media ? `<img class="art-img" src="${esc(media.src)}" alt="${esc(media.alt ?? '')}" width="${Number(media.width) || 1600}" height="${Number(media.height) || 1000}" loading="${media.priority ? 'eager' : 'lazy'}" fetchpriority="${media.priority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer">` : ''}</div>
       <div class="hc-copy">
         <p class="hc-eyebrow">${esc(eyebrow)}</p>
         <h2 class="hc-title">${title}</h2>
@@ -274,6 +274,8 @@ async function mountHero() {
       <button class="hc-play" type="button" aria-label="暂停自动播放"><svg class="is-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg><svg class="is-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg></button>
       ${ARROW(1)}</div>`;
   $$('.hc-slide', heroEl).forEach((s, i) => s.setAttribute('aria-label', `第 ${i + 1} 张，共 ${slides.length} 张`));
+  // Official images stay on their original host. If unavailable, retain a readable news card.
+  $$('.hc-media img', heroEl).forEach(img => img.addEventListener('error', () => img.remove(), { once: true }));
   const c = mountCarousel(heroEl);
   mountArt(heroEl);
   return c;
@@ -539,7 +541,7 @@ const booting = hubState();
 const heroReady = mountHero();
 // 开场的进度条跟着首页真正要用的数据走
 entered = playOpening([booting, load('site'), load('projects'), load('competitions'), load('featured'), load('cet4')]);
-heroReady.then(c => entered.then(first => { if (first) c.enter(); }));
+heroReady.then(c => { c.pause('opening', true); entered.then(() => c.pause('opening', false)); });
 booting.then(async (s) => {
   st.online = s.online;
   st.user = s.user;
