@@ -5,6 +5,7 @@ import math
 import re
 import secrets
 from collections import Counter
+from datetime import timedelta
 from urllib.parse import urlsplit, urlunsplit
 from django.core import signing
 from django.db import transaction
@@ -292,6 +293,23 @@ def feed(request):
 
 def get(request, route):
     user = request.user
+    if route == 'circle/trends':
+        campus=text(request.GET.get('campus','all'),20)
+        if campus not in ('all','shahe','xueyuanlu'):raise Problem('校区无效。')
+        pref, _, _, ignored = context(user)
+        query=visible(user,pref).exclude(pk__in=ignored)
+        if campus!='all':query=query.filter(published__circle__campus__in=[campus,'all'])
+        now=timezone.now();cutoff=now-timedelta(days=7);terms=Counter();sample=0
+        # Bound the work per request; counts describe this visible sample, never fake search traffic.
+        for entry in query.order_by('-published__circle__publishedAt')[:500]:
+            published=parse_datetime(entry.published.get('circle',{}).get('publishedAt',''))
+            if not published or timezone.is_naive(published) or not cutoff<=published<=now:continue
+            sample+=1
+            for tag in set(entry.published.get('tags',[])):
+                if isinstance(tag,str) and 1<len(tag)<=30:terms[tag]+=1
+        return {'items':[{'term':term,'posts':count} for term,count in terms.most_common(6)],
+            'samplePosts':sample,'updatedAt':now.isoformat(),
+            'definition':'近 7 天最新 500 篇可见公开帖中的标签出现次数；不是搜索次数。'}
     if route == 'circle/feed':
         return feed(request)
     if route == 'circle/boards':

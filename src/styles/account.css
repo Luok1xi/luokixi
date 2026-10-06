@@ -437,3 +437,6 @@
   .me-row { flex-direction: column; }
   .me-row-side { flex-direction: row; align-items: center; }
 }
+
+/* Prevent horizontal nav from imposing its intrinsic width on the grid. */
+.me-side,.me-main{min-width:0}.me-nav{max-width:100%}@media(max-width:860px){.me{grid-template-columns:minmax(0,1fr)}.me-nav{flex-wrap:wrap;overflow:visible;gap:6px}.me-nav a{font-size:13px;padding:10px 12px}.me{gap:30px}}

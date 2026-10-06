@@ -8,19 +8,10 @@
 </head>
 <body data-page="reputation">
 <!-- @include nav -->
-<main id="main" class="rp-main">
-  <header class="wrap rp-hero">
-    <p class="eyebrow">矿大 · 学习引导</p>
-    <h1>下一门课，<br><span class="muted">听听过来人的话。</span></h1>
-    <p class="rp-lead">看看真实的教学体验，找到适合自己的课程与资源。</p>
-    <nav class="rp-tabs" aria-label="口碑栏目">
-      <a href="reputation.html" data-tab="teachers">教师口碑</a>
-      <a href="reputation.html?view=courses" data-tab="courses">课程与引导</a>
-      <a href="reputation.html?view=mine" data-tab="mine">我的评价</a>
-      <a href="reputation.html?view=moderation" data-tab="moderation" id="rp-mod-link" hidden>维护与审核</a>
-    </nav>
-  </header>
-  <div class="wrap">
+<main id="main" class="press-room rp-main">
+<!-- @include circle-header -->
+<div class="press-review-heading"><div><p class="press-eyebrow">选课之前，听听过来人</p><h2 id="press-review-title">教师口碑</h2></div><div class="press-tools"><a href="reputation.html?view=mine" data-tab="mine">我的评价</a><a href="reputation.html?view=moderation" data-tab="moderation" id="rp-mod-link" hidden>审核</a></div></div>
+  <div class="rp-body">
     <p id="rp-message" role="status" class="rp-message" hidden></p>
     <div id="rp-content" aria-live="polite"><p class="rp-empty">正在读取课程与教师资料…</p></div>
   </div>

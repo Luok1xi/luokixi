@@ -4,6 +4,7 @@ import '../styles/tokens.css';
 import '../styles/base.css';
 import '../styles/components.css';
 import '../styles/redesign.css';
+import '../styles/navigation.css';
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -19,7 +20,7 @@ const store = {
 // 六个一级板块（docs/PRODUCT_SPEC.md 1.1）。旧页面都保留，按内容归到对应板块，导航按板块高亮。
 const BOARD = {
   home: 'home',
-  map: 'campus',
+  map: 'campus', reservations: 'campus',
   materials: 'materials', cet4: 'materials', cet6: 'materials', school: 'materials', knowledge: 'materials',
   circle: 'circle', reputation: 'circle', community: 'circle',
   projects: 'open', discover: 'open', project: 'open', contribute: 'open',
@@ -43,12 +44,28 @@ function rememberDirection(href) {
 }
 
 function initPageTransitions() {
+  let navTimer, navGuard;
+  const progress = document.createElement('div'); progress.className = 'navigation-progress'; progress.hidden = true;
+  progress.setAttribute('role','status'); progress.innerHTML = '<span class="sr-only">正在打开页面…</span><i></i>'; document.body.append(progress);
+  const reset = () => { clearTimeout(navTimer); clearTimeout(navGuard); document.documentElement.classList.remove('is-navigating'); progress.hidden = true; };
+  addEventListener('pageshow', reset); addEventListener('pagehide', reset);
   addEventListener('pageswap', (e) => {
     if (e.viewTransition && e.activation?.entry?.url) rememberDirection(e.activation.entry.url);
   });
   document.addEventListener('click', (e) => {
     const a = e.target.closest?.('a[href]');
-    if (a && !a.target && !e.defaultPrevented && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) rememberDirection(a.href);
+    if (!a || a.target || a.hasAttribute('download') || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || (url.pathname !== '/' && !url.pathname.endsWith('.html'))) return;
+    const samePage = pageOf(url) === pageOf(new URL(location.href)) && url.search === location.search;
+    if (samePage) {
+      if (!url.hash && !location.hash) { e.preventDefault(); window.scrollTo({top:0,behavior:reducedMotion()?'instant':'smooth'}); }
+      return;
+    }
+    rememberDirection(a.href);
+    clearTimeout(navTimer);
+    navTimer = setTimeout(() => { document.documentElement.classList.add('is-navigating'); progress.hidden = false; }, 140);
+    clearTimeout(navGuard); navGuard = setTimeout(reset, 10000);
   });
 }
 

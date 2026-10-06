@@ -5,9 +5,10 @@
 <title>Luokixi · 今日矿大</title>
 <meta name="description" content="矿大（北京）同学的校园编辑页：精选、校圈热帖、竞赛与机会、选课口碑和开源推荐。">
 <script>
-  // 开场动画：每次打开首页都放；系统要求减少动态效果时不放。
+  // 开场每个标签页会话只播放一次；返回首页和刷新不再遮挡内容。
   // 脚本接管前先用纯色盖住页面，避免先闪一下首页；4 秒兜底，脚本失败也不会卡住（预先渲染时从切过来那一刻算起）。
   (function () {
+    try { if (sessionStorage.getItem('lk-opening-seen')) return; sessionStorage.setItem('lk-opening-seen', '1'); } catch { return; }
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var d = document.documentElement;
     d.classList.add('intro-pending');

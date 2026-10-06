@@ -8,6 +8,7 @@ export function mountCarousel(root,{interval=7000,onChange}={}) {
  if(!viewport||!n)return {go(){},next(){},prev(){},enter(){},index:0};
  root.classList.add('hc-collins');
  const cards=slides.map(el=>({el,media:el.querySelector('.hc-media'),copy:el.querySelector('.hc-copy'),links:[...el.querySelectorAll('a,button')]}));
+ let progressAnimation;
  let width=slides[0].offsetWidth||600,active=0,position=0,target=0,velocity=0,frame=0,lastTime=0,drag=null,playing=!motion.matches&&n>1,autoTimer=0,direction=1,suppressClickUntil=0;
  const pauses=new Set(document.hidden?['hidden']:[]),announcement=document.createElement('p'),counter=document.createElement('span');
  announcement.className='sr-only';announcement.setAttribute('aria-live','polite');root.append(announcement);
@@ -15,6 +16,8 @@ export function mountCarousel(root,{interval=7000,onChange}={}) {
  viewport.setAttribute('aria-label','精选新闻轮播，可左右拖动');root.style.setProperty('--hc-interval',`${interval}ms`);
  function draw(){cards.forEach(({el,media,copy},i)=>{
    const d=i-position,a=Math.abs(d),near=Math.min(a,1),x=Math.sign(d)*width*(near*.53+Math.max(0,a-1)*.23),r=-Math.sign(d)*(near*38+Math.min(1,Math.max(0,a-1))*8),z=-width*.48*a;
+   const visible=a<=2.8; el.style.visibility=visible?'visible':'hidden'; el.style.willChange=a<1.8?'transform, opacity':'auto';
+   if(!visible)return;
    el.style.transform=motion.matches?`translate3d(${(i-active)*width*1.08}px,0,0)`:`perspective(${width*2}px) translate3d(${x.toFixed(2)}px,0,${z.toFixed(2)}px) rotateY(${r.toFixed(2)}deg)`;
    el.style.opacity=a>2.8?'0':String(Math.max(.38,1-a*.18));el.style.zIndex=String(100-Math.round(a*10));el.style.pointerEvents=a>2.8?'none':'';
    if(copy)copy.style.opacity=String(motion.matches?+(i===active):clamp(1-a*2.3,0,1));
@@ -23,7 +26,7 @@ export function mountCarousel(root,{interval=7000,onChange}={}) {
  function settle(now){const dt=Math.min((now-lastTime)/1000||1/60,.032);lastTime=now;velocity+=((target-position)*225-velocity*30)*dt;position+=velocity*dt;draw();if(Math.abs(target-position)<.0007&&Math.abs(velocity)<.009){position=target;velocity=0;frame=0;draw();root.classList.remove('is-settling');}else frame=requestAnimationFrame(settle);}
  function animateTo(){if(motion.matches){cancelAnimationFrame(frame);frame=0;position=target;velocity=0;draw();return;}root.classList.add('is-settling');if(!frame){lastTime=performance.now();frame=requestAnimationFrame(settle);}}
  function sync(){slides.forEach((s,i)=>{const on=i===active;s.classList.toggle('is-active',on);s.setAttribute('aria-hidden',String(!on));cards[i].links.forEach(el=>el.tabIndex=on?0:-1);});dots.forEach((d,i)=>{d.classList.toggle('is-active',i===active);d.setAttribute('aria-selected',String(i===active));d.tabIndex=i===active?0:-1;});root.querySelectorAll('.hc-arrow').forEach(b=>b.disabled=Number(b.dataset.dir)<0?active===0:active===n-1);counter.textContent=`${String(active+1).padStart(2,'0')} / ${String(n).padStart(2,'0')}`;root.dataset.carouselIndex=String(active);}
- function schedule(){clearTimeout(autoTimer);dots.forEach(d=>d.classList.remove('is-running'));const paused=!playing||pauses.size>0||motion.matches;root.classList.toggle('is-paused',Boolean(paused));play?.classList.toggle('is-off',!playing);play?.setAttribute('aria-label',playing?'暂停自动播放':'继续自动播放');if(paused)return;const dot=dots[active];if(dot){void dot.offsetWidth;dot.classList.add('is-running');}autoTimer=setTimeout(()=>{if(active===n-1)direction=-1;if(active===0)direction=1;go(active+direction);},interval);}
+ function schedule(){clearTimeout(autoTimer);progressAnimation?.cancel();dots.forEach(d=>d.classList.remove('is-running'));const paused=!playing||pauses.size>0||motion.matches;root.classList.toggle('is-paused',Boolean(paused));play?.classList.toggle('is-off',!playing);play?.setAttribute('aria-label',playing?'暂停自动播放':'继续自动播放');if(paused)return;const dot=dots[active];if(dot){progressAnimation?.cancel();progressAnimation=dot.querySelector('i')?.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:interval,fill:'forwards'});}autoTimer=setTimeout(()=>{if(active===n-1)direction=-1;if(active===0)direction=1;go(active+direction);},interval);}
  function pause(reason,enabled){enabled?pauses.add(reason):pauses.delete(reason);schedule();}
  function go(i,{user=false,instant=false}={}){const previous=active;active=clamp(Math.round(i),0,n-1);target=active;sync();if(instant||motion.matches){cancelAnimationFrame(frame);frame=0;position=target;velocity=0;draw();}else animateTo();schedule();if(previous!==active){onChange?.(active,slides[active],{user});if(user)announcement.textContent=`第 ${active+1} 张：${slides[active].querySelector('.hc-title')?.textContent||''}`;}}
  const next=o=>go(active+1,o),prev=o=>go(active-1,o);

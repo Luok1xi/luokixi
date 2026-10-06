@@ -15,6 +15,7 @@ import { mountCarousel } from '../js/carousel.js';
 import { animate as springTo } from '../js/motion.js';
 import '../styles/v3.css';
 import '../styles/today.css';
+import '../styles/app-store.css';
 
 initShell();
 
@@ -297,7 +298,7 @@ heroEl.addEventListener('click', (e) => {
 
 // ---------- 货架：App Store 的三行网格（Top Charts / 应用列表） ----------
 
-const grid = (items, cls = '') => withPaddles(`<div class="as-grid ${cls}">${items.join('')}</div>`);
+const grid = (items, cls = '') => `<div class="as-grid ${cls}">${items.join('')}</div>`;
 
 function lockup({ href, icon, title, sub, pill = '查看', rank, ext = false }) {
   return `<a class="as-lockup" href="${esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ''}>
@@ -412,8 +413,8 @@ const campusTiles = () => `<div class="v3-boards">${CAMPUS_LINKS.map(([href, nam
 const TABS = {
   async picks() {
     const [hot, comps, reviews, projects] = await Promise.all([hotShelf(), competitionShelf(9), reviewShelf(), projectShelf()]);
-    return `<section aria-label="校圈热帖">${sec('校圈热帖', { go: 'hot' })}${hot}</section>
-      <section aria-label="开源推荐">${sec('开源推荐', { href: 'projects.html' })}${projects}</section>
+    return `<a class="editorial-feature" href="discover.html"><div><span>让想法发生</span><h2>从一个小项目，<br>开始你的创造。</h2><p>发现工具、认识创作者，把好奇心变成作品。</p><b>逛逛开源广场 ↗</b></div><img src="art/community-engineering.webp" loading="lazy" alt="原创工程创作主题插画"></a><section aria-label="校圈热帖">${sec('校圈热帖', { go: 'hot' })}${hot}</section>
+      <section aria-label="开源推荐">${sec('开源推荐', { href: 'discover.html' })}${projects}</section>
       <section aria-label="竞赛与机会">${sec('竞赛与机会', { go: 'chances' })}${comps}</section>
       <section aria-label="评分及评论">${sec('评分及评论', { href: 'reputation.html' })}${reviews}</section>
       <section aria-label="校园">${sec('校园', { href: 'map.html' })}${campusTiles()}</section>`;
@@ -534,13 +535,14 @@ addEventListener('resize', () => moveBar($('[aria-selected="true"]', tabs)));
 const d = new Date();
 $('#td-date').textContent = `${d.getMonth() + 1}月${d.getDate()}日 星期${'日一二三四五六'[d.getDay()]}`;
 const booting = hubState();
+// Render editorial/news content without waiting for account and community services.
+const heroReady = mountHero();
 // 开场的进度条跟着首页真正要用的数据走
 entered = playOpening([booting, load('site'), load('projects'), load('competitions'), load('featured'), load('cet4')]);
+heroReady.then(c => entered.then(first => { if (first) c.enter(); }));
 booting.then(async (s) => {
   st.online = s.online;
   st.user = s.user;
   show(location.hash.slice(1));
-  const c = await mountHero();
-  // 开场结束、页面交出来的那一刻，轮播从右边依次滑进来
-  entered.then(() => c.enter());
+  // Hero mounts independently of session latency (see below).
 });

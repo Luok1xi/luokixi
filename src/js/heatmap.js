@@ -257,15 +257,16 @@ export function mountCity(canvas, data, { unit = '次', onEmpty } = {}) {
   };
   setup();
   if (empty) onEmpty?.();
-  new ResizeObserver(() => {
+  const ro = new ResizeObserver(() => {
     measure();
     draw();
-  }).observe(canvas);
-  addEventListener('lk:theme', () => {
+  }); ro.observe(canvas);
+  const onTheme = () => {
     readPalette();
     draw();
-  });
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(setup, 50));
+  };
+  addEventListener('lk:theme', onTheme);
+  const scheme=matchMedia('(prefers-color-scheme: dark)'); scheme.addEventListener('change', setup);
 
   // 进入视口才开始升起；离开视口暂停波纹
   const io = new IntersectionObserver(([e]) => {
@@ -274,4 +275,7 @@ export function mountCity(canvas, data, { unit = '次', onEmpty } = {}) {
     if (live) kick();
   });
   io.observe(canvas);
+  const visibility=()=>{live=!document.hidden && !reducedMotion() && canvas.getBoundingClientRect().bottom>0;if(live)kick();};
+  document.addEventListener('visibilitychange',visibility);
+  return()=>{live=false;cancelAnimationFrame(raf);io.disconnect();ro.disconnect();removeEventListener('lk:theme',onTheme);scheme.removeEventListener('change',setup);document.removeEventListener('visibilitychange',visibility);t.hide();};
 }

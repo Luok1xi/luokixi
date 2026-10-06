@@ -2,12 +2,17 @@ import { initShell } from '../js/shell.js';
 import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { esc } from '../js/data.js';
 import '../styles/reputation.css';
+import '../styles/product-forms.css';
+import '../styles/circle-news.css';
 
 initShell();
+const circleView = new URLSearchParams(location.search).get('view') === 'courses' || new URLSearchParams(location.search).has('course') ? 'courses' : 'teachers';
+document.querySelector(`[data-circle-view="${circleView}"]`)?.classList.add('is-active');
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const params = new URLSearchParams(location.search);
 const view = params.get('view') || 'teachers';
+$('#press-review-title').textContent = view === 'mine' ? '我的评价' : view === 'moderation' ? '评价审核' : circleView === 'courses' ? '课程评价' : '教师口碑';
 const targetType = ['teacher', 'offering', 'course'].find(k => params.has(k));
 const targetId = targetType && params.get(targetType);
 const content = $('#rp-content');

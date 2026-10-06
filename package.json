@@ -1,7 +1,7 @@
 {
   "name": "luokixi",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "面向矿大的校园、资料、校圈与开源创作社区",
   "type": "module",
   "scripts": {
@@ -12,7 +12,8 @@
     "data:offline": "node scripts/build-community.mjs --offline",
     "validate": "node scripts/validate-content.mjs",
     "map:data": "node scripts/build-campus-map.mjs",
-    "test:materials": "node --test scripts/test-material-bag.mjs"
+    "test:materials": "node --test scripts/test-material-bag.mjs",
+    "test:client": "node --test scripts/test-hub-client.mjs"
   },
   "devDependencies": {
     "vite": "^8.3.2"

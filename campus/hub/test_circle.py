@@ -238,3 +238,14 @@ class CircleTests(TestCase):
         self.assertLessEqual(max(Counter(e.owner_id for e in first_page).values()), 2)
         self.assertIn('探索', ''.join(reasons[keys[4]]))
         self.assertEqual(len(keys), len(set(keys)))
+
+    def test_trends_exclude_drafts_withdrawn_other_campus_and_old_posts(self):
+        self.post(self.a,'circle/posts',{'data':self.data(tags=['不能泄露的草稿'])})
+        identifier=self.publish(self.data(circle={'board':'makers','format':'thread','campus':'xueyuanlu'}))
+        self.publish(self.data(tags=['沙河独有'],circle={'board':'makers','format':'thread','campus':'shahe'}))
+        old=self.publish(self.data(tags=['过期标签']))
+        item=Entry.objects.get(pk=old);item.published['circle']['publishedAt']=(timezone.now()-timedelta(days=8)).isoformat();item.save()
+        def trends():return self.visitor.get('/api/hub/circle/trends?campus=xueyuanlu').json()['items']
+        self.assertEqual(trends(),[{'term':'机器人','posts':1}])
+        self.post(self.a,'entries/'+identifier+'/withdraw',{'reason':'撤回测试'})
+        self.assertEqual(trends(),[])

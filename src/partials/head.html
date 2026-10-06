@@ -24,7 +24,9 @@
     else readDir();
     addEventListener('pagereveal', function (e) {
       if (!e.viewTransition) { delete d.dataset.vt; return; }
-      e.viewTransition.finished.finally(function () { delete d.dataset.vt; });
+      var clear = function () { delete d.dataset.vt; };
+      e.viewTransition.finished.then(clear, clear);
+      e.viewTransition.ready.catch(function () {});
     });
   })();
 </script>

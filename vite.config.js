@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import campus from './campus/vite-plugin.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const pages = ['index', 'cet4', 'cet6', 'school', 'knowledge', 'projects', 'community', 'profile', 'contribute', 'discover', 'auth', 'me', 'map', 'project', 'reputation', 'design', 'materials', 'circle', 'studio'];
+const pages = ['index', 'cet4', 'cet6', 'school', 'knowledge', 'projects', 'community', 'profile', 'contribute', 'discover', 'auth', 'me', 'map', 'project', 'reputation', 'design', 'materials', 'circle', 'studio', 'reservations'];
 
 // 极简 HTML 片段引入：<!-- @include nav --> → src/partials/nav.html
 function partials() {

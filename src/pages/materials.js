@@ -2,16 +2,18 @@ import { initShell } from '../js/shell.js';
 import { hubApi,hubState,loginURL } from '../js/hub.js';
 import { esc } from '../js/data.js';
 import { buildMaterialZip,localFileURL } from '../js/material-bag.js';
-import '../styles/products.css';
+import '../styles/product-forms.css';
+import '../styles/market.css';
 initShell();
 const $=s=>document.querySelector(s),KEY='luokixi.materials.bag.v1';
 let all=[],filtered=[],subject='',limit=24,busy=false,controller=null;
 let bag=[];try{bag=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(bag))bag=[];bag=bag.filter(x=>{try{return x&&typeof x.title==='string'&&localFileURL(x.url);}catch{return false;}}).slice(0,30);}catch{bag=[];}
 const subjects=[['','全部资料'],['英语四级','英语四级'],['英语六级','英语六级'],['高等数学','高等数学'],['线性代数','线性代数'],['大学物理','大学物理'],['大学化学','大学化学'],['计算机','计算机与编程'],['机械','机械与控制'],['雅思','雅思']];
 const fetchJSON=async url=>{const r=await fetch(url,{signal:AbortSignal.timeout(6000)});if(!r.ok)throw Error(`目录读取失败 (${r.status})`);return r.json();};
-function saveBag(){try{localStorage.setItem(KEY,JSON.stringify(bag));}catch{$('#bag-status').textContent='浏览器未允许保存，关闭页面后资料袋可能丢失。';}$('#bag-count').textContent=bag.length;$('#bag-download').disabled=!bag.length||busy;}
+function saveBag(){try{localStorage.setItem(KEY,JSON.stringify(bag));}catch{$('#bag-status').textContent='浏览器未允许保存，关闭页面后资料袋可能丢失。';}$('#bag-count').textContent=bag.length;$('#bag-dock-count').textContent=bag.length;$('#bag-dock-summary').textContent=bag.length?`已选 ${bag.length} 份 · 可打包下载`:'挑选资料，按需带走';$('#bag-download').disabled=!bag.length||busy;}
 function add(item){if(bag.some(x=>x.url===item.url)){bag=bag.filter(x=>x.url!==item.url);}else{if(bag.length>=30){$('#library-status').textContent='资料袋已放入 30 份，请先打包这一批。';return;}bag.push(item);}saveBag();renderList();renderBag();}
 function renderList(){
+  const focused=document.activeElement?.dataset?.add;
  const q=$('#library-q').value.trim().toLowerCase().replaceAll('线代','线性代数').replaceAll('高数','高等数学').replaceAll('大物','大学物理');
  const kind=$('#library-kind').value,year=$('#library-year').value;
  filtered=all.filter(x=>(!subject||x.course.includes(subject))&&(!q||q.split(/\s+/).every(w=>`${x.title} ${x.course} ${x.year} ${x.kind}`.toLowerCase().includes(w)))&&(!kind||`${x.kind} ${x.title}`.includes(kind))&&(!year||x.year===year));
@@ -19,10 +21,12 @@ function renderList(){
  $('#library-subjects').innerHTML=subjects.map(([id,name])=>`<button data-subject="${id}" aria-pressed="${id===subject}">${name}<span>${all.filter(x=>!id||x.course.includes(id)).length}</span></button>`).join('');
  $('#library-list').innerHTML=filtered.length?filtered.slice(0,limit).map(x=>`<article class="material-row"><div class="material-cover" data-format="${esc(x.format)}"><span>${esc(x.format.toUpperCase())}</span><b>${esc(x.course.slice(0,6))}</b><i>${esc(x.year||'年份待核')}</i></div><div class="material-copy"><p class="section-label">${esc(x.course)} · ${esc(x.kind)}</p><h3>${esc(x.title)}</h3><p>${esc(x.pages?`${x.pages} 页 · `:'')}${esc(x.note||'请以原文件为准')}</p><small>${esc(x.rights)}</small><div class="material-actions"><a href="${esc(x.url)}" target="_blank" rel="noopener">预览原件 ↗</a>${x.external?'<span class="small-note">仅原站链接</span>':`<button data-add="${esc(x.id)}" aria-pressed="${bag.some(b=>b.url===x.url)}">${bag.some(b=>b.url===x.url)?'✓ 已放入资料袋':'＋ 放入资料袋'}</button>`}</div></div></article>`).join(''):`<div class="product-empty"><span class="empty-symbol">↗</span><h3>这一格，等你来补充。</h3><p>当前没有符合条件的文件。可以换个关键词，或分享这门课的第一份资料。</p><button class="btn btn-primary" data-upload>分享资料</button></div>`;
  $('#library-more').hidden=filtered.length<=limit;
+ if(focused)document.querySelector(`[data-add="${CSS.escape(focused)}"]`)?.focus({preventScroll:true});
 }
 function renderBag(){ $('#bag-list').innerHTML=bag.length?bag.map(x=>`<div class="bag-item"><span><b>${esc(x.title)}</b><small>${esc(x.course)} · ${esc(x.format.toUpperCase())}</small></span><button data-remove="${esc(x.id)}" aria-label="移除 ${esc(x.title)}" ${busy?'disabled':''}>移除</button></div>`).join(''):'<div class="product-empty"><h3>资料袋还是空的。</h3><p>把需要的试卷、答案和笔记逐份放进来。</p></div>';saveBag();}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-add],[data-remove],[data-subject],[data-upload],[data-close]');if(!b)return;if(b.hasAttribute('data-close'))b.closest('dialog').close();if(b.hasAttribute('data-add'))add(all.find(x=>x.id===b.dataset.add));if(b.hasAttribute('data-remove')&&!busy){bag=bag.filter(x=>x.id!==b.dataset.remove);renderBag();renderList();}if(b.hasAttribute('data-subject')){subject=b.dataset.subject;limit=24;renderList();}if(b.hasAttribute('data-upload'))openUpload();});
 $('#library-search').onsubmit=e=>{e.preventDefault();limit=24;renderList();};let debounce;$('#library-q').oninput=()=>{clearTimeout(debounce);debounce=setTimeout(()=>{limit=24;renderList();},130);};['#library-kind','#library-year'].forEach(id=>$(id).onchange=()=>{limit=24;renderList();});$('#library-more').onclick=()=>{limit+=24;renderList();};
+$('#bag-dock-open').onclick=()=>$('#bag-open').click();
 $('#bag-open').onclick=()=>{renderBag();$('#bag-dialog').showModal();};$('#bag-clear').onclick=()=>{if(!busy){bag=[];renderBag();renderList();}};
 $('#bag-cancel').onclick=()=>controller?.abort();$('#bag-download').onclick=async()=>{if(busy)return;busy=true;controller=new AbortController();$('#bag-status').textContent='正在读取所选原文件…';$('#bag-cancel').hidden=false;$('#bag-clear').disabled=true;$('#bag-progress').hidden=false;renderBag();try{const result=await buildMaterialZip([...bag],{signal:controller.signal,onProgress:s=>{$('#bag-progress').max=s.total;$('#bag-progress').value=s.done;$('#bag-status').textContent=`正在打包 ${s.done}/${s.total} · ${(s.bytes/1048576).toFixed(1)} MB`;}});const url=URL.createObjectURL(new Blob([result],{type:'application/zip'}));const a=document.createElement('a');a.href=url;a.download=`Luokixi-资料袋-${new Date().toISOString().slice(0,10)}.zip`;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);$('#bag-status').textContent='打包完成，已交给浏览器下载。来源清单已附在 ZIP 内。';}catch(e){$('#bag-status').textContent=e.name==='AbortError'?'已取消，资料仍保留在袋中。':e.message;}finally{busy=false;$('#bag-cancel').hidden=true;$('#bag-clear').disabled=false;$('#bag-progress').hidden=true;renderBag();}};
 async function openUpload(){const s=await hubState();if(!s.user){location.href=loginURL();return;}$('#upload-dialog').showModal();}
@@ -57,7 +61,7 @@ async function init(){
  }
  const years=[...new Set(all.map(x=>x.year).filter(Boolean))].sort().reverse();
  $('#library-year').insertAdjacentHTML('beforeend',years.map(y=>`<option>${esc(y)}</option>`).join(''));
- if(isLocal)$('#library-status').textContent='当前包含本机资料，仅在这台电脑可用；不代表已获公开转载授权。';
+ if(isLocal&&all.some(x=>x.url.startsWith('/api/file/')))$('#library-status').textContent='当前包含本机资料，仅在这台电脑可用；不代表已获公开转载授权。';
  renderList();if(new URLSearchParams(location.search).has('upload'))openUpload();
 }
 init().catch(e=>{$('#library-status').textContent=e.message;$('#library-count').textContent='目录读取失败';$('#library-list').innerHTML='<p class="product-empty">请刷新重试，或从旧版资料页继续浏览。<a href="school.html">校内资料 →</a></p>';});

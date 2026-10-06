@@ -6,6 +6,7 @@ import { createNotebook } from '../js/community-notebook.js';
 import { avatarHTML, timeAgo } from '../js/community.js';
 import { esc } from '../js/data.js';
 import '../styles/account.css';
+import {mountContribution} from '../js/contribution-view.js';
 
 initShell();
 
@@ -43,7 +44,9 @@ const titleOf = (e) => (e.draft?.title || e.data?.title || '未命名');
 
 // ---------- 各分区 ----------
 
+let disposeContribution;
 const SECTIONS = {
+  contributions() {return '<h2 class="me-h">每一次共建，都留下回响。</h2><div id="my-contribution"></div>';},
   account() {
     if (!st.user) return needLogin();
     const u = st.me?.profile ?? st.user;
@@ -154,11 +157,13 @@ const SECTIONS = {
 // ---------- 渲染与切换 ----------
 
 function show(sec) {
+  disposeContribution?.();
   if (!SECTIONS[sec]) sec = st.user ? 'account' : 'local';
   $$('#me-nav a').forEach((a) => (a.getAttribute('aria-current') === 'page' ? a.removeAttribute('aria-current') : null));
   $(`#me-nav a[data-sec="${sec}"]`)?.setAttribute('aria-current', 'page');
   main.innerHTML = SECTIONS[sec]();
   main.dataset.sec = sec;
+  if(sec==='contributions') disposeContribution=mountContribution($('#my-contribution'),st.user);
   if (sec === 'notices' && st.user && !st.notes) loadNotices();
 }
 

@@ -85,6 +85,9 @@ def endpoint(request, route=''):
 
 def get(request, route):
     user, query = request.user, request.GET
+    if route == 'bookings' or route.startswith('bookings/'):
+        from . import bookings
+        return bookings.get(request,route)
     parts = route.split('/')
     if parts[0] == 'studio':
         from . import studio
@@ -252,6 +255,9 @@ def get(request, route):
 
 def post(request, route, body):
     user, parts = request.user, route.split('/')
+    if route == 'bookings' or route.startswith('bookings/'):
+        from . import bookings
+        return bookings.post(request,route,body)
     if parts[0] == 'studio':
         from . import studio
         return studio.post(request, route, body)

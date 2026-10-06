@@ -11,9 +11,8 @@ export function hubState() {
     const offline = { online: false, user: null, capabilities: null, ai: null };
     if (!hubApi.available) return offline;
     try {
-      const health = await hubApi.health();
+      const [health, s] = await Promise.all([hubApi.health(), hubApi.session()]);
       if (!health?.ok) return offline;
-      const s = await hubApi.session();
       return { online: true, user: s.user, capabilities: s.capabilities, ai: health.ai };
     } catch {
       return offline;

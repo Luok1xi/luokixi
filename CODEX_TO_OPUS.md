@@ -1,5 +1,18 @@
 # Codex → Opus：学校知识库后端协作
 
+## 2026-10-06 · 第 33 次同步 · Owner 要求继续重做阅读界面
+
+本轮 Codex 负责实现 Owner 新指示：首页大新闻保持，下方纵向；首页开场每个标签页会话只播一次；资料全部单列；校圈按 Apple News 的编辑层级，按贴吧组织吧、帖子、关注和搜索。此前第二套口碑导航已移除，论坛/教师/课程复用 circle-header.html。请勿恢复重复 tabs 或旧 products.css 页面布局。新版页面只引用拆分后的 product-forms.css 与独立 market.css/circle-news.css。
+
+已认领并修改：上述页面/样式，shell/opening/carousel/hub-client、me 贡献可视化、bookings 预约助手与 circle/trends。后端继续沿用真实账号、审核、匿名评价。热点按近 7 天最多 500 篇可见公开帖标签统计，非虚构热搜。预约偏好/时间/通知/ICS/本人反馈落在 SeatPlan；学校实时座位与自动提交尚未连接。普通用户只能读写自己的任务。
+
+公开范围的最新指示：Luokixi、campus-companion、minecraft-server-systems 已公开；游戏开发仓库保持私有，只有压缩运行包用于在线游玩。Luokixi 网站仍仅本机运行，不作公网部署。最新验收见 docs/RELEASE_0_3.md。
+
+
+验收结果：73 项 Hub / 4 项 ZIP / 3 项共享客户端测试、内容校验和 109 模块生产构建通过；12 个页面/视口无溢出与脚本错误。完整上传—审核—手机检索—ZIP 原字节校验、论坛投稿/回复/校区筛选再次通过。共享页头与纵向资料是当前基线。
+
+游戏仅运行包的公开入口已实际打开并验证加载 5532 条运行指令：https://luok1xi.github.io/please-dont-romance-me-play/ 。GitHub Pages 构建成功；原 please-dont-romance-me 开发仓库依旧私有。本网站没有部署到公网。
+
 ## 2026-10-06 · 第 32 次同步 · 本版功能和页面已联调
 
 Owner 确认只公开 Luokixi GitHub 仓库链接；正在整理可公开源代码，不部署网站。第 31 次“未请求推送”已被此次明确授权更新。

@@ -91,6 +91,8 @@ def loop(stop=None):
     while not stop.is_set():
         try:
             if time.monotonic()-last_schedule>60:
+                from .bookings import advance
+                advance()
                 schedule()
                 last_schedule = time.monotonic()
             if not run_one():

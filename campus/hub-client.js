@@ -10,7 +10,14 @@ export function createHubClient({ base = '/api/hub', available = localHost() || 
   let csrf = '';
   const query = values => new URLSearchParams(Object.entries(values).filter(([,v]) => v !== undefined && v !== null && v !== '')).toString();
   const id = value => encodeURIComponent(value);
-  async function request(path, body, options = {}) {
+  const inFlight = new Map();
+  function request(path, body, options = {}) {
+    // Only share concurrent GETs without a caller-owned signal. Never retain private responses.
+    if (body !== undefined || options.signal) return perform(path, body, options);
+    if (!inFlight.has(path)) inFlight.set(path, perform(path, body, options).finally(() => inFlight.delete(path)));
+    return inFlight.get(path);
+  }
+  async function perform(path, body, options = {}) {
     if (!available) throw new HubError('社区服务未连接；当前可以浏览公开目录。', 503);
     const mutate = body !== undefined;
     if (mutate && !csrf) await session();
@@ -19,6 +26,7 @@ export function createHubClient({ base = '/api/hub', available = localHost() || 
     try {
       response = await fetcher(`${base}/${path}`, {
         credentials: 'same-origin', ...options,
+        signal: options.signal || AbortSignal.timeout(mutate ? 60000 : 8000),
         ...(mutate ? { method: 'POST', headers: { 'X-CSRFToken': csrf, ...(multipart ? {} : { 'Content-Type': 'application/json' }) },
           body: multipart ? body : JSON.stringify(body) } : {}),
       });

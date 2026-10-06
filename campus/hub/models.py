@@ -1,4 +1,5 @@
 import uuid
+from .booking_models import SeatPlan
 from .studio_models import StudioRoom, StudioRun, StudioMessage, StudioDay, StudioCall
 from django.contrib.auth.models import AbstractUser
 from django.db import models
