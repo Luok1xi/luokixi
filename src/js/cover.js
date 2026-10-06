@@ -85,3 +85,9 @@ export function coverHTML(project) {
   if (project.cover) return `<div class="cover"><img src="${project.cover}" alt="" loading="lazy"></div>`;
   return `<div class="cover">${coverSVG(project)}</div>`;
 }
+
+// 分类线稿放进 App Store 式的方形图标里（.v3-icon），颜色跟随文字
+export function glyphSVG(category) {
+  const cat = CATEGORIES[category] ?? CATEGORIES.software;
+  return `<svg viewBox="0 0 100 100" aria-hidden="true" style="stroke-width:6.5">${GLYPHS[cat.glyph]().replace(/class="hot"/g, 'fill="currentColor" stroke="none"')}</svg>`;
+}

@@ -17,9 +17,9 @@
     "sourceUrl": "https://cet.neea.edu.cn/"
   },
   "repo": {
-    "owner": null,
+    "owner": "Luok1xi",
     "name": "luokixi",
     "branch": "main",
-    "_note": "仓库发布到 GitHub 后填写 owner（用户名或组织名），投稿按钮才会直接跳到 GitHub"
+    "_note": "本站源码与内容贡献入口；不代表本站托管第三方项目代码。"
   }
 }

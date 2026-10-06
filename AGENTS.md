@@ -1,5 +1,11 @@
 # 协作说明（Codex / Claude）
 
+## 2026-10-06 最新授权与交付：v0.2
+
+用户后来明确要求 Codex 接手全站重排，重点为 Collins Carousel、地图、资料袋、校圈、开源竖滑流与 AI 工作室；完成后只公开 Luokixi GitHub 仓库链接，不部署在线网站。**该最新授权优先于下方历史“仅规划”“前端仅 Opus”“不上传”的本轮限制。**
+
+本版功能、验收和未接入项统一见 [v0.2 验收记录](docs/RELEASE_0_2.md)。跨页面变更先更新共享交接，避免覆盖并行修改。保留六板块与学习引导定位；不伪造用户、评价、题库、校园地理、预约成功或模型回复。
+
 Luokixi 是面向中国矿业大学（北京）的学习引导与创作社区，使用 Vite 多页前端与 Django 社区后端。辅导通过外部网站提供；原有练习记录保留。纯静态部署提供只读内容。
 
 **Owner 2026-10-06 最新分工（下午再次确认，直接告诉 Opus）：页面设计、排版、导航、样式、交互与动画由 Opus 负责；美术与一切图片素材（插画、配图、图标位图、分享图）由 Codex 负责，Opus 按 `docs/ART_DIRECTION.md` 审稿；数据、功能代码、接口、权限、测试与文档由 Codex 负责。设计方向：排版参照虎扑，界面风格参照 App Store（见 `docs/DESIGN.md` 第三版）。** reputation.html、src/pages/reputation.js、src/styles/reputation.css 的功能基线已交给 Opus。

@@ -3,6 +3,7 @@
 // Codex 按上海迪士尼导览图风格重绘的整图交付并审过以后（public/art/campus-map/manifest.json），叠在同一投影上替换矢量画法。
 // 颜色、线宽、楼的“墙”都在 map.css 里用 CSS 变量控制，深色外观自动换成夜景配色。
 import * as L from 'leaflet';
+import { mapIcon } from './map-icons.js';
 
 export const BUILDING_USE = {
   teaching: { name: '教学楼' },
@@ -111,8 +112,8 @@ export function createCampusMap(map, { onBuilding } = {}) {
       const [lng, lat] = f.properties.center;
       L.marker([lat, lng], {
         pane: panes.mark,
-        icon: L.divIcon({ className: 'cm-label-wrap', html: `<span class="cm-label cm-l-${f.properties.use}">${escapeHTML(f.properties.name)}</span>`, iconSize: null }),
-        keyboard: false,
+        icon: L.divIcon({ className: 'cm-label-wrap', html: `<span class="cm-label cm-l-${f.properties.use}"><i class="atlas-pin">${mapIcon(f.properties.use)}</i><b>${escapeHTML(f.properties.name)}</b></span>`, iconSize: null }),
+        keyboard: true, title: f.properties.name,
       })
         .on('click', () => onBuilding?.(f))
         .addTo(groups.label);

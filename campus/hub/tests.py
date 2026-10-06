@@ -198,6 +198,23 @@ class HubTests(TestCase):
         self.assertEqual(b''.join(response.streaming_content),b'private note')
         response.close()
 
+    def test_catalogue_attachments_only_expose_published_version(self):
+        upload = self.a.post('/api/hub/uploads', {'file': SimpleUploadedFile('original.md', b'public note')}).json()
+        private = self.a.post('/api/hub/uploads', {'file': SimpleUploadedFile('private.md', b'private revision')}).json()
+        data = {'title': 'Original notes', 'summary': 'An original contribution', 'license': 'CC BY 4.0',
+                'rightsConfirmed': True, 'uploads': [upload['id']]}
+        draft = self.draft(data=data, kind='resource')
+        self.assertEqual(self.get(self.anon, 'catalogue?kind=resource')['items'], [])
+        entry = self.publish(draft)
+        self.post(self.a, f'entries/{entry["id"]}/save', {
+            'revision': entry['editRevision'], 'data': dict(data, uploads=[private['id']])})
+        result = self.get(self.anon, 'catalogue?kind=resource')['items'][0]
+        self.assertEqual([item['id'] for item in result['attachments']], [upload['id']])
+        self.assertEqual(self.anon.get('/api/hub/uploads/'+private['id']+'/file').status_code, 404)
+        self.post(self.a, f'entries/{entry["id"]}/withdraw', {'reason': 'Withdraw for revision'})
+        self.assertEqual(self.get(self.anon, 'catalogue?kind=resource')['items'], [])
+        self.assertEqual(self.anon.get('/api/hub/uploads/'+upload['id']+'/file').status_code, 404)
+
     def test_task_claim_requires_project_and_evidence(self):
         eid = self.publish(self.draft())['id']
         task = self.post(self.a,f'entries/{eid}/tasks',{'title':'验证安装','description':'记录硬件和结果。'})

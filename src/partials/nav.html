@@ -6,27 +6,58 @@
       <span>Luokixi</span>
     </a>
     <ul class="gn-links" id="gn-links">
-      <li><a href="./" data-nav="home">首页</a></li>
-      <li><a href="cet4.html" data-nav="cet4 cet6">四六级真题</a></li>
-      <li><a href="reputation.html" data-nav="reputation">选课口碑</a></li>
-      <li><a href="school.html" data-nav="school">矿大资料</a></li>
-      <li><a href="knowledge.html" data-nav="knowledge">知识库</a></li>
-      <li><a href="map.html" data-nav="map">校园</a></li>
-      <li><a href="discover.html" data-nav="discover">发现</a></li>
-      <li><a href="projects.html" data-nav="projects">开源广场</a></li>
-      <li><a href="community.html" data-nav="community profile contribute">社区</a></li>
+      <li><a href="./" data-board="home">首页</a></li>
+      <li><a href="map.html" data-board="campus">校园</a></li>
+      <li><a href="materials.html" data-board="materials">资料</a></li>
+      <li><a href="circle.html" data-board="circle">校圈</a></li>
+      <li><a href="discover.html" data-board="open">开源广场</a></li>
+      <li><a href="me.html" data-board="me">个人中心</a></li>
     </ul>
     <div class="gn-tools">
       <button class="gn-btn gn-search" type="button" data-search aria-label="搜索全站">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
         <span class="kbd" data-kbd-mod>Ctrl K</span>
       </button>
-      <button class="gn-btn" type="button" data-theme-toggle aria-label="切换外观">
+      <button class="gn-publish" type="button" data-publish aria-haspopup="true" aria-expanded="false" aria-controls="gn-pub">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg><span>发布</span>
+      </button>
+      <a class="gn-btn gn-bell" href="me.html#notices" data-bell aria-label="消息" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 21h4"/></svg>
+        <i class="gn-dot num" data-bell-count hidden></i>
+      </a>
+      <button class="gn-btn gn-theme" type="button" data-theme-toggle aria-label="切换外观">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"/><path d="M12 3.75a8.25 8.25 0 0 1 0 16.5z" class="fill"/></svg>
       </button>
-      <button class="gn-btn gn-burger" type="button" aria-expanded="false" aria-controls="gn-links" aria-label="打开菜单">
-        <span></span><span></span>
-      </button>
+      <a class="gn-me" href="auth.html" data-me>登录</a>
     </div>
   </nav>
+  <div class="gn-pub glass" id="gn-pub" role="menu" aria-label="发布" hidden>
+    <p class="gn-pub-title">发布到哪里</p>
+    <a role="menuitem" href="map.html?add=place#explore" style="--h:212">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></span>
+      <span><b>标一个地点</b><small>校园 · 拍照标出地点或限时活动，核对后上图</small></span></a>
+    <a role="menuitem" href="reputation.html" style="--h:28">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 16.4l-4.8 2.5.9-5.4L4.2 9.7l5.4-.8z"/></svg></span>
+      <span><b>写课程评价</b><small>校圈 · 给老师或课程打分，说一句真话</small></span></a>
+    <a role="menuitem" href="contribute.html#project" style="--h:262">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></span>
+      <span><b>发布项目</b><small>开源广场 · 作品、工具和代码</small></span></a>
+    <a role="menuitem" href="materials.html?upload=1" style="--h:158">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M12 10v7M9 14l3 3 3-3"/></svg></span>
+      <span><b>上传资料</b><small>资料 · 选择文件、标明来源、提交审核</small></span></a>
+    <a role="menuitem" href="circle.html?compose=1" style="--h:330">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+      <span><b>发帖</b><small>校圈 · 分享动态、经验和新发现</small></span></a>
+  </div>
 </header>
+<nav class="tabbar" aria-label="板块">
+  <a href="./" data-board="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg>首页</a>
+  <a href="map.html" data-board="campus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>校园</a>
+  <a href="materials.html" data-board="materials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 13h8M8 17h6"/></svg>资料</a>
+  <a href="circle.html" data-board="circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>校圈</a>
+  <a href="discover.html" data-board="open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>开源</a>
+  <a href="me.html" data-board="me"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</a>
+</nav>
+<button class="fab" type="button" data-publish aria-label="发布" aria-controls="gn-pub" aria-expanded="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>
+</button>

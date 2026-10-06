@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "_note": "首页编辑精选（PRODUCT_SPEC 13.3 的“精选引用”，静态版）。由编辑核对后填写，Codex 负责数据和来源；页面只显示 startsAt ≤ 现在 < expiresAt 的条目，排在本站推荐之前。字段：id、kind（news 学校新闻 / talk 宣讲会 / opportunity 机会 / creator 校园创作者 / notice 本站公告）、title、dek、reason、source{name,type,url}、href（站内详情或原文）、eventAt、publishedAt、checkedAt、startsAt、expiresAt、editor、media{src,alt,credit}（可选，图片使用依据要能核对）。没有核对过的内容不要放进来。",
+  "items": [
+    {
+      "id": "cumtb-20261001-national-day",
+      "kind": "news",
+      "title": "在矿大，共庆祖国华诞。",
+      "dek": "10 月 1 日，学校在沙河校区操场举行国庆主题升旗仪式。一起回看现场，读学校原报道。",
+      "reason": "近期校园新闻，保留学校原文与发布时间。",
+      "source": {
+        "name": "矿大新闻网",
+        "type": "official",
+        "url": "https://news8.cumtb.edu.cn/info/1003/40686.htm"
+      },
+      "href": "https://news8.cumtb.edu.cn/info/1003/40686.htm",
+      "publishedAt": "2026-10-01T08:00:00+08:00",
+      "eventAt": "2026-10-01",
+      "checkedAt": "2026-10-06T12:00:00+08:00",
+      "startsAt": "2026-10-01T00:00:00+08:00",
+      "expiresAt": "2026-10-16T00:00:00+08:00",
+      "editor": "来源核对：Codex"
+    }
+  ]
+}

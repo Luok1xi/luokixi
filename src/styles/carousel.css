@@ -1,0 +1,269 @@
+/* ==========================================================================
+   横向大轮播（carousel.js）：Apple TV / App Store 首页那种，中间一张，两边露出邻居
+   控件用 iOS 27 的液态玻璃；只动 transform 和 opacity
+   ========================================================================== */
+
+.hc {
+  --hc-gap: 20px;
+  --hc-w: min(1180px, calc(100vw - 160px));
+  --hc-h: clamp(420px, 58vh, 640px);
+  position: relative;
+  padding: 18px 0 8px;
+  overflow: hidden;
+  outline: none;
+}
+
+.hc-viewport {
+  position: relative;
+  height: var(--hc-h);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.hc-slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--hc-w);
+  height: 100%;
+  margin-left: calc(var(--hc-w) / -2);
+  perspective: 1400px;
+  transition:
+    transform var(--spring-snappy-dur) var(--spring-snappy),
+    opacity 420ms var(--ease-out);
+  will-change: transform, opacity;
+}
+
+.hc-slide.is-instant,
+.hc.is-dragging .hc-slide,
+.hc.is-dragging .hc-media {
+  transition: none;
+}
+
+.hc-slide:not(.is-active) { cursor: pointer; }
+
+.hc-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  padding: clamp(24px, 4vw, 48px);
+  border-radius: 28px;
+  overflow: hidden;
+  color: #fff;
+  background: var(--hc-bg, linear-gradient(160deg, #1b2a4a, #0b0f1a));
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.55);
+  transform-style: preserve-3d;
+  transition: transform 600ms var(--spring-bouncy);
+}
+
+.hc-card:hover { text-decoration: none; }
+.hc-card.is-tilting { transition: transform 140ms linear; }
+
+/* 配图层：审过的实拍或照片级图片（art.js 插进来），比卡片大一圈，用来做视差 */
+.hc-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  transform: scale(1.12);
+  transition: transform var(--spring-snappy-dur) var(--spring-snappy);
+}
+
+.hc-media .art-layer { z-index: auto; }
+
+/* 底部压暗，保证标题在任何照片上都读得清 */
+.hc-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent 38%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+}
+
+/* 鼠标高光 */
+.hc-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(520px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.14), transparent 46%);
+  opacity: 0;
+  transition: opacity 300ms;
+  pointer-events: none;
+}
+
+.hc-card.is-tilting::before { opacity: 1; }
+
+.hc-copy {
+  position: relative;
+  max-width: 34em;
+  transform: translateZ(40px);
+}
+
+.hc-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+
+.hc-title {
+  margin-top: 6px;
+  font-size: clamp(32px, 4.6vw, 60px);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+}
+
+.hc-big {
+  display: inline-block;
+  font-family: var(--font-num);
+  font-size: 1.5em;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.hc-dek {
+  margin-top: 12px;
+  max-width: 30em;
+  font-size: clamp(15px, 1.4vw, 19px);
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.hc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 液态玻璃按钮 */
+.glass-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.14));
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.22), 0 8px 24px -10px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 400ms var(--spring-bouncy), background 200ms;
+}
+
+.glass-pill:hover { text-decoration: none; transform: scale(1.04); }
+.glass-pill:active { transform: scale(0.95); }
+.glass-pill.is-solid { background: #fff; color: #000; box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.5); }
+
+/* ---------- 控件：左右箭头、圆点进度、播放暂停 ---------- */
+
+.hc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.hc-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+
+.hc-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--fg-4);
+  overflow: hidden;
+  transition: width 500ms var(--spring-snappy), background 200ms;
+}
+
+.hc-dot.is-active { width: 34px; background: var(--fill-2); }
+
+.hc-dot i {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--fg);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.hc-dot.is-active:not(.is-running) i { transform: scaleX(1); }
+.hc-dot.is-running i { animation: hc-progress var(--hc-interval, 6500ms) linear forwards; }
+.hc.is-paused .hc-dot.is-running i { animation-play-state: paused; }
+
+@keyframes hc-progress {
+  to { transform: scaleX(1); }
+}
+
+.hc-arrow,
+.hc-play {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+  color: var(--fg);
+  transition: transform 300ms var(--spring-bouncy);
+}
+
+.hc-arrow:active,
+.hc-play:active { transform: scale(0.9); }
+
+.hc-arrow svg,
+.hc-play svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hc-play .is-play { display: none; }
+.hc-play.is-off .is-play { display: block; }
+.hc-play.is-off .is-pause { display: none; }
+
+@media (max-width: 760px) {
+  .hc {
+    --hc-gap: 12px;
+    --hc-w: calc(100vw - 40px);
+    --hc-h: min(132vw, 560px);
+    padding-top: 10px;
+  }
+
+  .hc-card { border-radius: 24px; padding: 22px; }
+  .hc-arrow { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hc-slide,
+  .hc-media,
+  .hc-card { transition: none; }
+}

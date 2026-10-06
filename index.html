@@ -2,17 +2,18 @@
 <html lang="zh-CN">
 <head>
 <!-- @include head -->
-<title>Luokixi · 四六级真题与矿大资料</title>
-<meta name="description" content="2019 – 2026 年大学英语四六级真题、听力与答案，加上中国矿业大学（北京）校内试卷。校友整理，免费开放。">
+<title>Luokixi · 今日矿大</title>
+<meta name="description" content="矿大（北京）同学的校园编辑页：精选、校圈热帖、竞赛与机会、选课口碑和开源推荐。">
 <script>
-  // 开场动画：每个会话只放一次；系统要求减少动态效果时不放。
-  // 在脚本接管前先用纯色盖住页面，避免先闪一下首页；5 秒兜底，脚本失败也不会卡住。
+  // 开场动画：每次打开首页都放；系统要求减少动态效果时不放。
+  // 脚本接管前先用纯色盖住页面，避免先闪一下首页；4 秒兜底，脚本失败也不会卡住（预先渲染时从切过来那一刻算起）。
   (function () {
-    try { if (sessionStorage.getItem('lk-intro')) return; } catch (e) {}
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var d = document.documentElement;
     d.classList.add('intro-pending');
-    setTimeout(function () { d.classList.remove('intro-pending'); }, 5000);
+    var guard = function () { setTimeout(function () { d.classList.remove('intro-pending'); }, 4000); };
+    if (document.prerendering) document.addEventListener('prerenderingchange', guard, { once: true });
+    else guard();
   })();
 </script>
 <style>
@@ -22,216 +23,33 @@
   @media (prefers-color-scheme: dark) { html.intro-pending:not([data-theme="light"])::after { background: #000; } }
   html.intro-pending[data-theme="dark"]::after { background: #000; }
 </style>
-<script type="module" src="/src/pages/home.js"></script>
+<script type="module" src="/src/pages/today.js"></script>
 </head>
 <body data-page="home">
 <!-- @include nav -->
 
-<main id="main">
-
-  <!-- ① 首屏：标题 + 3D 试卷堆叠，滚动时展开 -->
-  <section class="hero" id="hero">
-    <div class="hero-pin">
-      <div class="hero-glow" aria-hidden="true"></div>
-      <div class="hero-copy wrap">
-        <p class="hero-eyebrow">
-          <span class="tag tag-glow">已更新</span>
-          目录收录至 <span data-stat="latest">2026 年 6 月</span>
-        </p>
-        <h1 class="hero-title">
-          <span class="line"><span>真题，</span></span>
-          <span class="line"><span class="glow-text">一套不落。</span></span>
-        </h1>
-        <p class="hero-lead lead">
-          <span data-stat="range">2019 – 2026</span> 年四六级真题、听力与答案，<br class="br-wide">加上矿大（北京）校内试卷。
-          <br>写给学弟学妹，免费，且一直免费。
-        </p>
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="cet4.html">四级真题</a>
-          <a class="btn btn-secondary" href="cet6.html">六级真题</a>
-        </div>
-      </div>
-      <div class="stack-stage" aria-hidden="true">
-        <div class="stack" id="stack"></div>
-      </div>
-      <p class="hero-caption" aria-hidden="true">
-        <span class="num" data-stat="years">8</span> 年 ·
-        <span class="num" data-stat="sessions">36</span> 个考次 ·
-        <span class="num" data-stat="sets">99</span> 套真题
-      </p>
-      <div class="scroll-hint" aria-hidden="true"><span></span></div>
-    </div>
+<main id="main" class="td">
+  <section class="hc" id="td-hero" aria-roledescription="carousel" aria-label="精选">
+    <div class="hc-viewport"><div class="hc-slide is-active hc-skeleton" aria-hidden="true"><div class="hc-card"></div></div></div>
   </section>
 
-  <!-- ② 宣言：逐字点亮 -->
-  <section class="statement section">
-    <div class="wrap wrap-narrow">
-      <p class="statement-text" data-split>
-        不用再在群文件里翻找。每一套卷子、每一段听力、每一份答案，都按年份和考次排好。打开网页，就能开始练。
-      </p>
-    </div>
-  </section>
-
-  <!-- ③ 数字 -->
-  <section class="numbers section section-alt">
-    <div class="wrap">
-      <header class="sec-head center">
-        <p class="eyebrow" data-reveal>收录</p>
-        <h2 class="headline" data-reveal>一份目录，装下八年。</h2>
-      </header>
-      <div class="num-grid">
-        <div class="num-item" data-reveal>
-          <p class="num-big"><span class="num" data-count="cet4.sets">0</span><small>套</small></p>
-          <p class="num-label">四级真题</p>
-        </div>
-        <div class="num-item" data-reveal>
-          <p class="num-big"><span class="num" data-count="cet6.sets">0</span><small>套</small></p>
-          <p class="num-label">六级真题</p>
-        </div>
-        <div class="num-item" data-reveal>
-          <p class="num-big"><span class="num" data-count="listening">0</span><small>套</small></p>
-          <p class="num-label">配有独立听力</p>
-        </div>
-        <div class="num-item" data-reveal>
-          <p class="num-big"><span class="num" data-count="school">0</span><small>份</small></p>
-          <p class="num-label">矿大校内试卷</p>
-        </div>
+  <div class="wrap td-body">
+    <header class="v3-head">
+      <p class="v3-date" id="td-date"></p>
+      <h1 class="v3-title">今日矿大</h1>
+      <div class="v3-tabs" role="tablist" aria-label="首页内容" id="td-tabs">
+        <button type="button" role="tab" id="td-tab-picks" data-tab="picks" aria-selected="true" aria-controls="td-panel">推荐</button>
+        <button type="button" role="tab" id="td-tab-following" data-tab="following" aria-selected="false" aria-controls="td-panel">关注</button>
+        <button type="button" role="tab" id="td-tab-hot" data-tab="hot" aria-selected="false" aria-controls="td-panel">热榜</button>
+        <button type="button" role="tab" id="td-tab-chances" data-tab="chances" aria-selected="false" aria-controls="td-panel">机会</button>
+        <span class="v3-tabs-bar" aria-hidden="true"></span>
       </div>
-    </div>
-  </section>
-
-  <!-- ④ 便当格：功能一览 -->
-  <section class="section">
-    <div class="wrap">
-      <header class="sec-head center">
-        <p class="eyebrow" data-reveal>为备考而设计</p>
-        <h2 class="headline" data-reveal>一个地方，<br>备齐所有。</h2>
-      </header>
-
-      <div class="bento">
-        <a class="card card-hover tile tile-lib" href="cet4.html" data-reveal>
-          <div class="tile-copy">
-            <p class="tile-kicker">真题库</p>
-            <h3 class="tile-title">按考次排好，<br>一眼找到要练的那套。</h3>
-          </div>
-          <ol class="mini-timeline" id="mini-timeline" role="list"></ol>
-          <span class="btn-link tile-more">打开四级真题</span>
-        </a>
-
-        <div class="card tile tile-listen" data-reveal data-live>
-          <p class="tile-kicker">听力</p>
-          <h3 class="tile-title">原声音频，<br>在线就能放。</h3>
-          <div class="wave" aria-hidden="true">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-        </div>
-
-        <div class="card tile tile-mock" data-reveal>
-          <span class="tag tile-soon">开发中</span>
-          <p class="tile-kicker">整卷模拟</p>
-          <h3 class="tile-title">像真正考试<br>那样计时。</h3>
-          <div class="ring" aria-hidden="true">
-            <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fg"/></svg>
-            <span class="ring-label num">125<small>′</small></span>
-          </div>
-        </div>
-
-        <a class="card card-hover tile tile-school" href="school.html" data-reveal>
-          <div class="tile-copy">
-            <p class="tile-kicker">矿大（北京）</p>
-            <h3 class="tile-title">历年期中期末，<br>附参考答案。</h3>
-          </div>
-          <div class="chip-cloud" id="chip-cloud"></div>
-        </a>
-
-        <div class="card tile tile-wrong" data-reveal>
-          <span class="tag tile-soon">开发中</span>
-          <div class="tile-copy">
-            <p class="tile-kicker">错题本</p>
-            <h3 class="tile-title">做错的题，<br>会自己回来找你。</h3>
-          </div>
-          <div class="flash" aria-hidden="true">
-            <div class="flash-card"><b>vague</b><span>adj. 模糊的</span></div>
-            <div class="flash-card"><b>infer</b><span>v. 推断</span></div>
-            <div class="flash-card"><b>sustain</b><span>v. 维持</span></div>
-          </div>
-        </div>
-
-        <div class="card tile tile-free" data-reveal>
-          <div class="free-mark" aria-hidden="true">
-            <svg viewBox="0 0 48 48"><path d="M24 4 7 11v12c0 11 7.4 18.6 17 21 9.6-2.4 17-10 17-21V11z"/><path d="m16.5 24.5 5 5 10-11" class="check"/></svg>
-          </div>
-          <p class="tile-kicker">零门槛</p>
-          <h3 class="tile-title">不用注册，<br>不收一分钱。</h3>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ⑤ 年份画廊：苹果官网式横向吸附 -->
-  <section class="years section section-alt" id="years">
-    <header class="wrap years-head">
-      <p class="eyebrow" data-reveal>按年份浏览</p>
-      <h2 class="headline" data-reveal>从 <span data-stat="to">2026</span>，<br>一路回到 <span data-stat="from">2019</span>。</h2>
     </header>
-    <div class="gallery" data-gallery>
-      <div class="gallery-scroller" id="years-track" tabindex="0" aria-label="按年份浏览真题"></div>
-      <div class="gallery-ui">
-        <div class="dotnav" aria-label="年份"></div>
-        <div class="paddles">
-          <button class="paddle paddle-prev" type="button" aria-label="上一年"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></svg></button>
-          <button class="paddle paddle-next" type="button" aria-label="下一年"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></button>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- ⑥ 矿大资料：深色段落 -->
-  <section class="school-band section">
-    <div class="wrap">
-      <header class="school-head">
-        <p class="eyebrow" data-reveal>中国矿业大学（北京）· 校内资料</p>
-        <h2 class="headline headline-xl" data-reveal>自己学校的卷子，<br><span class="glow-text">最懂你的期末。</span></h2>
-        <p class="lead" data-reveal>高数 A1、A2 与线性代数，历年期中、期末原卷和参考答案。学长学姐收集，校友整理。</p>
-      </header>
-      <div class="course-row" id="course-row"></div>
-      <a class="btn btn-primary" href="school.html" data-reveal>浏览校内资料</a>
+    <div id="td-panel" role="tabpanel" aria-labelledby="td-tab-picks" aria-live="polite">
+      <p class="td-loading">正在载入…</p>
     </div>
-  </section>
-
-  <!-- ⑥½ 社区：苹果式双联宣传格 -->
-  <section class="home-promos" aria-label="开源与社区">
-    <div class="promo-grid">
-      <div class="promo promo-dark" data-reveal>
-        <p class="promo-eyebrow">开源广场</p>
-        <h3>把课设，<br>做成作品。</h3>
-        <p>机电、嵌入式、软件、算法。矿大同学的开源项目，都在这里被看见。</p>
-        <div class="btn-group"><a class="btn btn-primary" href="projects.html">逛逛开源广场</a><a class="btn btn-outline" href="contribute.html#project">发布项目</a></div>
-        <div class="promo-visual"><div class="fan" id="home-fan" aria-hidden="true"></div></div>
-      </div>
-      <div class="promo" data-reveal>
-        <p class="promo-eyebrow">社区</p>
-        <h3>每一格，<br>都算数。</h3>
-        <p>洛谷、力扣、Codeforces 每天自动同步，汇成一张贡献热力图。</p>
-        <div class="btn-group"><a class="btn btn-primary" href="community.html">查看社区</a><a class="btn btn-outline" href="contribute.html#people">加入名录</a></div>
-        <div class="promo-visual"><div class="mini-heat" id="home-heat" aria-hidden="true"></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ⑦ 倒计时 -->
-  <section class="countdown section">
-    <div class="wrap wrap-narrow glow-halo" data-live>
-      <div class="card glow-ring cd-card" id="cd-card" data-reveal="scale">
-        <p class="eyebrow" id="cd-label">距离下一次四六级笔试</p>
-        <p class="cd-days"><span class="num" id="cd-days">—</span><span class="cd-unit">天</span></p>
-        <ul class="cd-sessions" id="cd-sessions" role="list"></ul>
-        <p class="cd-note" id="cd-note"></p>
-        <a class="btn btn-primary" href="cet4.html">从最近的一套开始</a>
-      </div>
-    </div>
-  </section>
-
+  </div>
 </main>
 
 <!-- @include footer -->

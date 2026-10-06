@@ -1,68 +1,83 @@
-# Luokixi · 矿大学习引导与创作社区
+# Luokixi
 
-面向中国矿业大学（北京），帮助同学决定选什么课、参考谁的经验、去哪里学习、参与什么项目。讲课与辅导连接外部平台。
+面向中国矿业大学（北京）的校园、资料、校圈与开源创作社区。帮助同学选择课程、找到资料和工具、分享经验、参与项目。学习辅导通过外部平台提供。
 
-2026-10-06 整理上传，仓库保持私有。当前是开发中的源码快照，不是所有规划功能都已上线。
+**v0.2 · 六板块改版**：Collins 风格首页轮播、进入即用的校园地图、资料袋打包下载、校区论坛、竖向项目发现流，以及本机站主 AI 工作室。当前是可本机运行的开发版本；本次公开源码，未部署在线网站。
 
-## 功能与状态
+## 六个入口
 
-| 板块 | 内容 | 当前说明 |
+| 板块 | 已有功能 | 入口 |
 |---|---|---|
-| 首页 | 编辑精选、近期热点和关注更新 | 正在按六板块方案调整 |
-| 校园 | 课程、地点、校园地图和活动 | 地点/口碑接口已有；学校空位与预约接口未打通 |
-| 资料 | 四六级与课程资料目录、检索、投稿 | 全文库与社区服务需后端；校内试卷原件不在仓库 |
-| 校圈 | 动态、讨论、课程/教师口碑 | 账号和审核接口已有，页面接入状态见规格 |
-| 开源广场 | GitHub 项目导读、推荐、创作与协作 | AI 需自己配置；视频联动、弹幕等仍在完善 |
-| 个人中心 | 作品、收藏、消息、成长与外部链接 | 外部账号同步、等级等缺口在统一规格中列明 |
+| 首页 | 学校新闻来源与时效、关注动态、Collins 风格透视拖动轮播 | `index.html` |
+| 校园 | 学院路 / 沙河真实 OSM 地图、设施图标、活动投稿、地点详情、官方预约入口 | `map.html` |
+| 资料 | 课程 / 年份 / 类型筛选、原文件预览、上传审核、资料袋和带来源清单的 ZIP | `materials.html` |
+| 校圈 | 校区论坛、图文投稿、审核、点赞、收藏、回复；独立教师 / 课程口碑 | `circle.html` / `reputation.html` |
+| 开源广场 | 逐个浏览项目、原仓库入口、已核对项目导读、视频链接、公开评论弹幕 | `discover.html` |
+| 个人中心 | 账号、投稿、收藏、通知、个人资料；站主另有 AI 工作室 | `me.html` / `studio.html` |
 
-详细状态与验收目标：[PRODUCT_SPEC.md](docs/PRODUCT_SPEC.md)。前端和后端的存在不等于端到端验收完成。
+旧版资料与检索地址继续保留。`knowledge.html` 提供本机全文检索及公开资料采集；`projects.html` 可按列表搜索项目。
 
 ## 本地运行
 
-本次检查使用 Node.js 24。安装依赖后启动 Vite：
+需要 Node.js **22.12+**、Python **3.12+**。先在项目根目录构建前端：
 
-    npm ci
-    npm run dev
+```bash
+npm ci
+npm run build
+```
 
-构建与内容校验：
+只看前端可运行 `npm run dev`。账号、上传、审核、论坛与 AI 工作室需要后端；静态页面不会伪造登录或互动成功。
 
-    npm run validate
-    npm run build
+Windows 本机完整运行：
 
-知识库与账号社区还需要 Python 3.12+ 及 campus 下的依赖，安装、数据库初始化、可选模型与邮件配置见 [后端运行说明](campus/HUB_SETUP.md) 和 [知识库说明](campus/README.md)。不要把只读静态页面当成完整在线服务。
+```powershell
+python -m venv campus/.venv
+campus/.venv/Scripts/python -m pip install -r campus/requirements.txt -r campus/hub-requirements.txt
+campus/.venv/Scripts/python campus/manage_hub.py migrate
+campus/.venv/Scripts/python campus/manage_hub.py hub_import_catalogue
+campus/.venv/Scripts/python campus/manage_hub.py hub_import_reputation
+campus/.venv/Scripts/python campus/manage_hub.py hub_import_boards
+campus/.venv/Scripts/python campus/manage_hub.py createsuperuser
+powershell -NoProfile -ExecutionPolicy Bypass -File campus/start.ps1
+```
 
-## 目录
+打开 **http://127.0.0.1:17860/**。Linux/macOS 可在安装上述依赖与完成迁移后，用两个终端分别运行 `python campus/run_hub.py` 和 `python campus/server.py --port 17860`；本轮运行验收在 Windows 完成。
 
-| 路径 | 内容 |
-|---|---|
-| src/、根目录 HTML | 页面与交互 |
-| campus/ | 知识库、账号、投稿、审核、通知等后端 |
-| content/、public/data/ | 内容条目与公开目录数据 |
-| docs/ | 统一规格、接口与协作记录 |
-| docs/art-review/maps/ | 两校区待审地图候选，不进入正式站点资源 |
-| scripts/ | 内容与地图数据工具 |
+创建管理员时自行设置账号，没有仓库内置密码。邮箱验证需要配置 SMTP；未配置时只写本机邮件预览。详细配置、自部署边界见 [社区运行说明](campus/HUB_SETUP.md)。本机私人资料、数据库和模型密钥均不随仓库上传。
 
-地图候选见 [审阅说明](docs/art-review/README.md)。它们尚未完成精确对位，正式地图 manifest 没有因此改成已批准。
+### AI 工作室
 
-## 上传与部署
+站主启用后从个人中心进入 `studio.html`，可建房间、讨论、请求候选代码、查看检查记录、停止任务、确认候选。按 [AI 工作室说明](docs/AI_STUDIO.md) 设置并单独启动 worker。仅打开网页不会调用模型。
 
-本次仅上传私有仓库，不启动公开站点。GitHub Pages 工作流改为仅手动触发；没有开启定时抓取或推送即部署。部署前按实际配置检查后端、公开资源与外部服务。
+现有适配器为 DeepSeek API 和本机 Codex CLI；设计席明确显示“由 Codex 运行”，**没有冒充实际 Claude / Opus 接入**。单次最多 6 条 AI 回复，DeepSeek 日预算默认 5 元；未配置密钥或核对费率则不可调用。候选确认只记录审核，不自动覆盖网站、合并、上传或发布。
 
-本机数据、密钥、登录状态、卫星截图、校内 PDF、依赖与构建目录不提交。后端示例与公开数据保留，使用者自行配置。
+## 当前边界
 
-## 协作与相关项目
+- 公共仓库不包含私人试卷或他人上传文件。资料页只将实际可取的原文件放入资料袋；新安装可自行导入有权使用的资料或通过投稿补充。
+- 全校课程分类已开放；物理、化学、雅思等栏目缺资料时展示空状态，不用虚构题库填充。
+- 图书馆和体育场馆入口通向官方服务。实时空位、校内单点登录及自动预约尚未接入。地图几何来自 OSM，待审插画不作为可导航地图。
+- 无已核对精选时，开源流明确显示人工目录。不会把未验证的安装步骤、下载地址或视频说成实测成功；个性化与站外同步仍受接口、审核和数据条件限制。
+- 新闻带来源、时间和精选展示期限；学校通知以原文为准。项目为学生自发维护的非官方网站。
 
-[CONTRIBUTING.md](CONTRIBUTING.md) · [统一任务板](docs/BOARD.md) · [Codex 与 Opus 分工](AGENTS.md) · [项目总索引](PROJECTS.md) · [上传检查](UPLOAD_CHECKS.md)
+## 验证与贡献
 
-## 致谢
+```bash
+npm run validate
+npm run test:materials
+python campus/manage_hub.py test hub
+npm run build
+```
 
-- 动画：[GSAP](https://gsap.com/) 与 ScrollTrigger
-- 字体：[Inter](https://rsms.me/inter/)（自托管，不依赖外部字体服务）
-- 开场动画的交叉溶解和真实进度条思路参考了 [lxj5820/dsh-boot-animation](https://github.com/lxj5820/dsh-boot-animation)（MIT）
-- 真题目录的组织方式参考了 [WeHUSTER](https://www.wehuster.com/cet4)
-- 用 GitHub 共享课程资料的做法，借鉴了 [浙江大学课程攻略共享计划](https://github.com/QSCTech/zju-icicles)、[清华大学计算机系课程攻略](https://github.com/PKUanonym/REKCARC-TSC-UHT) 和 [HITSZ OpenAuto](https://github.com/HITSZ-OpenAuto/hoa-v2)
-- 力扣数据接口参考了 [LeetCode-Query](https://github.com/JacobLinCool/LeetCode-Query)；Codeforces 使用[官方 API](https://codeforces.com/apiHelp)
+本版完成 68 项 Hub 测试、4 项资料打包测试，以及桌面 / 手机视口浏览器验收。过程、功能边界见 [v0.2 验收记录](docs/RELEASE_0_2.md)。这是本机验收，不代表公网部署、实体手机或校园实地测试。
 
-## 声明
+欢迎补充原创笔记、真实项目、安装记录、校园地点与代码修正。见 [贡献指南](CONTRIBUTING.md) 和 [统一模块规格](docs/PRODUCT_SPEC.md)。投稿保留来源与许可；评价保留具体体验，禁止冒用他人身份。
 
-四六级真题版权归教育部教育考试院所有，校内试卷版权归命题教师与学校所有。本站是校友自发维护的非官方公益项目，与中国矿业大学（北京）及教育考试院均无隶属关系。资料仅供个人学习使用。考试时间与报名信息以[四六级官网](https://cet.neea.edu.cn/)和学校教务通知为准。
+## 许可与致谢
+
+本站原创代码采用 [MIT](LICENSE)。第三方依赖、图片、地图数据、课程资料和用户投稿遵循各自许可；MIT 不授予学校标识、第三方作品或试卷的转载权。
+
+- 轮播效果参考 [Dimi · Collins Carousel](https://www.dimi.me/lab/collins-carousel)，独立实现；未复制 Motion+ 源码或依赖付费组件。
+- 设计工作流参考 [Emil Kowalski skills](https://github.com/emilkowalski/skills)。
+- 地图使用 [Leaflet](https://leafletjs.com/) 与 [OpenStreetMap contributors](https://www.openstreetmap.org/copyright)，保留来源与署名。
+- 压缩下载使用 [fflate](https://github.com/101arrowz/fflate)；动画使用 [GSAP](https://gsap.com/)，字体为自托管 [Inter](https://rsms.me/inter/)。
+- 课程资料组织参考 [WeHUSTER](https://www.wehuster.com/cet4) 与各高校课程共享项目。既有开场参考 [dsh-boot-animation](https://github.com/lxj5820/dsh-boot-animation)。

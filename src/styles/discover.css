@@ -8,7 +8,7 @@
 
 .dc {
   --feed-h: calc(100vh - var(--nav-h));
-  --feed-h: calc(100dvh - var(--nav-h));
+  --feed-h: calc(100dvh - var(--nav-h) - var(--tabbar-h, 0px));
   position: relative;
   height: var(--feed-h);
   background: var(--bg);

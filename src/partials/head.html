@@ -11,5 +11,23 @@
       var t = localStorage.getItem('lk-theme');
       if (t === 'light' || t === 'dark') d.dataset.theme = t;
     } catch (e) {}
+    // 换页转场的方向（forward / back / same）：上一页换走前记下（shell.js），这里在第一帧之前读出来。
+    // 预先渲染的页面要等真正切过来时再读；转场播完就清掉，免得影响页内的其他转场。
+    function readDir() {
+      try {
+        var v = JSON.parse(sessionStorage.getItem('lk-vt') || 'null');
+        sessionStorage.removeItem('lk-vt');
+        if (v && Date.now() - v.at < 8000) d.dataset.vt = v.dir;
+      } catch (e) {}
+    }
+    if (document.prerendering) document.addEventListener('prerenderingchange', readDir, { once: true });
+    else readDir();
+    addEventListener('pagereveal', function (e) {
+      if (!e.viewTransition) { delete d.dataset.vt; return; }
+      e.viewTransition.finished.finally(function () { delete d.dataset.vt; });
+    });
   })();
+</script>
+<script type="speculationrules">
+{"prefetch":[{"urls":["map.html","materials.html","circle.html","discover.html","me.html"],"eagerness":"moderate"}]}
 </script>

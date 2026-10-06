@@ -86,6 +86,9 @@ def endpoint(request, route=''):
 def get(request, route):
     user, query = request.user, request.GET
     parts = route.split('/')
+    if parts[0] == 'studio':
+        from . import studio
+        return studio.get(request, route)
     if parts[0] == 'circle':
         from . import circle
         return circle.get(request, route)
@@ -135,7 +138,12 @@ def get(request, route):
             for term in query['q'][:160].split()[:8]:
                 items = items.filter(search_text__icontains=term)
         offset = max(0,min(int(query.get('offset',0)),100000))
-        return {'total':items.count(),'items':[entry_data(e,user) for e in items[offset:offset+30]]}
+        page = list(items[offset:offset+30])
+        # Public catalogue exposes metadata only for attachments of this published page.
+        identifiers = {uid for entry in page for uid in entry.published.get('uploads', [])}
+        attachments = {str(u.pk): files.upload_data(u) for u in Upload.objects.filter(pk__in=identifiers).select_related('asset')}
+        return {'total':items.count(),'items':[dict(entry_data(e,user), attachments=[
+            attachments[uid] for uid in e.published.get('uploads', []) if uid in attachments]) for e in page]}
     if parts[0]=='entries' and len(parts)>=2:
         entry = entry_for(user,parts[1])
         if len(parts)==2:
@@ -244,6 +252,9 @@ def get(request, route):
 
 def post(request, route, body):
     user, parts = request.user, route.split('/')
+    if parts[0] == 'studio':
+        from . import studio
+        return studio.post(request, route, body)
     if parts[0] == 'circle':
         from . import circle
         return circle.post(request, route, body)

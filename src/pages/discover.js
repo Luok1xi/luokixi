@@ -9,6 +9,7 @@ import { createNotebook } from '../js/community-notebook.js';
 import { esc } from '../js/data.js';
 import '../styles/community.css';
 import '../styles/discover.css';
+import '../styles/feed-redesign.css';
 
 initShell();
 
@@ -66,9 +67,9 @@ function fromCatalogue(p) {
   const cat = CATEGORIES[p.category];
   return {
     repository: p.repo?.fullName ?? p.slug, entryId: null, title: p.title,
-    idea: p.summary, ideaLanguage: 'zh', guideState: 'static', sections: [], unknowns: [],
+    idea: p.summary, ideaLanguage: 'zh', guideState: 'static', sections: [{heading:'这个项目能做什么',text:p.summary,evidenceIds:[]},{heading:'如何开始',text:'先查看原仓库的 README，核对硬件、系统版本和依赖要求，再按官方步骤安装。本站尚未完成独立运行验证。',evidenceIds:[]}], unknowns: ['运行环境、安装步骤与下载版本请以原仓库为准；人工目录卡不等于已核对的 AI 完整导读。'],
     whyRecommended: `${cat?.name ?? ''} · ${ORIGINS[p.origin] ?? ''}${p.origin === 'external' ? ` · 原作者 ${p.credit}` : ''}`,
-    shelf: null, repositoryUrl: p.links.repo || p.links.site || p.links.hardware, downloads: [], readmeUrl: null,
+    shelf: null, repositoryUrl: p.links.repo || p.links.site || p.links.hardware, downloads: [], readmeUrl: p.links.repo ? `${p.links.repo}#readme` : null, videoUrl: p.links.video || null,
     license: p.repo ? p.repo.license ?? '许可待核' : null, credit: p.credit, githubStars: p.repo?.stars ?? null,
     siteStars: null, starred: false, media: { type: 'project-card', notice: '项目卡片 · 不是实机演示视频' },
     evidence: [], verifiedAt: p.repo?.checkedAt ?? null, tested: false, category: p.category, slug: p.slug,
@@ -86,14 +87,15 @@ async function fetchMore() {
       batch = r.items;
       st.cursor = r.nextCursor;
       st.ranking = r.ranking ?? '';
-    } else if (!st.items.length) {
+    }
+    if (!batch.length && !st.items.length && st.shelf === 'all') {
       const data = await loadCommunity();
       batch = data.projects
         .map(fromCatalogue)
         .filter((x) => !st.hidden.has(x.repository))
         .sort((a, b) => (b.githubStars ?? 0) - (a.githubStars ?? 0));
       st.cursor = null;
-      st.ranking = '只读预览：按 GitHub Star 排列，简介由人工撰写。连接社区服务后，可以看到维护者精选和 AI 中文导读。';
+      st.ranking = '项目目录 · 人工整理的开源项目。当前没有已核对的个性化精选；点击导读核对用途和原始链接。';
     }
     const start = st.items.length;
     st.items.push(...batch);
@@ -128,12 +130,13 @@ function slideHTML(it, i) {
   const meta = [
     ['许可', it.license ? esc(it.license) : '<span class="lic-unknown">许可待核</span>'],
     ['GitHub ★', it.githubStars != null ? fmtNum(it.githubStars) : '—'],
-    ['本站收藏', st.online ? fmtNum(it.siteStars ?? 0) : '<span class="muted">需要社区服务</span>'],
+    ['本站收藏', it.entryId && st.online ? fmtNum(it.siteStars ?? 0) : '<span class="muted">未收录统计</span>'],
     ['核对于', it.verifiedAt ? timeAgo(it.verifiedAt) : '—'],
   ];
   const saved = isSaved(it);
   return `<section class="slide" data-i="${i}" style="--h:${h}" aria-label="${esc(it.title)}">
     <div class="slide-glow" aria-hidden="true"></div>
+    <div class="project-danmaku" aria-hidden="true"></div>
     <div class="slide-stage">
       <figure class="slide-visual">
         <div class="cover">${visualFor(it)}</div>
@@ -148,10 +151,13 @@ function slideHTML(it, i) {
         <dl class="slide-meta">${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
         <div class="btn-group slide-cta">
           ${it.sections.length || it.unknowns.length || it.downloads.length ? '<button class="btn btn-primary" type="button" data-act="guide">读中文导读</button>' : ''}
+          ${safeURL(it.videoUrl) ? `<a class="btn btn-outline" href="${esc(it.videoUrl)}" target="_blank" rel="noopener">观看演示 ↗</a>` : ''}
           ${safeURL(it.repositoryUrl) ? `<a class="btn ${it.sections.length ? 'btn-outline' : 'btn-primary'}" href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener" data-act="open">查看原作</a>` : ''}
         </div>
       </div>
       <div class="slide-rail" role="group" aria-label="操作">
+        <button type="button" class="rail-btn" data-act="comments"><span class="rail-symbol">☷</span><span>讨论</span></button>
+        <button type="button" class="rail-btn" data-act="danmaku" aria-pressed="false"><span class="rail-symbol">≋</span><span>弹幕</span></button>
         <button type="button" class="rail-btn${saved ? ' is-on' : ''}" data-act="save" aria-pressed="${saved}">
           <svg viewBox="0 0 24 24"><path d="M12 20.5 4.2 12.9a4.9 4.9 0 0 1 6.9-6.9l.9.9.9-.9a4.9 4.9 0 0 1 6.9 6.9z"/></svg>
           <span>${st.online ? '收藏' : '本机收藏'}</span>
@@ -218,12 +224,12 @@ function go(delta) {
 // ---------- 操作 ----------
 
 function isSaved(it) {
-  if (st.online) return Boolean(it.starred);
+  if (st.online && it.entryId) return Boolean(it.starred);
   try { return notebook?.read().savedProjects.includes(it.repositoryUrl) ?? false; } catch { return false; }
 }
 
 async function save(it, btn) {
-  if (!st.online) {
+  if (!st.online || !it.entryId) {
     if (!notebook || !safeURL(it.repositoryUrl)) return toast('这个项目暂时不能收藏到本机。');
     try {
       notebook.toggleProject(it.repositoryUrl);
@@ -311,6 +317,8 @@ feed.addEventListener('click', (e) => {
   if (act === 'unhide') unhide(it, slide);
   if (act === 'plan') togglePlan(it, btn);
   if (act === 'guide') openGuide(it);
+  if (act === 'comments') openDiscussion(it);
+  if (act === 'danmaku') toggleDanmaku(it, slide, btn);
 });
 
 // ---------- 导读面板 ----------
@@ -324,7 +332,7 @@ function openGuide(it) {
       ? `<a class="dl" href="${esc(d.url)}" target="_blank" rel="noopener"><b>${esc(d.name)}</b><span>${[d.version, d.bytes ? `${(d.bytes / 1048576).toFixed(1)} MB` : ''].filter(Boolean).map(esc).join(' · ')}</span></a>`
       : '';
   $('#dc-guide-body').innerHTML = `
-    <p class="eyebrow">${it.guideState === 'reviewed' ? '中文导读 · 维护者已核对' : 'AI 导读 · 尚未核对，请以原文为准'}</p>
+    <p class="eyebrow">${it.guideState === 'reviewed' ? '中文导读 · 维护者已核对' : it.guideState === 'static' ? '项目目录 · 人工整理' : 'AI 导读 · 尚未核对，请以原文为准'}</p>
     <h2 id="dc-guide-title" class="sheet-title">${esc(it.title)}</h2>
     <p class="sheet-lead">${esc(it.idea)}</p>
     ${it.sections
@@ -341,7 +349,8 @@ function openGuide(it) {
     ${release.length ? `<section class="guide-sec"><h3>官方发布包</h3><div class="dl-list">${release.map(dl).join('')}</div></section>` : ''}
     ${source.length ? `<section class="guide-sec"><h3>源代码</h3><p class="muted">源代码不是安装包，需要按原项目说明构建。</p><div class="dl-list">${source.map(dl).join('')}</div></section>` : ''}
     ${it.tested ? `<section class="guide-sec"><h3>实测记录</h3><p>${esc(it.testEvidence)}</p></section>` : ''}
-    <div class="btn-group sheet-cta">${safeURL(it.readmeUrl) ? `<a class="btn btn-primary" href="${esc(it.readmeUrl)}" target="_blank" rel="noopener">阅读原文 README</a>` : ''}${safeURL(it.repositoryUrl) ? `<a class="btn btn-outline" href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">打开仓库</a>` : ''}</div>`;
+    <div class="btn-group sheet-cta">${safeURL(it.readmeUrl) ? `<a class="btn btn-primary" href="${esc(it.readmeUrl)}" target="_blank" rel="noopener">阅读原文 README</a>` : ''}${safeURL(it.videoUrl) ? `<a class="btn btn-outline" href="${esc(it.videoUrl)}" target="_blank" rel="noopener">观看演示 ↗</a>` : ''}
+          ${safeURL(it.repositoryUrl) ? `<a class="btn btn-outline" href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">打开仓库</a>` : ''}</div>`;
   $('#dc-guide').showModal();
 }
 
@@ -441,3 +450,22 @@ hubState().then((s) => {
   $$('[data-shelf]').forEach((b) => b.dataset.shelf !== 'all' && b.toggleAttribute('data-locked', !st.online));
   fetchMore();
 });
+
+// Real public discussion is the only source for danmaku; empty stays empty.
+const discussionCache=new Map();
+async function discussion(it){
+ if(!it.entryId)return [];
+ if(!discussionCache.has(it.entryId))discussionCache.set(it.entryId,hubApi.entry(it.entryId).then(r=>(r.replies||[]).filter(x=>x.state==='published')).catch(e=>{discussionCache.delete(it.entryId);throw e;}));
+ return discussionCache.get(it.entryId);
+}
+async function openDiscussion(it){
+ try{const rows=await discussion(it);$('#dc-guide-body').innerHTML=`<p class="eyebrow">项目讨论</p><h2 id="dc-guide-title" class="sheet-title">${esc(it.title)}</h2>${rows.length?rows.map(r=>`<article class="feed-comment"><b>${esc(r.author?.name||'同学')}</b><p>${esc(r.body)}</p></article>`).join(''):`<p class="sheet-lead">${it.entryId?'还没有公开评论，欢迎留下第一条使用体验。':'这个项目来自开源目录，还没有本站讨论。可以到原仓库交流，或推荐收录。'}</p>`}<div class="btn-group">${it.entryId?`<a class="btn btn-primary" href="project.html?id=${encodeURIComponent(it.entryId)}">参与项目讨论</a>`:`<a class="btn btn-primary" href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">前往原项目 ↗</a>`}</div>`;$('#dc-guide').showModal();}catch(e){toast(e.message);}
+}
+async function toggleDanmaku(it,slide,button){
+ const wall=slide.querySelector('.project-danmaku');
+ if(button.getAttribute('aria-pressed')==='true'){button.setAttribute('aria-pressed','false');wall.replaceChildren();return;}
+ button.disabled=true;
+ try{const rows=await discussion(it);if(!rows.length)return toast('这个项目还没有公开评论，暂时没有弹幕。');if(reducedMotion())return openDiscussion(it);
+ wall.innerHTML=rows.slice(0,9).map((r,i)=>`<span style="--lane:${i%3};--delay:${Math.floor(i/3)*4}s">${esc(r.body.slice(0,80))}</span>`).join('');button.setAttribute('aria-pressed','true');
+ }catch(e){toast(e.message);}finally{button.disabled=false;}
+}

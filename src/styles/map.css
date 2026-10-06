@@ -191,7 +191,7 @@
 .cx-explore {
   position: relative;
   height: calc(100vh - var(--nav-h));
-  height: calc(100svh - var(--nav-h));
+  height: calc(100svh - var(--nav-h) - var(--tabbar-h, 0px));
   min-height: 560px;
   max-height: 1000px;
   overflow: hidden;
@@ -1137,7 +1137,7 @@
 .cx-toast {
   position: fixed;
   left: 50%;
-  bottom: 28px;
+  bottom: calc(28px + var(--tabbar-h, 0px));
   z-index: 60;
   max-width: min(92vw, 520px);
   padding: 12px 18px;

@@ -1,10 +1,15 @@
 $ErrorActionPreference = 'Stop'
 $siteRoot = Split-Path -Parent $PSScriptRoot
 $runtimeCandidates = @(
+    $env:LUOKIXI_PYTHON,
     (Join-Path $PSScriptRoot '.venv\Scripts\python.exe'),
-    'C:\Users\user\Documents\Codex\tools\scrapling\.venv\Scripts\python.exe'
+    (Join-Path $siteRoot '.venv\Scripts\python.exe')
 )
-$runtime = $runtimeCandidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+$runtime = $runtimeCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+if (-not $runtime) {
+    $pythonCommand = Get-Command python -ErrorAction SilentlyContinue
+    if ($pythonCommand) { $runtime = $pythonCommand.Source }
+}
 if (-not $runtime) { throw '未找到 Python 运行环境，请按 campus/README.md 安装。' }
 Push-Location -LiteralPath $siteRoot
 try {
@@ -39,5 +44,5 @@ try {
         }
     }
     if (-not $ready) { throw '知识库服务未启动，请查看 campus/.data/server-error.log。' }
-    Start-Process 'http://127.0.0.1:17860/knowledge.html'
+    Start-Process 'http://127.0.0.1:17860/'
 } finally { Pop-Location }

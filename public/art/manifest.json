@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "_note": "页面美术插槽登记表（docs/ART_DIRECTION.md 第七节）。Codex 交付的图经 Opus 审稿通过后，在 slots 里按插槽名登记：{src, srcDark?, alt, w, h, focal?, review:\"approved\", meta}。src 必须在 art/ 目录下；没有登记或 review 不是 approved 的插槽，页面继续用数据生成的画面。",
+  "slots": {}
+}

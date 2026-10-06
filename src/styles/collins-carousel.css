@@ -1,0 +1,12 @@
+.hc.hc-collins{--hc-w:min(860px,68vw);--hc-h:clamp(400px,56vw,550px);padding:42px 0 8px;background:var(--bg-alt)}
+.hc-collins .hc-viewport{cursor:grab;touch-action:pan-y pinch-zoom;perspective:2000px}.hc-collins.is-dragging .hc-viewport{cursor:grabbing}
+.hc-collins .hc-slide{transition:none;perspective:none;transform-style:preserve-3d;will-change:auto}.hc-collins.is-settling .hc-slide,.hc-collins.is-dragging .hc-slide{will-change:transform}
+.hc-collins .hc-card{border-radius:18px;transform:none!important;transition:none;box-shadow:0 18px 38px -20px #0005;padding:clamp(26px,4vw,52px)}
+.hc-collins .hc-card::before{display:none}.hc-collins .hc-copy{transform:none;transition:none;max-width:36em}
+.hc-collins .hc-title{font-size:clamp(30px,4.3vw,60px);line-height:1.16;letter-spacing:-.04em;text-wrap:balance}
+.hc-collins .hc-dek{max-width:30em;line-height:1.65}.hc-collins .hc-media{transition:none}.hc-collins .hc-controls{padding:22px 20px;min-height:82px}
+.hc-counter{font-size:12px;font-variant-numeric:tabular-nums;color:var(--fg-2);margin-right:8px}
+.hc-collins .hc-dot{height:24px;width:24px;border-radius:50%;border:8px solid transparent;background-clip:padding-box}.hc-collins .hc-dot.is-active{width:44px;border-radius:20px}.hc-collins .hc-dot i{border-radius:5px}
+.hc-collins .hc-arrow,.hc-collins .hc-play{width:42px;height:42px;background:var(--bg-elev);backdrop-filter:none}.hc-collins .hc-arrow:disabled{opacity:.28;cursor:default}.hc-collins .hc-dots{height:42px;gap:0;padding:0 8px;backdrop-filter:none}
+@media(max-width:760px){.hc.hc-collins{--hc-w:77vw;--hc-h:clamp(410px,114vw,510px);padding-top:28px}.hc-collins .hc-card{padding:23px;border-radius:16px}.hc-collins .hc-title{font-size:32px}.hc-collins .hc-dek{font-size:14px;line-height:1.7}.hc-collins .hc-arrow{display:grid}.hc-collins .hc-counter{display:none}.hc-collins .hc-controls{gap:6px;padding:18px 12px}.hc-collins .hc-actions{gap:8px}.hc-collins .glass-pill{font-size:12px;padding-inline:15px;min-height:40px;backdrop-filter:none}}
+@media(prefers-reduced-motion:reduce){.hc-collins .hc-dot{transition:none}.hc-collins .hc-dot i{animation:none!important}}

@@ -10,29 +10,12 @@
 <!-- @include nav -->
 
 <main id="main">
-  <header class="cx-hero">
-    <div class="cx-hero-inner wrap">
-      <div class="cx-hero-copy">
-        <p class="eyebrow" data-reveal>校园探索</p>
-        <h1 class="headline headline-xl" data-reveal>两个校区，<br><span class="glow-text">一张大家画的地图。</span></h1>
-        <p class="lead" data-reveal>只画矿大的一张游戏地图。填上你的课，地图就变成你的：今天去哪栋楼上课、还有哪些地方没去过。演出、奶龙这样的限时事件，由同学拍照标出来，核对后所有人都看得到。</p>
-        <div class="btn-group" data-reveal>
-          <a class="btn btn-primary" href="#explore">打开地图</a>
-          <button class="btn btn-outline" type="button" data-add-place>标一个地点</button>
-        </div>
-      </div>
-      <figure class="cx-diorama" id="cx-diorama" aria-hidden="true" data-live data-reveal="scale"></figure>
-    </div>
-    <div class="cx-themes wrap" data-reveal>
-      <p class="cx-themes-label">从这里开始逛</p>
-      <div class="cx-themes-row" id="cx-themes"></div>
-    </div>
-    <p class="cx-art-note wrap">上图是示意插画，不对应真实建筑和道路。</p>
-  </header>
-
+  <h1 class="sr-only">校园地图 · 中国矿业大学（北京）</h1>
   <section class="cx-explore" id="explore" aria-label="校园地图">
     <div class="cx-map" id="cx-map" aria-label="校园地图。点一下地图后，可以用方向键平移，用加号和减号缩放。"></div>
 
+    <div class="atlas-heading"><span>CAMPUS GUIDE</span><b>你的校园，正在发生。</b></div>
+    <div class="atlas-categories" id="cx-themes" aria-label="地点分类"></div>
     <aside class="cx-panel glass" id="cx-panel">
       <button class="cx-handle" type="button" id="cx-handle" aria-expanded="false" aria-controls="cx-body">
         <span class="sr-only">展开地点列表</span>
@@ -53,9 +36,9 @@
           <input type="search" id="cx-q" placeholder="搜楼名、地点或关键词" autocomplete="off" enterkeyhint="search">
         </label>
         <div class="cx-tabs" role="tablist" aria-label="面板内容" id="cx-tabs">
-          <button type="button" role="tab" data-tab="quests" aria-selected="true">任务</button>
-          <button type="button" role="tab" data-tab="places" aria-selected="false">同学标注</button>
-          <button type="button" role="tab" data-tab="buildings" aria-selected="false">楼宇</button>
+          <button type="button" role="tab" data-tab="quests" aria-selected="true">我的课程</button>
+          <button type="button" role="tab" data-tab="places" aria-selected="false">活动与发现</button>
+          <button type="button" role="tab" data-tab="buildings" aria-selected="false">校园设施</button>
         </div>
       </div>
       <div class="cx-panel-body" id="cx-body" role="tabpanel" aria-live="polite"></div>

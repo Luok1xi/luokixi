@@ -1,5 +1,60 @@
 # Codex → Opus：学校知识库后端协作
 
+## 2026-10-06 · 第 32 次同步 · 本版功能和页面已联调
+
+Owner 确认只公开 Luokixi GitHub 仓库链接；正在整理可公开源代码，不部署网站。第 31 次“未请求推送”已被此次明确授权更新。
+
+已完成：Collins 风格自写透视拖动轮播（保留开场，键盘/减少动态效果）；首页学校新闻核对；地图入页即用、设施 SVG 图标、图书馆/体育场馆官方预约链接；materials.html 全校分类/真文件预览/资料袋 ZIP/投稿审核；circle.html 校区论坛/点赞/收藏/回复；竖排口碑样式；discover.html 逐项目竖滑/真实来源与视频链接/可关评论弹幕；studio.html 站主房间/实际席位状态/候选记录与审核。
+
+接口变化：catalogue 为已公开资源附带 attachments，只来自 published 版本；circle/feed 支持 campus=all/xueyuanlu/shahe，含全校共享内容。资料未审核前不进入公共库，测试覆盖撤回和未公开修订。新发布资源可以进入资料袋。
+
+68 项 Hub 测试和 4 项打包测试通过；桌面/手机视口无横向溢出与脚本错误；真实 PDF ZIP 和隔离账号完整投稿审核下载/论坛流程通过。验收记录 docs/RELEASE_0_2.md，源码入口见 README。请基于这些文件继续迭代，勿恢复旧导航或覆盖本轮文件。
+
+仍未接入：学校实时空位/自动预约、真正 Anthropic、DeepSeek 本机密钥、全校资料填充、实地地图确认。保留真实空状态，不造完成记录。页面显示设计席由 Codex 运行；确认候选不会合并或发布。
+
+## 2026-10-06 · 第 31 次同步 · Owner 最新授权 Codex 接管本轮全站重排
+
+Owner 在本聊天明确要求尝试 emilkowalski/skills，重新排版地图、资料、校圈、开源广场，并改善切换流畅度和重要信息层级。本轮前端接管授权优先于历史页面分工。已读你第 11 次回信，保留现有真实地图/账号/口碑/投稿功能与首页开场；不重造另一套数据。
+
+现在认领：`src/js/shell.js`、`src/partials/nav.html`、`src/styles/components.css` 的导航/响应补充；`map.html` / `src/pages/map.js` / 地图样式；新资料、校圈、工作室页面与统一视觉扩展；开源流接线和首页新闻布局。请暂勿同时覆盖这些入口，新增工作请在本文件/回信里明确，避免写回覆盖。已有页面与源码会先快照；没有请求推送 GitHub 或公网部署。
+
+已安装并应用 emil-design-eng、apple-design、mobile-native、animate，来自 https://github.com/emilkowalski/skills 。页面验收按实际浏览器路径进行，资料袋需实际 ZIP 下载，地图只显示真实来源，预约未接入时保留官方入口和明确状态；人设/工作室按第 30 次已有接口接线。
+
+## 2026-10-06 · 第 30 次同步 · 本机 AI 工作室，功能开发中
+
+**本次完成补充：** 功能代码、`0008_ai_studio`、独立 worker、本机设置命令、`campus/studio-client.js` 已落地。20 项专项 / 66 项 Hub 全套测试通过，内容校验和 Vite 构建通过。真实 Codex 双席验证通过：工程席产出候选 → Python 语法检查 → 设计席审阅 → awaiting_review，未批准或发布。正式 DeepSeek 尚缺此项目的密钥与人民币费率，不能说两提供方已联调。完整功能测试执行器与产品页面尚未交付。准确接口、限制、状态、启动方法见 `docs/AI_STUDIO.md`。
+
+Owner 又明确要求建立最高权限开发者账号，已创建 `luokixi-owner`，is_superuser/is_staff；初始密码仅在 `campus/.data/hub/owner-private/developer-account.txt`，当前 Windows 用户独占目录权限，切勿复制到任何交接、源码或演示截图。占位邮箱不冒充真实邮箱验证，emailVerified=false。本机初始化白名单仅对这个本机超级管理员开放工作室；正式环境不支持。真实 HTTP 登录与工作室接口均已验证成功。网站/Hub/独立 studio worker 已启动，但没有新建页面；你可直接接线，`campus/configure-studio.ps1` 是本机填写 DeepSeek 密钥的入口，网页不要索取或展示 key。
+
+Owner 最新授权：自动讨论、写代码、检查；发布前本人确认；先在本机运行。已有 DeepSeek API 意向及本机 Codex 登录（已核验）；暂不接 Anthropic。三个席位是 DeepSeek、Codex 工程席、Codex 运行的设计席，必须标注真实 provider；设计席不冒充真实 Opus。单次至多 6 次 AI 回复，DeepSeek 每天 5 元预留预算，Codex 每日另外限制 12 次，不能宣称账号额度免费或折成人民币。
+
+**人设更正：Owner 明确不要 Claude 小螃蟹，要 B 站的拟人。已找到 ZipZipPipe《大 AI 和小 AI 们》 https://www.bilibili.com/video/BV1tE9XBbErS/ ，包括 DeepSeek / Claude / GPT。先登记为形象参考，尚未下载或采用角色图片，未将角色素材许可混入源码 MIT。**
+
+我负责 `campus/hub/studio*.py`、独立队列、模型接入、预算、权限、候选代码、检查与 `campus/studio-client.js`。你继续负责所有页面排布/视觉。请在“个人中心 → 站主工作室”安排入口，第一版仅本机站主可用，不新增一级导航，不向全校开放付费模型权限。API 统一 `/api/hub/studio/`，复用原登录、邮箱验证和 CSRF。
+
+预期页面闭环：创建房间/共享项目简介与选中文件 → 发言/选成员/讨论或代码模式 → 逐轮记录实际 provider/model → 显示真实候选文件差异、检查范围与未跑测试 → 停止或用户确认。确认绑定产物 hash，文件或原站内容变化时失效；确认只保存审阅结果，当前无 push/deploy 接口。密钥只走本机设置命令，不进网页表单、聊天或个人资料。
+
+下文保留最初认领范围；完成状态以上方补充为准。不能称为真实三模型接通、完整自动维护上线；不要用模拟聊天气泡冒充接通状态。
+
+## 2026-10-06 · 第 29 次同步 · 全部项目已整理上传 GitHub，均为私有
+
+Owner 明确要求上传本次梳理的全部项目，并确认新仓库先设私有。四个仓库已上传完成，远程 main 提交与本地上传副本逐一一致；GitHub 连接器也复核均为 private。
+
+- 网站：https://github.com/Luok1xi/luokixi （3d5c806）
+- KubeJS / LuokixiVisuals：https://github.com/Luok1xi/minecraft-server-systems （3ffa250）
+- 聊天与信息助手：https://github.com/Luok1xi/campus-companion （a4081c2）
+- Galgame / AI 协作流程：https://github.com/Luok1xi/please-dont-romance-me （38d2878）
+
+整理在独立副本 C:/Users/user/Documents/Codex/2026-10-06/zhe/work/github-publish/repos 完成；未移动原工程，未改你的布局、剧情、引擎或素材内容。游戏保留既有远程历史，正常追加提交，无强推。每个仓库补了 PROJECTS.md、UPLOAD_CHECKS.md 和启动/状态说明。工作流整理在游戏 docs/AI_COLLABORATION.md，不重复拆一份游戏工程。
+
+网站构建与内容检查通过，助手 204/204 测试通过，KubeJS 23/23 和游戏运行脚本 48/48 语法检查通过，游戏 285 个资源登记引用均存在。本轮没有重跑后端全套、游戏三条完整通关或 Forge 联机。
+
+新地图候选仅归档至网站 docs/art-review/maps，仍待审；正式地图 manifest 未改。卫星原图、校内 PDF、本机聊天/账号数据库、登录缓存与密钥未上传。网站上传副本的 Pages 工作流已改为仅手动触发；没有公开部署或启用定时任务。
+
+后续同步注意：原目录的 Git HEAD/索引没有被我重置到上传快照，当前工作仍可能继续变化；不要在原目录 force push 覆盖本次提交。请先比较新远程 main 与你手头改动，使用已有上传工作副本或正常克隆，再合并后续修改。尤其原网站工作流仍是旧版，后续合并应保留“仅手动部署”的当前选择，除非 Owner 再要求上线。远程 README 的轻量整理也不要被旧版说明覆盖。
+
+上述是写入共享文件的交接，尚未收到你对此次上传的回复。
+
 ## 2026-10-06 · 第 28 次同步 · 两校区地图候选与对照底稿已交付，待审
 
 Owner 最新要求：地图参考主题乐园导览图，活动有动态标点，卫星图用于绘制参考；随后明确否决前两张学院路 AI 整图，认为校园被画大，并要求“两个都画”。**前两张 exec-7166c6bd 与 exec-270dc0e7 候选均不得接入正式地图。**

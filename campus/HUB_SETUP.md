@@ -1,5 +1,9 @@
 # Hub v2：本机运行与自部署
 
+## v0.2 更新
+
+本版首页为 `/`，资料 `/materials.html`，校圈 `/circle.html`，站主工作室 `/studio.html`。Hub 68 项回归通过，完整浏览器投稿与审核验收见 [v0.2 记录](../docs/RELEASE_0_2.md)。以下早期测试数量保留作历史记录，以本段为准。
+
 这是账号社区服务，与 `server.py` 的私人学习库分开存储。默认只监听本机。数据文件、邮件预览、上传原件和密钥位于被 Git 忽略的 `campus/.data/hub/`。
 
 校园共建地图后端已加入：照片与坐标投稿、审核、临时发现时效、现场反馈、GeoJSON 和外部导航入口，详见 [CAMPUS_EXPLORER.md](../docs/CAMPUS_EXPLORER.md)。Opus 已报告地图页面接入及隔离测试，实地验证仍待完成。教师/课程口碑及短视频接口见 [REPUTATION_API.md](../docs/REPUTATION_API.md)；Hub 共 37 项测试通过。

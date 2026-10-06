@@ -74,9 +74,9 @@
   transition: opacity var(--dur-1);
 }
 
-/* 导航有 8 项，平板宽度下收紧间距，免得短词被挤成竖排 */
-@media (min-width: 1025px) and (max-width: 1180px) {
-  .gn-links { gap: 16px; }
+/* 六个板块；平板宽度收紧间距 */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .gn-links { gap: 18px; }
 }
 
 .gn-links a:hover,
@@ -131,80 +131,265 @@
   stroke: none;
 }
 
-.gn-burger {
-  display: none;
+/* ＋发布：桌面是顶栏里的一枚胶囊按钮 */
+.gn-publish {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  margin: 0 4px;
+  padding: 0 12px 0 8px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background var(--dur-1), transform var(--dur-2) var(--ease-out);
+}
+
+.gn-publish:hover { background: var(--accent-hover); }
+.gn-publish:active { transform: scale(0.95); }
+
+.gn-publish svg,
+.fab svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.gn-bell {
   position: relative;
 }
 
-.gn-burger span {
+.gn-dot {
   position: absolute;
-  left: 11px;
-  width: 14px;
-  height: 1.5px;
-  border-radius: 2px;
-  background: currentColor;
-  transition: transform var(--dur-3) var(--ease-out);
+  top: 3px;
+  right: 1px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
 }
 
-.gn-burger span:first-child { transform: translateY(-3px); }
-.gn-burger span:last-child { transform: translateY(3px); }
-.gn.is-open .gn-burger span:first-child { transform: rotate(45deg); }
-.gn.is-open .gn-burger span:last-child { transform: rotate(-45deg); }
+/* 头像 / 登录 */
+.gn-me {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  margin-left: 4px;
+  padding: 0 10px;
+  border-radius: var(--r-pill);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--nav-fg);
+  font-size: 13px;
+  font-weight: 600;
+}
 
-@media (max-width: 1024px) {
+.gn-me:hover { text-decoration: none; background: var(--fill); }
+
+.gn-me.is-user {
+  width: 30px;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  background: linear-gradient(145deg, var(--g1), var(--g2));
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* 发布菜单 */
+.gn-pub {
+  position: absolute;
+  top: calc(var(--nav-h) + 6px);
+  right: max(var(--gutter), calc((100vw - var(--wrap)) / 2));
+  z-index: 70;
+  display: grid;
+  gap: 2px;
+  width: 320px;
+  padding: 10px;
+  border-radius: 20px;
+}
+
+.gn-pub-title {
+  padding: 4px 10px 6px;
+  color: var(--fg-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.gn-pub > a,
+.gn-pub-off {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--fg);
+}
+
+.gn-pub > a:hover,
+.gn-pub > a:focus-visible {
+  text-decoration: none;
+  background: var(--fill-2);
+}
+
+.gn-pub b {
+  display: block;
+  font-size: 15px;
+}
+
+.gn-pub small {
+  display: block;
+  color: var(--fg-2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.gn-pub-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, hsl(var(--h) 80% 58%), hsl(calc(var(--h) + 36) 78% 46%));
+  color: #fff;
+}
+
+.gn-pub-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.gn-pub-off {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 手机：顶栏只留标志、搜索、铃铛和头像；板块进底部标签栏，发布改成悬浮按钮 */
+:root {
+  --tabbar-h: 0px;
+}
+
+.tabbar,
+.fab {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  :root {
+    --tabbar-h: calc(56px + env(safe-area-inset-bottom));
+  }
+
   .gn-inner {
     justify-content: space-between;
   }
 
-  .gn-burger {
-    display: grid;
-  }
-
-  .gn-links {
-    position: fixed;
-    inset: var(--nav-h) 0 auto 0;
-    height: calc(100dvh - var(--nav-h));
-    flex-direction: column;
-    gap: 6px;
-    margin: 0;
-    padding: 28px 40px;
-    background: var(--bg);
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
-  }
-
-  .gn.is-open {
-    background: var(--bg);
-  }
-
-  .gn.is-open .gn-links {
-    visibility: visible;
-    opacity: 1;
-    transition: opacity var(--dur-2) var(--ease-out);
-  }
-
-  .gn-links a {
-    display: block;
-    padding: 8px 0;
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--fg);
-    opacity: 1;
-    transform: translateY(-8px);
-    transition: transform var(--dur-3) var(--ease-out);
-  }
-
-  .gn.is-open .gn-links a {
-    transform: none;
-  }
-
-  .gn-links li:nth-child(2) a { transition-delay: 30ms; }
-  .gn-links li:nth-child(3) a { transition-delay: 60ms; }
-  .gn-links li:nth-child(4) a { transition-delay: 90ms; }
-
-  .gn-links a[aria-current="page"]::after {
+  .gn-links,
+  .gn-publish,
+  .gn-theme {
     display: none;
+  }
+
+  body {
+    padding-bottom: var(--tabbar-h);
+  }
+
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    height: var(--tabbar-h);
+    padding: 6px 0 env(safe-area-inset-bottom);
+    background: var(--nav-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .tabbar a {
+    display: grid;
+    justify-items: center;
+    align-content: start;
+    gap: 2px;
+    color: var(--fg-3);
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  .tabbar a:hover { text-decoration: none; }
+  .tabbar a[aria-current="page"] { color: var(--accent); }
+
+  .tabbar svg {
+    width: 26px;
+    height: 26px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .fab {
+    position: fixed;
+    right: 16px;
+    bottom: calc(var(--tabbar-h) + 14px);
+    z-index: 61;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 10px 24px -8px rgba(0, 113, 227, 0.6);
+    transition: transform var(--dur-2) var(--ease-out);
+  }
+
+  .fab:active { transform: scale(0.92); }
+
+  .fab svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* 从悬浮按钮打开时，发布菜单从底部升起 */
+  .gn-pub.is-sheet {
+    position: fixed;
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--tabbar-h) + 8px);
+    width: auto;
+  }
+
+  .gn-pub:not(.is-sheet) {
+    right: 8px;
+    left: 8px;
+    width: auto;
   }
 }
 
@@ -1290,4 +1475,82 @@ a.card:hover {
 @media (max-width: 860px) {
   .promo-grid { grid-template-columns: 1fr; }
   .promo { min-height: 520px; }
+}
+
+/* ==========================================================================
+   页面之间的过渡（跨文档 View Transitions）
+   顶栏和底部标签栏原地不动，只有正文换页：
+   - 往导航里右边的板块走：新页从右边推进来，旧页往左退（像 iOS 推入）；往左边走反过来
+   - 同一个板块里换页、或者方向未知：旧页淡出，新页从下方浮上来
+   悬停链接时浏览器会先在后台把下一页渲染好（head.html 的 speculationrules），点下去基本是瞬间切换。
+   不支持的浏览器直接换页；系统要求减少动态效果时关闭。缓动用 tokens.css 里的弹簧。
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  .gn { view-transition-name: gn; }
+  .tabbar { view-transition-name: tabbar; }
+  #main { view-transition-name: page; }
+
+  ::view-transition-group(gn),
+  ::view-transition-group(tabbar) {
+    animation: none;
+  }
+
+  ::view-transition-group(page) {
+    animation-duration: var(--spring-snappy-dur);
+    animation-timing-function: var(--spring-snappy);
+  }
+
+  ::view-transition-old(page) {
+    animation: lk-page-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+
+  ::view-transition-new(page) {
+    animation: lk-page-in var(--spring-smooth-dur) var(--spring-smooth) both;
+  }
+
+  html[data-vt="forward"]::view-transition-old(page) { animation: lk-push-out-left 340ms cubic-bezier(0.4, 0, 0.6, 1) both; }
+  html[data-vt="forward"]::view-transition-new(page) { animation: lk-push-in-right var(--spring-snappy-dur) var(--spring-snappy) both; }
+  html[data-vt="back"]::view-transition-old(page) { animation: lk-push-out-right 340ms cubic-bezier(0.4, 0, 0.6, 1) both; }
+  html[data-vt="back"]::view-transition-new(page) { animation: lk-push-in-left var(--spring-snappy-dur) var(--spring-snappy) both; }
+
+  /* 正文以外（背景、页脚）只做很短的交叉淡化 */
+  html[data-vt]::view-transition-old(root),
+  html[data-vt]::view-transition-new(root) {
+    animation-duration: 240ms;
+  }
+}
+
+@keyframes lk-page-out {
+  to { opacity: 0; transform: scale(0.985); }
+}
+
+@keyframes lk-page-in {
+  from { opacity: 0; transform: translateY(18px); }
+}
+
+@keyframes lk-push-out-left {
+  to { opacity: 0; transform: translateX(-9%) scale(0.98); }
+}
+
+@keyframes lk-push-in-right {
+  from { opacity: 0; transform: translateX(16%); }
+}
+
+@keyframes lk-push-out-right {
+  to { opacity: 0; transform: translateX(9%) scale(0.98); }
+}
+
+@keyframes lk-push-in-left {
+  from { opacity: 0; transform: translateX(-16%); }
+}
+
+/* 地图和沉浸式发现流自带发布入口和右侧操作栏，不再叠一个悬浮按钮 */
+body[data-page="map"] .fab,
+body.is-immersive .fab {
+  display: none;
 }

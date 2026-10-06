@@ -222,11 +222,16 @@ def feed(request):
     if lane in ('following', 'boards'):
         require(request.user)
     board = text(request.GET.get('board', ''), 60)
+    campus = text(request.GET.get('campus', 'all'), 20)
+    if campus not in ('all', 'shahe', 'xueyuanlu'):
+        raise Problem('校区无效。')
     q = text(request.GET.get('q', ''), 100)
     pref, creators, boards, ignored = context(request.user)
     query = visible(request.user, pref).exclude(pk__in=ignored)
     if board:
         query = query.filter(published__circle__board=board)
+    if campus != 'all':
+        query = query.filter(published__circle__campus__in=[campus, 'all'])
     if q:
         query = query.filter(search_text__icontains=q)
     if lane == 'following':
@@ -236,7 +241,7 @@ def feed(request):
     if lane == 'reading':
         query = query.filter(published__circle__format='link', circle_selection__revision=F('public_revision'))
     mode = 'latest' if lane == 'recommended' and request.user.is_authenticated and not pref['personalized'] else lane
-    stamp = hashlib.sha256(json.dumps([getattr(request.user, 'pk', None), lane, board, q, pref,
+    stamp = hashlib.sha256(json.dumps([getattr(request.user, 'pk', None), lane, board, campus, q, pref,
         sorted(creators), sorted(boards), sorted(map(str, ignored))], sort_keys=True).encode()).hexdigest()
     cursor = request.GET.get('cursor')
     if cursor:

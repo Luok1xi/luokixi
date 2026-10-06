@@ -10,12 +10,13 @@ import 'leaflet/dist/leaflet.css';
 import { initShell, observeReveal, observeLive, reducedMotion } from '../js/shell.js';
 import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { PLACE_TYPES, glyphSVG, fmtTime, timeLeft, toLocalInput, withOffset } from '../js/places.js';
-import { dioramaSVG } from '../js/campus-art.js';
+import { campusServiceHTML } from '../js/campus-services.js';
 import { BUILDING_USE, createCampusMap, pointInFeature, buildingModelSVG } from '../js/campus-map.js';
 import { DAYS, classesOn, courseSuggestions, importMe, loadMe, newId, quests, saveMe, todayIndex, toggleVisited, visitedSet } from '../js/quests.js';
 import { esc } from '../js/data.js';
 import '../styles/community.css';
 import '../styles/map.css';
+import '../styles/atlas.css';
 
 initShell();
 
@@ -34,7 +35,7 @@ const st = {
   user: null,
   me: me0,
   campus: CAMPUS_SHORT[params.get('campus')] ? params.get('campus') : CAMPUS_SHORT[me0.profile.campus] ? me0.profile.campus : 'xueyuanlu',
-  tab: ['quests', 'places', 'buildings'].includes(params.get('tab')) ? params.get('tab') : 'quests',
+  tab: ['quests', 'places', 'buildings'].includes(params.get('tab')) ? params.get('tab') : 'buildings',
   art: {}, // Codex 交付并审过的重绘插画：public/art/campus-map/manifest.json
   type: PLACE_TYPES[params.get('type')] ? params.get('type') : 'all',
   q: params.get('q') ?? '',
@@ -153,7 +154,7 @@ function initMap() {
   const c = st.campuses?.campuses?.[st.campus];
   map = L.map('cx-map', {
     zoomControl: false,
-    scrollWheelZoom: false,
+    scrollWheelZoom: true,
     minZoom: 14,
     maxZoom: 20,
     zoomSnap: 0.5,
@@ -176,7 +177,7 @@ function initMap() {
   const el = $('#cx-map');
   map.on('click', () => map.scrollWheelZoom.enable());
   el.addEventListener('focus', () => map.scrollWheelZoom.enable());
-  el.addEventListener('mouseleave', () => !picking && map.scrollWheelZoom.disable());
+
   let hintTimer;
   el.addEventListener('wheel', () => {
     if (map.scrollWheelZoom.enabled()) return;
@@ -244,7 +245,7 @@ function focusOn(latlng, zoom = Math.max(map.getZoom(), 17.5)) {
   const dy = (pad.paddingTopLeft[1] - pad.paddingBottomRight[1]) / 2;
   const target = map.unproject(map.project(latlng, zoom).subtract([dx, dy]), zoom);
   if (reducedMotion()) map.setView(target, zoom, { animate: false });
-  else map.flyTo(target, zoom, { duration: 0.6 });
+  else map.flyTo(target, zoom, { duration: 0.28 });
 }
 
 function pinIcon(f) {
@@ -659,15 +660,17 @@ function buildingHTML(b) {
   const [lat, lng] = centerOf(b);
   return `<article class="bc cm-tone-${p.use}" aria-labelledby="bc-title">
     <button class="cx-back" type="button" data-act="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></svg>返回</button>
-    <figure class="bc-hero">${buildingModelSVG(b)}
-      <figcaption>按 OpenStreetMap 的轮廓${p.levels ? `和 ${p.levels} 层` : '绘制；层数未知，按 3 层示意'}${p.levels ? '绘制' : ''}</figcaption></figure>
     <p class="bc-eyebrow">${esc(campusName(st.campus))} · ${esc(use.name)}</p>
     <h2 class="bc-title" id="bc-title" tabindex="-1">${esc(p.name || '一栋还没有名字的楼')}</h2>
+    ${campusServiceHTML(p.use, st.campus)}
+    <figure class="bc-hero">${buildingModelSVG(b)}
+      <figcaption>按 OpenStreetMap 的轮廓${p.levels ? `和 ${p.levels} 层` : '绘制；层数未知，按 3 层示意'}${p.levels ? '绘制' : ''}</figcaption></figure>
     <p class="bc-lead">${inside.length ? `同学在这里标了 ${inside.length} 个地点。` : '还没有同学为这栋楼写介绍。去过的话，拍张照标一个地点吧。'}</p>
     <div class="bc-cta">
       <button class="btn ${visited ? 'btn-secondary' : 'btn-primary'}" type="button" data-act="visit" aria-pressed="${visited}">${visited ? '✓ 到过这里' : '我到过这里'}</button>
-      <a class="btn btn-outline" href="${esc(baiduMarker(lat.toFixed(6), lng.toFixed(6), p.name || '矿大校园内的楼', `${campusName(st.campus)}`))}" target="_blank" rel="noopener noreferrer">在百度地图中查看并导航</a>
+      <a class="btn btn-outline" href="${esc(baiduMarker(lat.toFixed(6), lng.toFixed(6), p.name || '矿大校园内的楼', `${campusName(st.campus)}`))}" target="_blank" rel="noopener noreferrer">在百度地图中查看位置</a>
     </div>
+    <p class="cx-hint">这栋楼的入口还没有核对，打开的是楼的中心点，不是可以直接导航过去的入口。</p>
     <dl class="bc-rows">
       <div><dt>你的课</dt><dd>${courses.length
         ? `<ul role="list">${courses.map((c) => `<li><b>${esc(c.name)}</b>${c.room ? ` · ${esc(c.room)}` : ''}<span>${c.slots.map((s) => `${DAYS[s.day - 1]} ${s.start}`).join('、')}</span></li>`).join('')}</ul>`
@@ -678,7 +681,7 @@ function buildingHTML(b) {
       <div><dt>楼层</dt><dd>${p.levels ? `${p.levels} 层` : '未知'}</dd></div>
       <div><dt>数据</dt><dd><a href="https://www.openstreetmap.org/${esc(p.osm)}" target="_blank" rel="noopener">在 OpenStreetMap 上查看或修正</a></dd></div>
     </dl>
-    <p class="cx-hint">“到过这里”只保存在这个浏览器里，本站不读取你的位置。导航由百度地图提供，校内能不能走通以现场为准。</p>
+    <p class="cx-hint">“到过这里”只保存在这个浏览器里，本站不读取你的位置。</p>
   </article>`;
 }
 
@@ -794,7 +797,8 @@ function renderFetched() {
 function renderThemes() {
   const counts = {};
   st.places.forEach((f) => (counts[f.properties.placeType] = (counts[f.properties.placeType] ?? 0) + 1));
-  $('#cx-themes').innerHTML = ORDER.map(
+  const shortcuts = [['library','图书馆','study'],['sports','运动场馆','sports'],['canteen','食堂','food']].map(([use,name,glyph]) => `<button class="cx-theme" type="button" data-building-type="${use}"><span class="cx-theme-glyph">${glyphSVG(glyph)}</span><span>${name}</span></button>`).join('');
+  $('#cx-themes').innerHTML = shortcuts + ['event','discovery'].map(
     (k) => `<a class="cx-theme" href="#explore" data-go-type="${k}" style="--h:${PLACE_TYPES[k].hue}">
       <span class="cx-theme-glyph">${glyphSVG(k)}</span><span>${esc(typeName(k))}</span>${st.state === 'ready' ? `<span class="cx-theme-n num">${counts[k] ?? 0}</span>` : ''}</a>`,
   ).join('');
@@ -907,6 +911,13 @@ $('#cx-tabs').addEventListener('click', (e) => {
 });
 
 $('#cx-themes').addEventListener('click', (e) => {
+  const service = e.target.closest('[data-building-type]');
+  if (service) {
+    const building = cm.buildings().find(f => f.properties.use === service.dataset.buildingType);
+    if (building) selectBuilding(building.properties.osm);
+    else toast('当前底图还没有标明这个设施的位置，请在校园设施中查找或补充。');
+    return;
+  }
   const a = e.target.closest('[data-go-type]');
   if (!a) return;
   st.type = a.dataset.goType;
@@ -1723,7 +1734,7 @@ async function loadArt() {
 // ---------- 启动 ----------
 
 async function init() {
-  $('#cx-diorama').innerHTML = dioramaSVG();
+  const accountReady = hubState();
   $('#cx-q').value = st.q;
   $$('#cx-campus [data-campus]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.campus === st.campus)));
   renderThemes();
@@ -1737,11 +1748,12 @@ async function init() {
     if (r.ok) st.campuses = await r.json();
   } catch { /* 下面按北京北部的大致范围显示 */ }
   initMap();
-  await loadArt();
+  const artReady = loadArt().then(() => cm.setArt(st.art[st.campus] ?? null));
   await loadCampusMap(st.campus);
+  void artReady;
   fitCampus(false);
 
-  const s = await hubState();
+  const s = await accountReady;
   st.online = s.online;
   st.user = s.user;
   if (st.user?.moderator) loadPending().catch(() => {});
@@ -1763,6 +1775,8 @@ async function init() {
     explore.scrollIntoView({ block: 'start' });
     selectBuilding(st.building);
   }
+  // 顶栏“＋发布 → 标一个地点”直达投稿
+  if (params.get('add') === 'place') openAdd();
 }
 
 init();

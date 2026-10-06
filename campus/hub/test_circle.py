@@ -70,6 +70,15 @@ class CircleTests(TestCase):
         blocked.force_login(self.bob)
         self.post(blocked, 'circle/follow-board', {'board': 'makers', 'enabled': True}, 403)
 
+    def test_campus_filter_preserves_shared_topics(self):
+        shared = self.publish(self.data(title='全校话题'))
+        north = self.publish(self.data(title='沙河话题', circle={'board': 'makers', 'format': 'moment', 'campus': 'shahe'}))
+        south = self.publish(self.data(title='学院路话题', circle={'board': 'makers', 'format': 'moment', 'campus': 'xueyuanlu'}))
+        self.assertEqual({x['id'] for x in self.feed(campus='shahe')['items']}, {shared, north})
+        self.assertEqual({x['id'] for x in self.feed(campus='xueyuanlu')['items']}, {shared, south})
+        self.assertEqual(len(self.feed(campus='all')['items']), 3)
+        self.assertEqual(self.visitor.get('/api/hub/circle/feed', {'campus': 'unknown'}).status_code, 400)
+
     def test_idempotent_likes_selection_versions_and_withdrawal(self):
         identifier = self.publish()
         for _ in range(2):

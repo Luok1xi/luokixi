@@ -1,0 +1,28 @@
+name: 校验投稿
+
+on:
+  pull_request:
+    paths:
+      - 'content/**'
+      - 'src/js/schema.js'
+      - 'scripts/validate-content.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 检查格式、链接与名录身份
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/validate-content.mjs

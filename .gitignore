@@ -15,20 +15,17 @@ public/files/
 # 美术待审稿件不发布
 public/art/cumtb/_review/
 
-# Private-machine state and generated output (archive organization 2026-10-06)
+# Local accounts, uploaded files, model configuration and generated caches
 .env
 .env.*
 !.env.example
+.data/
 .secrets/
+.cache/
 .mcp.json
 .claude/
 .serena/
-node_modules/
-.venv/
-.data/
-__pycache__/
 *.pyc
-*.log
 *.pid
 *.db
 *.db-wal
@@ -38,4 +35,3 @@ __pycache__/
 *.pem
 *.key
 *.pfx
-dist/
