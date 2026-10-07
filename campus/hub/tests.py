@@ -285,7 +285,7 @@ class HubTests(TestCase):
         self.assertEqual(data['downloads'][0]['kind'],'official-release')
         self.assertEqual(data['downloads'][1]['kind'],'source-archive')
         self.assertEqual(data['guide']['state'],'awaiting-model')
-        self.assertTrue(data['evidence'][1]['url'].endswith('#L1-L4'))
+        self.assertTrue(next(e for e in data['evidence'] if e['id']=='readme-1')['url'].endswith('#L1-L4'))
         self.post(self.b,'github/curate',{'repository':'e/robot'},403)
 
     @patch.dict('os.environ',{'HUB_AI_MODEL':'test-only-model','HUB_AI_PROVIDER':'ollama'})
@@ -296,7 +296,8 @@ class HubTests(TestCase):
         response.__enter__.return_value.read.return_value = json.dumps({'message':{'content':json.dumps(value)}}).encode()
         with patch('hub.github_guides.urlopen',return_value=response),self.assertRaises(Problem):
             github_guides.generate_guide('e/robot')
-        value['sections'] = [{'heading':'用途','text':'机器人项目','evidenceIds':['readme-1']}] * 3
+        from .project_summaries import CHAPTERS
+        value['sections'] = [{'id':key,'heading':label,'text':'机器人项目','evidenceIds':['readme-1']} for key,label in CHAPTERS]
         response.__enter__.return_value.read.return_value = json.dumps({'message':{'content':json.dumps(value)}}).encode()
         with patch('hub.github_guides.urlopen',return_value=response):
             guide = github_guides.generate_guide('e/robot')

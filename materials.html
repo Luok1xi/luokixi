@@ -1,8 +1,153 @@
-<!doctype html><html lang="zh-CN"><head><!-- @include head --><title>资料严选 · Luokixi</title><meta name="description" content="矿大课程资料、试卷与笔记，搜索、预览、加入资料袋，一次打包。"><script type="module" src="/src/pages/materials.js"></script></head>
-<body data-page="materials"><!-- @include nav --><main id="main" class="library-app">
-<header class="library-hero"><div class="library-kicker">LUOKIXI / STUDY COLLECTION</div><div class="library-headline"><h1>好资料，<br>一起选。</h1><div><p>从一门课，到一学期。<br>找到需要的，装进你的资料袋。</p><button class="btn library-light" id="upload-open">分享我的资料 ↗</button></div></div><form id="library-search" class="library-search"><label class="sr-only" for="library-q">搜索资料</label><span aria-hidden="true">⌕</span><input id="library-q" type="search" placeholder="课程、年份、知识点… 试试“线代”" autocomplete="off"><button type="submit">搜索</button></form><div class="library-promises"><span>原卷与来源可查</span><span>单份预览，按需挑选</span><span>选好后一次打包</span></div></header>
-<div class="library-layout"><aside class="library-sidebar"><p class="section-label">按学科逛</p><div id="library-subjects"></div><a href="knowledge.html">全文检索与采集 ↗</a><p class="small-note">“严选”是整理方向。质量核验状态以每份资料的来源说明为准。</p></aside><section class="library-results"><div class="section-heading"><div><p class="section-label">本周学习补给</p><h2 id="library-heading">全校资料库</h2></div><button class="bag-open" id="bag-open">资料袋 <b id="bag-count">0</b></button></div><div class="library-filters"><label>类型 <select id="library-kind"><option value="">全部</option><option>试卷</option><option>答案</option><option>听力</option><option>笔记</option><option>资料</option><option>站外链接</option></select></label><label>年份 <select id="library-year"><option value="">全部</option></select></label><span id="library-count" role="status">正在整理目录…</span></div><div id="library-list" aria-live="polite"></div><button class="btn btn-secondary" id="library-more" hidden>再看一些</button><p class="small-note" id="library-status"></p></section></div>
-</main><aside class="market-checkout" aria-label="资料袋"><span><b>你的学习补给</b><small id="bag-dock-summary" aria-live="polite">挑选资料，按需带走</small></span><button id="bag-dock-open">查看资料袋 <b id="bag-dock-count">0</b> →</button></aside>
-<dialog id="bag-dialog" class="library-dialog" aria-labelledby="bag-title"><div class="section-heading"><div><p class="section-label">YOUR STUDY BAG</p><h2 id="bag-title">这次，带走这些。</h2></div><button data-close aria-label="关闭资料袋">×</button></div><div id="bag-list"></div><p class="small-note">资料袋保存在本浏览器。打包附来源清单；本机私有资料不会上传到任何服务。每次最多 30 份、合计 100 MB。</p><p id="bag-status" role="status"></p><progress id="bag-progress" value="0" max="1" hidden></progress><div class="dialog-actions"><button class="btn btn-secondary" id="bag-clear">清空</button><button class="btn btn-outline" id="bag-cancel" hidden>取消打包</button><button class="btn btn-primary" id="bag-download">打包下载 ZIP</button></div></dialog>
-<dialog id="upload-dialog" class="library-dialog" aria-labelledby="upload-title"><div class="section-heading"><h2 id="upload-title">让好资料被找到。</h2><button data-close aria-label="关闭上传">×</button></div><form id="upload-form" class="product-form"><label>资料名称<input name="title" maxlength="160" required></label><div class="form-pair"><label>课程<input name="course" placeholder="如：大学物理" maxlength="80" required></label><label>年份／学期<input name="year" maxlength="30" placeholder="2025–2026 上学期" required></label></div><label>用途与说明<textarea name="summary" maxlength="1000" rows="3" required></textarea></label><label>原作者与来源<input name="credit" maxlength="300" required></label><label>原始来源链接（选填）<input name="source" type="url" placeholder="https://…"></label><label>许可／授权范围<input name="license" maxlength="120" placeholder="例如：本人原创，CC BY-SA 4.0" required></label><label class="upload-zone">选择文件（PDF、TXT、MD、图片；单份不超过 25 MB）<input name="files" type="file" accept=".pdf,.txt,.md,.csv,.png,.jpg,.jpeg,.webp,.zip,.stl,.step,.ipynb" multiple required></label><label class="check-line"><input name="rights" type="checkbox" required>我有权分享这些文件，已注明原作者与来源。</label><p id="upload-status" role="status"></p><button class="btn btn-primary" type="submit">保存并提交审核</button><p class="small-note">审核通过后进入公共资料库。失败的提交保留已创建草稿，可在“我的投稿”继续。</p></form></dialog>
-</body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>资料 · Luokixi</title>
+<meta name="description" content="矿大课程资料、试卷与笔记：按分类逛、搜索、预览，一份份放进资料袋，再一次打包下载；也可以上传自己的资料。">
+<script type="module" src="/src/pages/materials.js"></script>
+</head>
+<body data-page="materials" class="ap-page">
+<!-- @include nav -->
+
+<main id="main" class="mt">
+  <!-- 页头：和校圈一样的 App Store 大标题（往下滚时滚走，下面的搜索栏吸顶） -->
+  <div class="ap-wrap">
+    <header class="as-head mt-head">
+      <div class="as-head-text"><p class="as-date">矿大课程资料 · 试卷 · 笔记</p><h1 class="as-largetitle" data-vt-title>资料</h1></div>
+    </header>
+  </div>
+
+  <!-- 顶部：搜索 + 醒目的上传入口（超市 App 的搜索栏） -->
+  <div class="mt-top">
+    <div class="ap-wrap mt-top-inner">
+      <form id="library-search" class="mt-search" role="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+        <label class="sr-only" for="library-q">搜索资料</label>
+        <input id="library-q" type="search" placeholder="搜课程、年份、知识点，例如“线代 2023”" autocomplete="off" enterkeyhint="search">
+        <button type="submit" class="sr-only">搜索</button>
+      </form>
+      <button class="mt-upload-btn" id="upload-open" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14"/></svg>
+        <span><b>上传资料</b><small>试卷、答案、笔记都可以</small></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="ap-wrap mt-shop">
+    <!-- 左边：竖排的分类栏（超市 App 的左侧分类） -->
+    <nav class="mt-rail" aria-label="资料分类">
+      <div id="library-subjects" class="mt-rail-list"></div>
+      <button class="mt-rail-upload" type="button" data-upload>
+        <span>＋</span>没找到？<br>传一份
+      </button>
+    </nav>
+
+    <!-- 右边：竖排的资料列表 -->
+    <section class="mt-results" id="mt-results" aria-labelledby="library-heading">
+      <div class="mt-results-head">
+        <h2 class="mt-heading-wrap"><span id="library-heading" class="mt-heading">全校资料库</span><span class="mt-count" id="library-count" role="status">正在整理目录…</span></h2>
+        <div class="mt-filters">
+          <label><span class="sr-only">类型</span><select id="library-kind">
+            <option value="">全部类型</option>
+            <option>试卷</option>
+            <option>答案</option>
+            <option>听力</option>
+            <option>笔记</option>
+            <option>资料</option>
+            <option>站外链接</option>
+          </select></label>
+          <label><span class="sr-only">年份</span><select id="library-year">
+            <option value="">全部年份</option>
+          </select></label>
+          <label><span class="sr-only">排序</span><select id="library-sort">
+            <option value="new">新的在前</option>
+            <option value="old">旧的在前</option>
+            <option value="pages">页数多的在前</option>
+            <option value="">按目录顺序</option>
+          </select></label>
+        </div>
+      </div>
+      <div id="library-list" class="mt-list" aria-live="polite"></div>
+      <div class="mt-more"><button class="btn btn-outline" id="library-more" type="button" hidden>再看一些</button></div>
+      <p class="ap-sub mt-status" id="library-status"></p>
+    </section>
+  </div>
+</main>
+
+<!-- 底部常驻的资料袋（超市 App 的购物车结算条） -->
+<aside class="mt-bagbar" aria-label="资料袋">
+  <button class="mt-bagbar-icon" id="bag-open" type="button" aria-label="打开资料袋">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>
+    <b class="num" id="bag-count">0</b>
+  </button>
+  <span class="mt-bagbar-text"><b>资料袋</b><small id="bag-dock-summary" aria-live="polite">挑选资料，按需带走</small></span>
+  <button class="mt-bagbar-go" id="bag-dock-open" type="button">去打包 <b class="num" id="bag-dock-count">0</b></button>
+</aside>
+
+<dialog id="bag-dialog" class="mt-sheet" aria-labelledby="bag-title">
+  <div class="mt-sheet-head">
+    <h2 class="ap-h2" id="bag-title">你的资料袋。<span>一次带走。</span></h2>
+    <button class="mt-sheet-close" type="button" data-close aria-label="关闭资料袋"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+  </div>
+  <div id="bag-list" class="mt-bag-list"></div>
+  <p class="ap-sub">资料袋保存在这个浏览器里。打包时附一份来源与许可清单；本机私有资料不会上传到任何服务。每次最多 30 份、合计 100 MB。</p>
+  <p id="bag-status" class="mt-bag-status" role="status"></p>
+  <progress id="bag-progress" class="mt-progress" value="0" max="1" hidden></progress>
+  <div class="mt-sheet-actions">
+    <button class="btn btn-secondary" id="bag-clear" type="button">清空</button>
+    <button class="btn btn-outline" id="bag-cancel" type="button" hidden>取消打包</button>
+    <button class="btn btn-primary" id="bag-download" type="button">打包下载</button>
+  </div>
+</dialog>
+
+<!-- 上传：先把文件拖进来，按文件名自动填好课程、年份和类型，再补来源和许可 -->
+<dialog id="upload-dialog" class="mt-sheet mt-upload" aria-labelledby="upload-title">
+  <div class="mt-sheet-head">
+    <h2 class="ap-h2" id="upload-title">上传资料。<span>让好资料被找到。</span></h2>
+    <button class="mt-sheet-close" type="button" data-close aria-label="关闭上传"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+  </div>
+  <div id="upload-gate"></div>
+  <form id="upload-form" class="product-form mt-upload-form" novalidate>
+    <label class="mt-drop" id="upload-drop">
+      <input name="files" type="file" accept=".pdf,.txt,.md,.csv,.png,.jpg,.jpeg,.webp,.zip,.stl,.step,.ipynb" multiple>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M4 15v4h16v-4"/></svg>
+      <b>把文件拖到这里，或者点一下选择</b>
+      <small>PDF、图片、TXT、MD、ZIP 等；一次最多 10 份，每份不超过 25 MB</small>
+    </label>
+    <ul class="mt-files" id="upload-files" aria-live="polite"></ul>
+
+    <label>资料名称<input name="title" maxlength="160" required placeholder="例如：线性代数 2023–2024 期末 A 卷"></label>
+    <div class="form-pair">
+      <label>课程<input name="course" list="upload-courses" placeholder="如：线性代数" maxlength="80" required></label>
+      <label>年份／学期<input name="year" maxlength="30" placeholder="2023–2024 上学期" required></label>
+    </div>
+    <datalist id="upload-courses"></datalist>
+    <fieldset class="mt-kinds">
+      <legend>这是什么</legend>
+      <div class="mt-chips" id="upload-kinds"></div>
+    </fieldset>
+    <label>一句话说明<textarea name="summary" maxlength="1000" rows="2" required placeholder="例如：含答案；第 3 题印刷不清，以原卷为准"></textarea></label>
+    <div class="form-pair">
+      <label>原作者与来源<input name="credit" maxlength="300" required placeholder="例如：本人整理 / 某老师课件"></label>
+      <label>原始来源链接（选填）<input name="source" type="url" placeholder="https://…"></label>
+    </div>
+    <label>分享依据<select name="license" required>
+      <option value="本人原创 · CC BY-SA 4.0">本人原创 · CC BY-SA 4.0</option>
+      <option value="原作者已有明确许可">原作者已有明确许可</option>
+      <option value="已获得原作者分享授权">已获得原作者分享授权</option>
+      <option value="仅提供原链接，不上传文件">仅提供原链接，不上传文件</option>
+      <option value="许可待核">许可待核（先存草稿）</option>
+    </select></label>
+    <label class="check-line"><input name="rights" type="checkbox" required>我已核对资料来源、作者与分享范围，有权分享这些文件。</label>
+    <p id="upload-status" class="mt-upload-status" role="status"></p>
+    <div class="mt-sheet-actions">
+      <button class="btn btn-secondary" type="button" data-close>取消</button>
+      <button class="btn btn-primary" type="submit">提交审核</button>
+    </div>
+    <p class="small-note">审核通过后进入公共资料库，审核结果会出现在“个人中心 · 通知”。提交失败时已创建的草稿会保留，可以在“我的投稿”里继续。</p>
+  </form>
+</dialog>
+
+<!-- @include footer -->
+</body>
+</html>

@@ -65,7 +65,7 @@ export function mountCarousel(root, { interval = 7000, onChange } = {}) {
     if (previous?.moved) suppressClickUntil = performance.now() + 300;
     cancelAnimationFrame(dragFrame); dragFrame = 0;
     if (previous && viewport.hasPointerCapture(previous.id)) viewport.releasePointerCapture(previous.id);
-    pauses.delete('drag'); root.classList.remove('is-dragging');
+    pauses.delete('drag'); pauses.delete('press'); root.classList.remove('is-dragging');
   }
   function animateTo() {
     if (motion.matches || (Math.abs(position - target) < .0007 && Math.abs(velocity) < .009)) { finish(); return; }
@@ -77,7 +77,13 @@ export function mountCarousel(root, { interval = 7000, onChange } = {}) {
       const frames = plan.frames.map(f => ({ ...visual(i, f.position), offset: f.offset }));
       const options = { duration: plan.duration, easing: 'linear', fill: 'both' };
       animations.push(el.animate(frames.map(f => ({ offset: f.offset, transform: f.transform, opacity: f.opacity })), options));
-      if (copy) animations.push(copy.animate(frames.map(f => ({ offset: f.offset, opacity: f.copy })), options));
+      if (copy) {
+        const first = frames[0].copy;
+        // Distant captions are transparent throughout this segment; they need no
+        // animated opacity layer until they actually approach the central card.
+        if (frames.some(f => f.copy !== first)) animations.push(copy.animate(frames.map(f => ({ offset: f.offset, opacity: f.copy })), options));
+        else copy.style.opacity = String(first);
+      }
     });
     const current = { plan, animations, clock: animations[0] };
     run = current; root.classList.add('is-settling');
@@ -108,6 +114,7 @@ export function mountCarousel(root, { interval = 7000, onChange } = {}) {
     schedule();
   }
   function go(i, { user = false, instant = false } = {}) {
+    if (drag) cancelDrag();
     interrupt(); const previous = active; active = clamp(Math.round(i), 0, n - 1); target = active;
     sync(); if (instant || motion.matches) finish(); else animateTo(); schedule();
     if (previous !== active) {
@@ -133,12 +140,13 @@ export function mountCarousel(root, { interval = 7000, onChange } = {}) {
     if (e.button !== 0 || drag || e.target.closest('button,a,input')) return;
     interrupt(); prepare(position, active); draw();
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, start: position, lastX: e.clientX, lastTime: performance.now(), speed: 0, moved: false, stack: Math.round(position) };
+    pause('press', true);
   });
   viewport.addEventListener('pointermove', e => {
     if (!drag || drag.id !== e.pointerId) return;
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (!drag.moved) {
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) { drag = null; animateTo(); return; }
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) { drag = null; pause('press', false); animateTo(); return; }
       if (Math.abs(dx) < 6) return;
       drag.moved = true; viewport.setPointerCapture(e.pointerId); pause('drag', true); root.classList.add('is-dragging');
     }
@@ -157,13 +165,14 @@ export function mountCarousel(root, { interval = 7000, onChange } = {}) {
     if (!drag || drag.id !== e.pointerId) return;
     const d = drag; drag = null;
     if (viewport.hasPointerCapture(e.pointerId)) viewport.releasePointerCapture(e.pointerId);
-    root.classList.remove('is-dragging'); pause('drag', false);
+    root.classList.remove('is-dragging'); pauses.delete('press'); pause('drag', false);
     if (!d.moved) { animateTo(); return; }
     suppressClickUntil = performance.now() + 300;
     const speed = performance.now() - d.lastTime < 90 ? d.speed : 0;
     velocity = -speed * 1000 / width;
     const predicted = position - speed * 150 / width;
-    go(cancelled ? active : Math.abs(speed) > .45 ? active + (speed < 0 ? 1 : -1) : Math.round(predicted), { user: true });
+    const flickTarget = speed < 0 ? Math.floor(position) + 1 : Math.ceil(position) - 1;
+    go(cancelled ? active : Math.abs(speed) > .45 ? flickTarget : Math.round(predicted), { user: true });
   }
   // A press released outside the viewport must not leave stale drag state.
   addEventListener('pointerup', e => end(e));

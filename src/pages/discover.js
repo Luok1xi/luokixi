@@ -3,7 +3,7 @@
 import { initShell, reducedMotion } from '../js/shell.js';
 import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { loadCommunity, fmtNum, timeAgo } from '../js/community.js';
-import { coverSVG } from '../js/cover.js';
+import { coverMediaHTML as coverSVG } from '../js/cover.js';
 import { CATEGORIES, ORIGINS } from '../js/schema.js';
 import { createNotebook } from '../js/community-notebook.js';
 import { esc } from '../js/data.js';
@@ -72,7 +72,7 @@ function fromCatalogue(p) {
     shelf: null, repositoryUrl: p.links.repo || p.links.site || p.links.hardware, downloads: [], readmeUrl: p.links.repo ? `${p.links.repo}#readme` : null, videoUrl: p.links.video || null,
     license: p.repo ? p.repo.license ?? '许可待核' : null, credit: p.credit, githubStars: p.repo?.stars ?? null,
     siteStars: null, starred: false, media: { type: 'project-card', notice: '项目卡片 · 不是实机演示视频' },
-    evidence: [], verifiedAt: p.repo?.checkedAt ?? null, tested: false, category: p.category, slug: p.slug,
+    evidence: [], verifiedAt: p.repo?.checkedAt ?? null, tested: false, category: p.category, slug: p.slug, cover: p.cover, coverCredit: p.coverCredit,
   };
 }
 
@@ -116,7 +116,7 @@ const hueOf = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) 
 
 function visualFor(it) {
   const category = it.category ?? SHELF_GLYPH[it.shelf] ?? 'software';
-  return coverSVG({ slug: it.repository, category, title: it.title });
+  return coverSVG({ slug: it.repository, category, title: it.title, cover: it.cover });
 }
 
 function guideBadge(it) {
@@ -140,7 +140,7 @@ function slideHTML(it, i) {
     <div class="slide-stage">
       <figure class="slide-visual">
         <div class="cover">${visualFor(it)}</div>
-        <figcaption class="media-note">${esc(it.media?.notice ?? '项目卡片')}</figcaption>
+        <figcaption class="media-note">${esc(it.coverCredit || it.media?.notice || '项目卡片')}</figcaption>
       </figure>
       <div class="slide-info">
         <div class="slide-tags">${it.shelf ? `<span class="tag tag-glow">${SHELF[it.shelf]}</span>` : ''}${guideBadge(it)}${it.tested ? '<span class="tag tag-ok">已实测</span>' : ''}</div>
@@ -156,6 +156,9 @@ function slideHTML(it, i) {
         </div>
       </div>
       <div class="slide-rail" role="group" aria-label="操作">
+        <button type="button" class="rail-btn rail-download" data-act="download">
+          <svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg><span>下载</span>
+        </button>
         <button type="button" class="rail-btn" data-act="comments"><span class="rail-symbol">☷</span><span>讨论</span></button>
         <button type="button" class="rail-btn" data-act="danmaku" aria-pressed="false"><span class="rail-symbol">≋</span><span>弹幕</span></button>
         <button type="button" class="rail-btn${saved ? ' is-on' : ''}" data-act="save" aria-pressed="${saved}">
@@ -319,7 +322,34 @@ feed.addEventListener('click', (e) => {
   if (act === 'guide') openGuide(it);
   if (act === 'comments') openDiscussion(it);
   if (act === 'danmaku') toggleDanmaku(it, slide, btn);
+  if (act === 'download') openDownload(it);
 });
+
+// ---------- 本站下载：像 MC 百科那样直接在本站下载（只限允许再分发的开源许可证） ----------
+
+const fmtSize = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+async function openDownload(it) {
+  const dlg = document.getElementById('dc-download');
+  const body = document.getElementById('dc-download-body');
+  const repo = it.repository;
+  const origin = `<a class="btn btn-outline" href="https://github.com/${esc(repo)}/releases" target="_blank" rel="noopener">去 GitHub 原站下载 ↗</a>`;
+  body.innerHTML = `<p class="eyebrow">下载</p><h2 class="sheet-title" id="dc-download-title">${esc(it.title)}</h2><p class="muted">正在读取本站镜像…</p>`;
+  dlg.showModal();
+  if (!st.online) {
+    body.innerHTML = `<p class="eyebrow">下载</p><h2 class="sheet-title" id="dc-download-title">${esc(it.title)}</h2><p class="muted">本站镜像需要社区服务；现在是只读的静态页面。</p><div class="btn-group">${origin}</div>`;
+    return;
+  }
+  let m;
+  try { m = await hubApi.mirror(repo); } catch (err) { m = { error: err.message }; }
+  const files = m.items ?? [];
+  body.innerHTML = `<p class="eyebrow">下载 · ${esc(m.license || it.license || '许可待核')}</p><h2 class="sheet-title" id="dc-download-title">${esc(it.title)}</h2>
+    ${files.length ? `<ul class="dc-dl" role="list">${files.map((f) => `<li><div><b>${esc(f.name)}</b><span>${esc(f.tag)} · ${fmtSize(f.size)}${f.downloads ? ` · 本站下载 ${fmtNum(f.downloads)} 次` : ''}</span><code title="${esc(f.sha256)}">SHA-256 ${esc(f.sha256.slice(0, 16))}…</code>${f.executable ? '<small>可执行程序：运行前核对 SHA-256，确认和作者正式发布一致。</small>' : ''}</div><a class="btn btn-primary btn-sm" href="${esc(f.url)}" download>本站下载</a></li>`).join('')}</ul>
+      <p class="muted">从作者在 GitHub 的正式发布原样镜像，没有任何修改；使用遵循原许可证。</p>`
+      : m.status === 'license-blocked' ? `<p class="muted">${esc(m.reason)}</p>`
+      : m.error ? `<p class="muted">本站镜像暂时读不到：${esc(m.error)}</p>`
+      : '<p class="muted">本站还没有镜像这个项目的发布包；维护机器人每周检查一次，也可以先去原站下载。</p>'}
+    <div class="btn-group">${origin}</div>`;
+}
 
 // ---------- 导读面板 ----------
 

@@ -57,6 +57,26 @@ class StudioTests(TestCase):
     def answer(self, message='A real adapter result in this mocked test.', files=None):
         return {'message': message, 'tasks': ['Review behaviour'], 'files': files or []}, 'mock-test-model', {'input_tokens': 100}
 
+    def test_supervisor_and_codex_can_discuss_without_publishing(self):
+        from .models import ExternalCache, Entry
+        from .test_project_repository import fixture
+        from .github_guides import cache_key
+        from .supervisor import inspect_all, status
+        d=fixture()
+        ExternalCache.objects.create(pk=cache_key(d['repository']),data=d,success=timezone.now())
+        inspect_all()
+        case=status()['cases'][0]
+        response=self.client.post('/api/hub/supervisor/discuss',json.dumps({'id':case['id'],'message':'请一起核对来源。'}),content_type='application/json')
+        self.assertEqual(response.status_code,200,response.content)
+        run=StudioRun.objects.get(pk=response.json()['run']['id'])
+        self.assertEqual(run.seats,['beikuang','codex']);self.assertEqual(run.rounds,2)
+        with patch.object(studio_providers,'codex',return_value=self.answer()) as call:
+            self.assertTrue(studio_worker.run_one())
+        self.assertEqual(call.call_count,2)
+        run.refresh_from_db();self.assertEqual(run.state,'completed')
+        self.assertEqual(list(run.messages.order_by('id').values_list('seat',flat=True)),['beikuang','codex'])
+        self.assertFalse(Entry.objects.filter(state='published').exists())
+
     def test_local_owner_only_and_csrf(self):
         anon = Client()
         self.post('rooms', {'title': 'x'}, 401, anon)

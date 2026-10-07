@@ -10,9 +10,12 @@ import { CATEGORIES } from '../js/schema.js';
 import { daysUntil, esc, load as loadCatalog, catalogStats } from '../js/data.js';
 import { glyphSVG } from '../js/cover.js';
 import { mountArt } from '../js/art.js';
+import { appIcon } from '../js/app-icons.js';
 import { openStory } from '../js/story.js';
 import { mountCarousel } from '../js/carousel.js';
 import { animate as springTo } from '../js/motion.js';
+import { loadMaterials, readBag, toggleBag, yearKey } from '../js/materials-catalog.js';
+import { loadMe, classesOn, todayIndex } from '../js/quests.js';
 import '../styles/v3.css';
 import '../styles/today.css';
 import '../styles/app-store.css';
@@ -43,7 +46,28 @@ const loaders = {
     const d = await json('data/featured.json');
     const now = Date.now();
     // 编辑设定的展示期限之外的不显示；过期内容留给检索，不再当精选
-    return (d?.items ?? []).filter((x) => x?.title && (!x.startsAt || Date.parse(x.startsAt) <= now) && (!x.expiresAt || Date.parse(x.expiresAt) > now));
+    const picked = (d?.items ?? []).filter((x) => x?.title && (!x.startsAt || Date.parse(x.startsAt) <= now) && (!x.expiresAt || Date.parse(x.expiresAt) > now));
+    // 维护机器人从矿大新闻网抓到、维护者审核通过的新闻：最近 14 天内的最多 3 条，排在编辑精选后面
+    const state = await hubState();
+    if (!state.online) return picked;
+    try {
+      const r = await hubApi.catalogue({ kind: 'news' });
+      const seen = new Set(picked.map((x) => x.href || x.source?.url));
+      const recent = (r.items ?? [])
+        .map((e) => ({ e, d: e.data ?? {} }))
+        .filter(({ d }) => d.title && d.links?.source && !seen.has(d.links.source) && now - (Date.parse(d.publishedAt) || 0) < 14 * 86400e3)
+        .sort((a, b) => (Date.parse(b.d.publishedAt) || 0) - (Date.parse(a.d.publishedAt) || 0))
+        .slice(0, 3)
+        .map(({ e, d }) => ({
+          id: `hub-${e.id}`, kind: 'news', title: d.title, dek: d.summary, href: d.links.source,
+          source: { name: d.sourceNote || '矿大新闻网', type: 'official', url: d.links.source },
+          publishedAt: d.publishedAt, eventAt: d.publishedAt?.slice(0, 10), checkedAt: e.updated,
+          media: d.media?.src ? { ...d.media, alt: d.media.alt || d.title } : null,
+        }));
+      return [...picked, ...recent];
+    } catch {
+      return picked;
+    }
   },
   competitions: () => json('data/competitions.json'),
   projects: () => loadCommunity().then((d) => d.projects),
@@ -54,6 +78,7 @@ const loaders = {
   reviews: () => hubApi.reviews({ limit: 12 }),
   cet4: () => loadCatalog('cet4'),
   cet6: () => loadCatalog('cet6'),
+  school: () => loadCatalog('school'),
 };
 const load = (key) => get(key, loaders[key]);
 
@@ -410,16 +435,153 @@ const CAMPUS_LINKS = [
 ];
 const campusTiles = () => `<div class="v3-boards">${CAMPUS_LINKS.map(([href, name, sub, h, icon]) => `<a class="v3-board" href="${href}"><span class="v3-icon" style="--h:${h}">${UI[icon]}</span><span><b>${name}</b><span>${sub}</span></span></a>`).join('')}</div>`;
 
+// ---------- 推荐：一列能直接用的内容（功能优先，不放宣传语） ----------
+// 快捷操作 → 今天（课表、考试、资料袋）→ 校圈热帖 → 最新资料（直接放进资料袋）→ 开源推荐 → 最新评价 → 竞赛名录
+
+const CHEV = '<svg class="ap-chev" viewBox="0 0 9 14" aria-hidden="true"><path d="m1.5 1.5 6 5.5-6 5.5"/></svg>';
+const SYM = {
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  study: '<path d="M3 9.5 12 5l9 4.5-9 4.5z"/><path d="M7 11.5V16c1.4 1.2 3.1 1.8 5 1.8s3.6-.6 5-1.8v-4.5"/>',
+  seat: '<path d="M7 4v8h10V4M5 12h14v3H5zM7 15v5M17 15v5"/>',
+  upload: '<path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14"/>',
+  post: '<path d="M4 5h16v11H9l-5 4z"/>',
+  pin: '<path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>',
+  exam: '<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',
+  bag: '<path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1.5A3 3 0 0 0 8 10.5M16 6h3v1.5a3 3 0 0 1-3 3M12 13v4M8.5 20h7M10 17h4"/>',
+};
+const sym = (k) => appIcon(k);
+const modHead = (title, action = '') => `<div class="td-mod-head"><h2>${title}</h2>${action}</div>`;
+const modNote = (text) => `<p class="ap-sub td-mod-note">${text}</p>`;
+
+const QUICK = [
+  ['map.html#quests', '今天的课', 'clock', 211],
+  ['map.html?type=study', '去哪自习', 'study', 150],
+  ['reservations.html', '座位预约', 'seat', 262],
+  ['materials.html?upload=1', '上传资料', 'upload', 28],
+  ['circle.html?compose=1', '发帖', 'post', 330],
+  ['map.html?add=place#explore', '标地点', 'pin', 4],
+];
+
+function quickHTML() {
+  return `<section class="td-mod td-quick" aria-label="快捷操作">
+    <button class="td-search" type="button" data-search><svg viewBox="0 0 24 24" aria-hidden="true">${SYM.search}</svg><span>搜索资料、帖子、楼、项目</span><kbd class="kbd" data-kbd-mod>Ctrl K</kbd></button>
+    <div class="td-quick-row">${QUICK.map(([href, name, icon, h]) => `<a class="td-quick-item" href="${href}">${sym(icon, h)}<span>${name}</span></a>`).join('')}</div>
+  </section>`;
+}
+
+function bagRowText(n) {
+  return n ? [`资料袋里有 ${n} 份`, '去打包下载'] : ['资料袋是空的', '在下面的“最新资料”里点“放入资料袋”'];
+}
+
+function todayRows(site) {
+  const rows = [];
+  const me = loadMe();
+  const list = me.courses.length ? classesOn(me, todayIndex()) : [];
+  const now = list.find((x) => x.status === 'now');
+  const focus = now ?? list.find((x) => x.status === 'next');
+  if (!me.courses.length) rows.push(`<a class="ap-row" href="map.html#quests">${sym('clock', 211)}<span class="ap-row-text"><b>还没有填课表</b><span>填上以后，这里显示下一节课在哪栋楼。课表只存在这个浏览器里。</span></span>${CHEV}</a>`);
+  else if (focus) rows.push(`<a class="ap-row" href="map.html#quests">${sym('clock', 211)}<span class="ap-row-text"><b>${now ? '正在上' : '下一节'} · ${esc(focus.course.name)}</b><span>${esc(focus.slot.start)}–${esc(focus.slot.end)} · ${esc([focus.course.building?.name, focus.course.room].filter(Boolean).join(' · ') || '还没选教学楼')}</span></span>${CHEV}</a>`);
+  else rows.push(`<a class="ap-row" href="map.html#quests">${sym('clock', 211)}<span class="ap-row-text"><b>${list.length ? '今天的课都上完了' : '今天没有课'}</b><span>一共 ${me.courses.length} 门课，点开看本周安排</span></span>${CHEV}</a>`);
+  const exam = site?.nextExam;
+  const days = exam?.date ? daysUntil(exam.date) : -1;
+  if (days >= 0) rows.push(`<a class="ap-row" href="cet4.html">${sym('exam', 24)}<span class="ap-row-text"><b>${esc(exam.label)}</b><span>${(exam.sessions ?? []).map((x) => `${esc(x.exam)} ${esc(x.time)}`).join(' · ')} · 以考试院公告为准</span></span><span class="td-days"><b class="num">${days}</b>天</span></a>`);
+  const [title, sub] = bagRowText(readBag().length);
+  rows.push(`<a class="ap-row" href="materials.html?bag=1" data-bag-row>${sym('bag', 192)}<span class="ap-row-text"><b>${title}</b><span>${sub}</span></span>${CHEV}</a>`);
+  return rows.join('');
+}
+
+async function todayHTML() {
+  const site = await load('site');
+  return `<section class="td-mod" aria-label="今天">${modHead('今天')}<div class="ap-list">${todayRows(site)}</div></section>`;
+}
+
+async function hotModule(limit = 5) {
+  const action = '<a class="ap-more" href="circle.html?compose=1">发帖</a>';
+  if (!st.online) return `<section class="td-mod">${modHead('校圈热帖', action)}${modNote('帖子保存在社区服务里；现在是只读的静态页面，看不到不代表没有。')}</section>`;
+  const r = await load('circle');
+  if (r?.error) return `<section class="td-mod">${modHead('校圈热帖', action)}${modNote(`暂时读不到：${esc(r.error)}`)}</section>`;
+  const list = (r?.items ?? []).slice(0, limit);
+  return `<section class="td-mod" aria-label="校圈热帖">${modHead('校圈热帖', '<a class="ap-more" href="circle.html">全部</a>')}
+    ${list.length ? `<ol class="ap-list">${list.map((p, i) => `<li><a class="ap-row" href="${esc(postHref(p))}"><span class="ap-rank">${i + 1}</span>
+      <span class="ap-row-text"><b>${esc(postTitle(p))}</b><span>${p.owner?.name ? `${esc(p.owner.name)} · ` : ''}回复 ${fmtNum(p.replies ?? 0)} · 赞 ${fmtNum(p.likes ?? 0)}</span></span>${CHEV}</a></li>`).join('')}</ol>`
+      : '<div class="ap-empty"><b>还没有公开的帖子。</b><p>第一条动态、第一个话题，可以由你来发。</p><a class="btn btn-primary btn-sm" href="circle.html?compose=1">发帖</a></div>'}
+  </section>`;
+}
+
+const fmtBadge = (x) => `<span class="td-fmt" data-format="${esc(x.format)}">${esc(String(x.format || '').toUpperCase() || 'FILE')}</span>`;
+let homeMaterials = [];
+
+function materialRow(x) {
+  const on = readBag().some((b) => b.url === x.url);
+  return `<li class="ap-row td-mat">${fmtBadge(x)}
+    <span class="ap-row-text"><b>${esc(x.title)}</b><span>${esc(x.course)} · ${esc(x.kind)}${x.year ? ` · ${esc(x.year)}` : ''}${x.pages ? ` · ${x.pages} 页` : ''}</span></span>
+    <span class="td-mat-actions"><a class="ap-more" href="${esc(x.url)}" target="_blank" rel="noopener">${x.external ? '原站' : '预览'}</a>
+      ${x.external ? '' : `<button class="btn ${on ? 'btn-secondary' : 'btn-primary'} btn-sm" type="button" data-bag="${esc(x.id)}" aria-pressed="${on}">${on ? '✓ 已放入' : '放入资料袋'}</button>`}</span></li>`;
+}
+
+async function materialsModule(limit = 6) {
+  const head = modHead('最新资料', '<a class="ap-more" href="materials.html">全部资料</a>');
+  try {
+    const { items } = await loadMaterials();
+    homeMaterials = [...items].sort((a, b) => yearKey(b) - yearKey(a)).slice(0, limit);
+    if (!homeMaterials.length) return `<section class="td-mod">${head}<div class="ap-empty"><b>资料库还是空的。</b><p>分享这门课的第一份资料。</p><a class="btn btn-primary btn-sm" href="materials.html?upload=1">上传资料</a></div></section>`;
+    return `<section class="td-mod" aria-label="最新资料">${head}<ul class="ap-list">${homeMaterials.map(materialRow).join('')}</ul></section>`;
+  } catch (e) {
+    return `<section class="td-mod">${head}${modNote(`资料目录暂时读不到：${esc(e.message ?? '未知错误')}`)}</section>`;
+  }
+}
+
+async function projectsModule(limit = 4) {
+  const list = await load('projects');
+  const head = modHead('开源推荐', '<a class="ap-more" href="discover.html">去开源广场</a>');
+  if (!Array.isArray(list) || !list.length) return `<section class="td-mod">${head}${modNote('开源广场的目录没有加载出来。')}</section>`;
+  return `<section class="td-mod" aria-label="开源推荐">${head}<div class="ap-list">${[...list]
+    .sort((a, b) => (b.repo?.stars ?? 0) - (a.repo?.stars ?? 0))
+    .slice(0, limit)
+    .map((p) => {
+      const href = st.online ? `project.html?slug=${encodeURIComponent(p.slug)}` : safeURL(p.links?.repo) ?? 'projects.html';
+      return `<a class="ap-row td-proj" href="${esc(href)}"${/^https?:/.test(href) ? ' target="_blank" rel="noopener"' : ''}>${projectIcon(p)}
+        <span class="ap-row-text"><b>${esc(p.title)}</b><span>${esc(p.summary)}</span></span>
+        <span class="td-proj-meta num">${p.repo?.stars != null ? `★ ${fmtNum(p.repo.stars)}` : ''}</span></a>`;
+    }).join('')}</div></section>`;
+}
+
+async function reviewsModule(limit = 3) {
+  const head = modHead('最新评价', '<a class="ap-more" href="reputation.html">全部评价</a>');
+  if (!st.online) return `<section class="td-mod">${head}${modNote('课程和教师的评价保存在社区服务里；现在是只读的静态页面。')}</section>`;
+  const r = await load('reviews');
+  const list = ok(r) ? (r.items ?? []).filter((x) => x.body).slice(0, limit) : [];
+  if (!list.length) return `<section class="td-mod">${head}<div class="ap-empty"><b>${r?.error ? '评价暂时读不到。' : '还没有公开的文字评价。'}</b><p>${r?.error ? esc(r.error) : '上过的课、遇到的老师，写一句真话。'}</p><a class="btn btn-primary btn-sm" href="reputation.html">写评价</a></div></section>`;
+  return `<section class="td-mod" aria-label="最新评价">${head}<div class="td-reviews">${list.map((x) => `<a class="ap-review" href="reputation.html">
+    <span class="ap-review-head"><b>${esc(x.title || x.subject?.name || '一条评价')}</b><span>${x.created ? esc(timeAgo(x.created)) : ''}</span></span>
+    ${x.rating ? `<span class="ap-review-stars" aria-label="${x.rating} 星">${'★'.repeat(Math.round(x.rating))}${'☆'.repeat(5 - Math.round(x.rating))}</span>` : ''}
+    <p>${esc(x.body)}</p></a>`).join('')}</div></section>`;
+}
+
+async function contestsModule(limit = 5) {
+  const d = await load('competitions');
+  const list = (d?.competitions ?? []).slice(0, limit);
+  const head = modHead('竞赛名录', '<button class="ap-more" type="button" data-go="chances">全部</button>');
+  if (!list.length) return `<section class="td-mod">${head}${modNote('竞赛名录没有加载出来。')}</section>`;
+  return `<section class="td-mod" aria-label="竞赛名录">${head}<div class="ap-list">${list.map((c) => {
+    const url = safeURL(c.officialUrl);
+    return `<a class="ap-row" href="${esc(url ?? '#chances')}"${url ? ' target="_blank" rel="noopener"' : ''}>${sym('trophy', CATEGORIES[c.category]?.hue ?? 215)}
+      <span class="ap-row-text"><b>${esc(c.name)}</b><span>${esc(CATEGORIES[c.category]?.name ?? '')} · ${c.deadline ? `截止 ${esc(c.deadline)}` : '报名时间以官方通知为准'}</span></span>${CHEV}</a>`;
+  }).join('')}</div>${modNote(`名录来自${esc(d.competitions[0]?.sourceTitle ?? '学校公开的学科竞赛名录')}，核对于 ${esc(d.checkedAt ?? '')}；不代表现在正在报名。`)}</section>`;
+}
+
+async function picksModules() {
+  const parts = await Promise.all([todayHTML(), hotModule(), materialsModule(), projectsModule(), reviewsModule(), contestsModule()]);
+  return `<div class="ap-wrap ap-wrap-text td-mods">${quickHTML()}${parts.join('')}</div>`;
+}
+
 // ---------- 各标签页 ----------
 
 const TABS = {
   async picks() {
-    const [hot, comps, reviews, projects] = await Promise.all([hotShelf(), competitionShelf(9), reviewShelf(), projectShelf()]);
-    return `<a class="editorial-feature" href="discover.html"><div><span>让想法发生</span><h2>从一个小项目，<br>开始你的创造。</h2><p>发现工具、认识创作者，把好奇心变成作品。</p><b>逛逛开源广场 ↗</b></div><img src="art/community-engineering.webp" loading="lazy" alt="原创工程创作主题插画"></a><section aria-label="校圈热帖">${sec('校圈热帖', { go: 'hot' })}${hot}</section>
-      <section aria-label="开源推荐">${sec('开源推荐', { href: 'discover.html' })}${projects}</section>
-      <section aria-label="竞赛与机会">${sec('竞赛与机会', { go: 'chances' })}${comps}</section>
-      <section aria-label="评分及评论">${sec('评分及评论', { href: 'reputation.html' })}${reviews}</section>
-      <section aria-label="校园">${sec('校园', { href: 'map.html' })}${campusTiles()}</section>`;
+    return picksModules();
   },
 
   async following() {
@@ -502,8 +664,11 @@ async function show(tab) {
   panel.classList.add('is-busy');
   const html = await TABS[st.tab]().catch((e) => quiet(`没有加载出来：${esc(e.message ?? '未知错误')}`));
   if (mine !== serial) return;
-  panel.innerHTML = html.replaceAll('<section ', '<section data-reveal ');
+  // 推荐是通栏大块；其他标签页是窄栏阅读
+  panel.innerHTML = st.tab === 'picks' ? html : `<div class="ap-wrap ap-wrap-text td-plain">${html.replaceAll('<section ', '<section data-reveal ')}</div>`;
   panel.classList.remove('is-busy');
+  mountArt(panel);
+  $$('[data-kbd-mod]', panel).forEach((k) => (k.textContent = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K'));
   // 虎扑式左右切换：往右的标签从右边滑进来，往左的从左边
   const dir = Math.sign(ORDER.indexOf(st.tab) - from);
   if (dir) springTo(panel, [{ transform: `translateX(${dir * 36}px)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { spring: 'snappy', fill: 'none' });
@@ -525,6 +690,22 @@ tabs.addEventListener('keydown', (e) => {
   show(next.dataset.tab);
 });
 panel.addEventListener('click', (e) => {
+  // 首页“最新资料”：和资料页共用一个资料袋
+  const bagBtn = e.target.closest('[data-bag]');
+  if (bagBtn) {
+    const item = homeMaterials.find((x) => x.id === bagBtn.dataset.bag);
+    if (!item) return;
+    const r = toggleBag(item);
+    if (r.full) bagBtn.textContent = '资料袋满了（30 份）';
+    else bagBtn.closest('li').outerHTML = materialRow(item);
+    const row = panel.querySelector('[data-bag-row]');
+    if (row) {
+      const [title, sub] = bagRowText(readBag().length);
+      row.querySelector('b').textContent = title;
+      row.querySelector('.ap-row-text span').textContent = sub;
+    }
+    return;
+  }
   const go = e.target.closest('[data-go]');
   if (!go) return;
   show(go.dataset.go);

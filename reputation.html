@@ -2,50 +2,81 @@
 <html lang="zh-CN">
 <head>
 <!-- @include head -->
-<title>选课与口碑 · Luokixi</title>
-<meta name="description" content="参考矿大同学的教学体验、课程评价和学习资源，找到适合自己的下一步。">
+<title>教师与课程口碑 · Luokixi</title>
+<meta name="description" content="矿大同学的教学体验评分：评分榜、热议榜、高赞原话和完整评论，教师资料来自学院官网。">
 <script type="module" src="/src/pages/reputation.js"></script>
 </head>
-<body data-page="reputation">
+<body data-page="reputation" class="cs-page rp-page">
 <!-- @include nav -->
-<main id="main" class="press-room rp-main">
+<main id="main" class="as-page rp-main">
 <!-- @include circle-header -->
-<div class="press-review-heading"><div><p class="press-eyebrow">选课之前，听听过来人</p><h2 id="press-review-title">教师口碑</h2></div><div class="press-tools"><a href="reputation.html?view=mine" data-tab="mine">我的评价</a><a href="reputation.html?view=moderation" data-tab="moderation" id="rp-mod-link" hidden>审核</a></div></div>
-  <div class="rp-body">
-    <p id="rp-message" role="status" class="rp-message" hidden></p>
-    <div id="rp-content" aria-live="polite"><p class="rp-empty">正在读取课程与教师资料…</p></div>
-  </div>
+<nav class="rp-tools" aria-label="口碑工具"><a href="reputation.html?view=mine" data-tab="mine">我的评价</a><a href="reputation.html?view=moderation" data-tab="moderation" id="rp-mod-link" hidden>审核</a><a href="rules.html#ratings">评分制度</a></nav>
+<p id="rp-message" role="status" class="rp-message" hidden></p>
+<div id="rp-content" aria-live="polite">
+  <div class="as-skeleton rp-skeleton" aria-hidden="true"></div>
+</div>
 </main>
-<dialog id="rp-editor" class="rp-dialog" aria-labelledby="rp-editor-title">
+
+<dialog id="rp-editor" class="cs-sheet" aria-labelledby="rp-editor-title">
   <form id="rp-review-form">
-    <header><h2 id="rp-editor-title">分享教学体验</h2><button type="button" data-close aria-label="关闭评价窗口">×</button></header>
-    <p id="rp-subject-label"></p>
-    <fieldset class="rp-rating-input"><legend>你的整体体验</legend>
-      <label><input type="radio" name="rating" value="1" required><span>★</span><small>1 星</small></label>
-      <label><input type="radio" name="rating" value="2"><span>★</span><small>2 星</small></label>
-      <label><input type="radio" name="rating" value="3"><span>★</span><small>3 星</small></label>
-      <label><input type="radio" name="rating" value="4"><span>★</span><small>4 星</small></label>
-      <label><input type="radio" name="rating" value="5"><span>★</span><small>5 星</small></label>
-    </fieldset>
-    <label>你的评价<textarea name="body" rows="5" maxlength="5000" required placeholder="哪些地方有帮助？哪里可以改进？给后来同学一个具体建议。"></textarea></label>
-    <div id="rp-context-fields" class="rp-two">
-      <label>相关课程（可选）<select name="courseId"><option value="">暂不填写</option></select></label>
-      <label>修读学期（可选）<input name="term" maxlength="80" placeholder="例如 2026 年秋季"></label>
+    <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>取消</button><h2 id="rp-editor-title">写评价</h2><button class="rp-send" type="submit">提交</button></header>
+    <div class="cs-form">
+      <p id="rp-subject-label" class="as-fine"></p>
+      <fieldset class="rp-star-input">
+        <legend>点星评分</legend>
+        <label><input type="radio" name="rating" value="1" required><span aria-hidden="true">★</span><b class="sr-only">1 星</b></label>
+        <label><input type="radio" name="rating" value="2"><span aria-hidden="true">★</span><b class="sr-only">2 星</b></label>
+        <label><input type="radio" name="rating" value="3"><span aria-hidden="true">★</span><b class="sr-only">3 星</b></label>
+        <label><input type="radio" name="rating" value="4"><span aria-hidden="true">★</span><b class="sr-only">4 星</b></label>
+        <label><input type="radio" name="rating" value="5"><span aria-hidden="true">★</span><b class="sr-only">5 星</b></label>
+        <output id="rp-star-word" class="as-fine">点星评分</output>
+      </fieldset>
+      <fieldset class="rp-tag-input"><legend>印象（选填，最多 3 个）</legend><div class="as-tags" id="rp-tags"></div></fieldset>
+      <label class="cs-field"><span class="sr-only">评价正文</span><textarea name="body" rows="6" maxlength="5000" required placeholder="哪些地方有帮助？哪里可以改进？给后来的同学一个具体建议。"></textarea></label>
+      <div id="rp-context-fields" class="cs-form-row">
+        <label>相关课程（选填）<select name="courseId"><option value="">暂不填写</option></select></label>
+        <label>修读学期（选填）<input name="term" maxlength="80" placeholder="例如 2026 年秋季"></label>
+      </div>
+      <label class="cs-check"><input type="checkbox" name="anonymous" checked>匿名发表（隐藏账号署名）</label>
+      <p class="as-fine">评价审核后公开。请写自己的真实体验；不写他人隐私、不做人身攻击，事实性指控请附依据。<a href="rules.html#ratings">评分制度 ›</a></p>
+      <p id="rp-editor-error" class="cs-status" role="alert"></p>
     </div>
-    <label class="rp-check"><input type="checkbox" name="anonymous" checked>匿名发表</label>
-    <p class="rp-fine">匿名隐藏账号署名；请避免在正文中写入不想公开的个人信息。评价审核后公开，负面体验也可以具体表达。</p>
-    <p id="rp-editor-error" role="alert"></p>
-    <button class="btn btn-primary" type="submit">提交审核</button>
   </form>
 </dialog>
-<dialog id="rp-action-dialog" class="rp-dialog" aria-labelledby="rp-action-title">
+
+<dialog id="rp-action-dialog" class="cs-sheet" aria-labelledby="rp-action-title">
   <form id="rp-action-form">
-    <header><h2 id="rp-action-title">补充说明</h2><button type="button" data-close aria-label="关闭">×</button></header>
-    <label>说明<textarea name="reason" maxlength="2000" rows="4" required></textarea></label>
-    <p id="rp-action-error" role="alert"></p>
-    <button class="btn btn-primary" type="submit">确认</button>
+    <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>取消</button><h2 id="rp-action-title">补充说明</h2><button class="rp-send" type="submit">确认</button></header>
+    <div class="cs-form">
+      <label class="cs-field"><span id="rp-action-label">说明</span><textarea name="reason" maxlength="2000" rows="4" required></textarea></label>
+      <p id="rp-action-error" class="cs-status" role="alert"></p>
+    </div>
   </form>
 </dialog>
-<!-- @include footer -->
+
+<dialog id="rp-mention-dialog" class="cs-sheet" aria-labelledby="rp-mention-title">
+  <form id="rp-mention-form">
+    <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>取消</button><h2 id="rp-mention-title">提交站外讨论</h2><button class="rp-send" type="submit">提交</button></header>
+    <div class="cs-form">
+      <p class="as-fine">贴吧、虎扑、知乎上有讨论这位老师或这门课的帖子？贴上链接，再用一句自己的话说说它在聊什么。本站不抓取、不转载原帖，审核后单独列出并标明来源，不计入评分。</p>
+      <label class="cs-field">原帖链接<input name="url" type="url" required placeholder="https://tieba.baidu.com/p/…"></label>
+      <label class="cs-field">帖子标题<input name="title" maxlength="160" required></label>
+      <label class="cs-field">你的一句话概括<textarea name="summary" rows="3" maxlength="300" required placeholder="例如：几位同学在聊期末复习重点，整体评价课讲得清楚"></textarea></label>
+      <p id="rp-mention-error" class="cs-status" role="alert"></p>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="rp-request-dialog" class="cs-sheet" aria-labelledby="rp-request-title">
+  <form id="rp-request-form">
+    <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>取消</button><h2 id="rp-request-title">更正或撤下</h2><button class="rp-send" type="submit">提交</button></header>
+    <div class="cs-form">
+      <p class="as-fine">资料来自学院官网，由机器人整理。资料有误、或老师本人希望撤下照片，都可以在这里告诉维护者；撤下照片的申请优先处理。</p>
+      <label>请求<select name="kind"><option value="correction">更正资料</option><option value="photo">撤下照片</option><option value="removal">其他请求</option></select></label>
+      <label class="cs-field">说明<textarea name="body" rows="4" maxlength="2000" required placeholder="哪里有误？正确的信息和依据是什么？"></textarea></label>
+      <p id="rp-request-error" class="cs-status" role="alert"></p>
+    </div>
+  </form>
+</dialog>
 </body>
 </html>

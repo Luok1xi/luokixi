@@ -3,6 +3,16 @@
   "verification": "GitHub connector repository metadata and official license pages; installed package versions are pinned in requirements.txt",
   "components": [
     {
+      "name": "HTTPX",
+      "version": "0.28.1",
+      "repository": "https://github.com/encode/httpx",
+      "license": "BSD-3-Clause",
+      "purpose": "Pooled GitHub API requests and bounded official asset streaming with HTTP/2",
+      "status": "installed-and-integrated",
+      "verifiedAt": "2026-10-07",
+      "note": "GitHub-only domain allowlist, pinned public DNS and per-hop credential removal wrap the upstream transport; package pinned in hub-requirements.txt."
+    },
+    {
       "name": "Scrapling",
       "version": "0.4.15",
       "repository": "https://github.com/D4Vinci/Scrapling",

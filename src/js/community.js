@@ -2,13 +2,19 @@
 import { esc } from './data.js';
 import { CATEGORIES, ORIGINS } from './schema.js';
 import { coverHTML } from './cover.js';
+import { hubApi } from '../../campus/hub-client.js';
 
 let pending;
 export function loadCommunity() {
-  pending ??= fetch('data/community.json', { cache: 'no-cache' }).then((r) => {
+  pending ??= Promise.all([fetch('data/community.json', { cache: 'no-cache' }).then((r) => {
     if (!r.ok) throw new Error(`community.json ${r.status}`);
     return r.json();
-  });
+  }), hubApi.available ? hubApi.projectMedia({ signal: AbortSignal.timeout(1200) }).catch(() => null) : null]).then(([data, media]) => ({
+    ...data, projects: data.projects.map(p => {
+      const image = media?.items?.[p.repo?.fullName];
+      return !p.cover && image?.image ? { ...p, cover:image.image, coverCredit:image.credit, coverSource:image.sourceUrl, coverStale:image.stale } : p;
+    }),
+  }));
   return pending;
 }
 

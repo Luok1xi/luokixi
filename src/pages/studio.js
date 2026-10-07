@@ -4,7 +4,7 @@ import { esc } from '../js/data.js';
 import { loginURL } from '../js/hub.js';
 import '../styles/products.css';
 import '../styles/studio.css';
-initShell();const api=createStudioClient(),$=s=>document.querySelector(s),names={codex:'Codex · 工程席',design:'设计席 · 由 Codex 运行',deepseek:'DeepSeek · 调研席'},states={queued:'等待执行',running:'协作中',completed:'讨论完成',needs_input:'需要补充信息',awaiting_review:'候选修改待你审核',checks_failed:'检查未通过',approved:'你已确认候选版本',cancelled:'已取消',failed:'执行失败',interrupted:'执行中断'};
+initShell();const api=createStudioClient(),$=s=>document.querySelector(s),names={beikuang:'北矿娘 · 总监督',codex:'Codex · 工程席',design:'设计席 · 由 Codex 运行',deepseek:'DeepSeek · 调研席'},states={queued:'等待执行',running:'协作中',completed:'讨论完成',needs_input:'需要补充信息',awaiting_review:'候选修改待你审核',checks_failed:'检查未通过',approved:'你已确认候选版本',cancelled:'已取消',failed:'执行失败',interrupted:'执行中断'};
 let renderedRuns=[],room=null,currentRun=null,poll=0,roomGeneration=0;const busy=s=>['queued','running'].includes(s);
 function status(msg){$('#studio-status').textContent=msg;}
 async function rooms(){const r=await api.rooms();$('#studio-rooms').innerHTML=r.items.map(x=>`<button data-room="${esc(x.id)}" aria-pressed="${x.id===room}"><b>${esc(x.title)}</b><small>${esc(x.created.slice(0,10))}</small></button>`).join('')||'<p class="small-note">还没有房间。创建一个，开始讨论。</p>';}
@@ -16,7 +16,7 @@ $('#studio-create-form').onsubmit=async e=>{e.preventDefault();const f=e.current
 $('#studio-form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,v=Object.fromEntries(new FormData(f)),seats=[...f.querySelectorAll('[name=seat]:checked')].map(x=>x.value);if(!seats.length){status('请至少选择一位成员。');return;}$('#studio-start').disabled=true;try{const r=await api.start(room,{prompt:v.prompt,mode:v.mode,rounds:Number(v.rounds),seats});currentRun=r;status('工作已排队。若长时间停在等待状态，请确认本机工作进程已启动。');f.elements.prompt.value='';await openRoom(room);}catch(err){status(err.message);$('#studio-start').disabled=false;}};
 $('#studio-stop').onclick=async()=>{if(!currentRun)return;try{await api.stop(currentRun.id);status('已请求停止，当前调用结束后不再继续。');await openRoom(room);}catch(e){status(e.message);}};
 async function init(){const c=await api.capabilities();$('#studio-access').hidden=false;status('仅本机站主可用。');$('#studio-members').innerHTML=c.members.map(m=>`<article class="studio-member"><span class="studio-avatar" data-seat="${esc(m.id)}">${m.id==='deepseek'?'≈':m.id==='codex'?'⌘':'✦'}</span><h2>${esc(names[m.id]||m.name)}</h2><p>${esc(m.role)}</p><small>${m.ready?'已配置 · 登录有效性在调用时检查':esc(m.reason)}</small></article>`).join('');$('#studio-seats').insertAdjacentHTML('beforeend',c.members.map(m=>`<label><input type="checkbox" name="seat" value="${esc(m.id)}" ${m.ready?'checked':'disabled'}>${esc(names[m.id])}</label>`).join(''));$('#studio-budget').textContent=`DeepSeek 每日上限 ¥${c.dailyCnyLimit} · 今日预留 ¥${c.budget.reservedCny}。${c.costScope}`;await rooms();}
-init().catch(e=>{$('#studio-status').innerHTML=`${esc(e.message)} <a href="${esc(loginURL())}">登录站主账号 →</a>`;});
+init().then(()=>{const id=new URLSearchParams(location.search).get('room');if(id)return openRoom(id);}).catch(e=>{$('#studio-status').innerHTML=`${esc(e.message)} <a href="${esc(loginURL())}">登录站主账号 →</a>`;});
 
 $('#studio-messages').addEventListener('submit',async e=>{
  const f=e.target.closest('.studio-approve');if(!f)return;e.preventDefault();

@@ -1,13 +1,32 @@
 """Teaching reputation. Public serializers never expose anonymous account relations."""
+from collections import Counter, defaultdict
+from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
+from urllib.parse import urlsplit
 from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.crypto import salted_hmac
 from django.utils.dateparse import parse_date
 from .core import Problem, require, text, url, throttle, notify
-from .models import (Audit, Teacher, GuideCourse, CourseOffering, CourseReview,
-                     CourseReviewVersion, CourseReviewLike, CourseReviewReply, CourseReviewCase)
+from .models import (Audit, Teacher, GuideCourse, CourseOffering, CourseReview, CourseReviewVersion,
+                     CourseReviewLike, CourseReviewReply, CourseReviewCase, ExternalMention, Job, Member, Source)
+
+# 印象标签（虎扑 / 豆瓣式）：只描述教学体验，正反两面都有；每条评价最多选 3 个，不计入星级
+TAGS = ['讲解清楚', '有干货', '负责耐心', '互动多', '要求严格', '作业较多', '作业适中',
+        '考核友好', '考核较难', '点名较多', '很少点名', '推荐旁听']
+RANK_MIN = 5          # 评分榜至少 5 人评分；1–4 人只在对象页显示真实均分和“样本较少”
+HOT_DAYS = 90         # 热议榜：近 90 天新公开的评价数
+# 站外讨论只收链接和同学自己的一句话，标明来源站点；本站不抓取、不转载原帖
+SITES = {
+    'tieba': ('百度贴吧', ('tieba.baidu.com',)),
+    'hupu': ('虎扑', ('bbs.hupu.com', 'm.hupu.com', 'www.hupu.com', 'hupu.com')),
+    'zhihu': ('知乎', ('www.zhihu.com', 'zhihu.com', 'zhuanlan.zhihu.com')),
+    'douban': ('豆瓣', ('www.douban.com', 'douban.com', 'm.douban.com')),
+    'bilibili': ('哔哩哔哩', ('www.bilibili.com', 'bilibili.com', 'm.bilibili.com')),
+    'xiaohongshu': ('小红书', ('www.xiaohongshu.com', 'xiaohongshu.com')),
+    'weixin': ('微信公众号', ('mp.weixin.qq.com',)),
+}
 
 
 def one(model, identifier, **filters):
@@ -52,7 +71,8 @@ def review_data(review, user, private=False):
         'revision': review.revision if private else review.public_revision,
         'rating': data.get('rating'), 'body': data.get('body', ''),
         'courseId': data.get('courseId', ''), 'courseName': data.get('courseName', ''),
-        'term': data.get('term', ''), 'anonymous': data.get('anonymous', True) if private else (data.get('anonymous', True) or review.force_anonymous),
+        'term': data.get('term', ''), 'tags': data.get('tags', []),
+        'anonymous': data.get('anonymous', True) if private else (data.get('anonymous', True) or review.force_anonymous),
         'author': public_author(review, review.author, data.get('anonymous', True)),
         'likes': review.likes.count() if count is None else count,
         'liked': user.is_authenticated and review.likes.filter(user=user).exists(),
@@ -66,14 +86,17 @@ def review_data(review, user, private=False):
 
 def statistics(query):
     distribution = {str(i): 0 for i in range(1, 6)}
+    tags = Counter()
     rows = query.values_list('published', flat=True)
     for data in rows:
         distribution[str(data['rating'])] += 1
+        tags.update(t for t in data.get('tags', []) if t in TAGS)
     count = sum(distribution.values())
     total = sum(int(k) * v for k, v in distribution.items())
     average = float((Decimal(total) / count).quantize(Decimal('.1'), rounding=ROUND_HALF_UP)) if count else None
     return {'average': average, 'count': count, 'distribution': distribution,
-            'smallSample': 0 < count < 5, 'label': '样本较少' if 0 < count < 5 else ('暂无评分' if not count else '')}
+            'smallSample': 0 < count < 5, 'label': '样本较少' if 0 < count < 5 else ('暂无评分' if not count else ''),
+            'tags': [{'tag': t, 'count': n} for t, n in tags.most_common(8)]}
 
 
 def highlight(query, user):
@@ -89,10 +112,15 @@ def highlight(query, user):
 
 def teacher_data(teacher, user):
     reviews = public_reviews().filter(teacher=teacher)
+    prof = teacher.profile or {}
+    # 机器人读到的公开资料；照片候选、被拒地址等内部字段不公开
+    profile = {k: prof[k] for k in ('college', 'department', 'research', 'profileUrl', 'crawledAt') if prof.get(k)}
+    if prof.get('origin') == 'faculty-bot':
+        profile['bot'] = True
     return {'id': str(teacher.pk), 'name': teacher.name, 'faculty': teacher.faculty,
             'title': teacher.title, 'sourceUrl': teacher.source_url, 'checkedAt': teacher.checked_at,
             'photo': teacher.photo or None, 'teaching': teacher.teaching, 'ratingLabel': '教学体验',
-            'stats': statistics(reviews), 'highlight': highlight(reviews, user)}
+            'profile': profile, 'stats': statistics(reviews), 'highlight': highlight(reviews, user)}
 
 
 def offering_data(offering, user):
@@ -177,8 +205,11 @@ def get(request, route):
             query = query.filter(published__term=text(q['term'], 80))
         if q.get('q'):
             query = query.filter(published__body__icontains=text(q['q'], 100))
-        order = ('-like_count', '-published_at', 'id') if q.get('sort') == 'likes' else ('-published_at', 'id')
+        # “最热”就是虎扑的“亮了”：按点赞数，其次按时间
+        order = ('-like_count', '-published_at', 'id') if q.get('sort') in ('likes', 'hot') else ('-published_at', 'id')
         return page(query.order_by(*order), request, review_data)
+    if parts[0] == 'reputation':
+        return board_get(request, parts[1:])
     if parts[0] == 'reviews' and len(parts) == 2:
         r = one(CourseReview, parts[1])
         if not public_reviews().filter(pk=r.pk).exists():
@@ -199,8 +230,11 @@ def validate_review(body, review=None):
         raise Problem('匿名选项格式不正确。')
     course_id = text(data.get('courseId', ''), 100)
     course = one(GuideCourse, course_id) if course_id else None
+    tags = data.get('tags', [])
+    if not isinstance(tags, list) or len(tags) > 3 or any(t not in TAGS for t in tags):
+        raise Problem('印象标签最多选 3 个。')
     result = {'rating': rating, 'body': text(data.get('body', ''), 5000, True),
-              'anonymous': data.get('anonymous', True), 'courseId': course_id,
+              'anonymous': data.get('anonymous', True), 'courseId': course_id, 'tags': list(dict.fromkeys(tags)),
               'courseName': course.name if course else '', 'term': text(data.get('term', ''), 80)}
     if review and review.offering_id:
         result.update(courseId=review.offering.course_id, courseName=review.offering.course.name, term=review.offering.term)
@@ -355,7 +389,11 @@ def post(request, route, body):
         return save_catalogue(user, route, body)
     if route == 'reviews':
         return submit(user, body)
+    if parts[0] == 'reputation':
+        return board_post(request, parts[1:], body)
     require(user, verified=True)
+    if parts[0] == 'teachers' and len(parts) == 3 and parts[2] == 'request':
+        return teacher_request(user, one(Teacher, parts[1]), body)
     if parts[0] == 'review-replies' and len(parts) == 3:
         reply = one(CourseReviewReply, parts[1])
         if parts[2] == 'withdraw':
@@ -437,4 +475,223 @@ def post(request, route, body):
         throttle('course-review-case', str(user.pk), 15)
         case = CourseReviewCase.objects.create(review=r, author=user, kind=action, body=text(body.get('reason', ''), 2000, True))
         return case_data(case)
+    raise Problem('操作不存在。', 404)
+
+
+# ==========================================================================
+# 虎扑式评分墙、评分榜、热议榜、弹幕墙；站外讨论；教师资料机器人的维护入口
+# ==========================================================================
+
+def subject_rows(kind):
+    """每个对象的评分汇总：总分、人数、近 HOT_DAYS 天新增。教师按教师整体评价，课程按历次开课汇总。"""
+    since = timezone.now() - timedelta(days=HOT_DAYS)
+    reviews = public_reviews()
+    rows = (reviews.filter(teacher__isnull=False).values_list('teacher_id', 'published', 'published_at') if kind == 'teachers'
+            else reviews.filter(offering__isnull=False).values_list('offering__course_id', 'published', 'published_at'))
+    agg = defaultdict(lambda: {'sum': 0, 'count': 0, 'recent': 0})
+    for key, data, at in rows:
+        a = agg[str(key)]
+        a['sum'] += data['rating']
+        a['count'] += 1
+        if at and at >= since:
+            a['recent'] += 1
+    return agg
+
+
+def rankings(kind, user):
+    if kind not in ('teachers', 'courses'):
+        raise Problem('榜单类型无效。')
+    agg = subject_rows(kind)
+    top = sorted((k for k, a in agg.items() if a['count'] >= RANK_MIN),
+                 key=lambda k: (-agg[k]['sum'] / agg[k]['count'], -agg[k]['count'], k))[:10]
+    hot = sorted((k for k, a in agg.items() if a['recent']), key=lambda k: (-agg[k]['recent'], -agg[k]['count'], k))[:10]
+    if kind == 'teachers':
+        objects = {str(t.pk): t for t in Teacher.objects.filter(pk__in=set(top + hot), active=True)}
+        serialize = teacher_data
+    else:
+        objects = {str(c.pk): c for c in GuideCourse.objects.filter(pk__in=set(top + hot))}
+        serialize = course_data
+    def items(keys, extra):
+        out = []
+        for key in keys:
+            if key in objects:
+                data = serialize(objects[key], user)
+                data['rank'] = len(out) + 1
+                data.update(extra(agg[key]))
+                out.append(data)
+        return out
+    return {'kind': kind,
+            'top': items(top, lambda a: {}),
+            'hot': items(hot, lambda a: {'recent': a['recent']}),
+            'topRule': f'至少 {RANK_MIN} 人评分，按平均分排序，同分时评分人数多的在前；只列前 10，不设“最差榜”。',
+            'hotRule': f'近 {HOT_DAYS} 天新公开评价最多的对象；统计的是评价数，不是浏览量。',
+            'updatedAt': timezone.now().isoformat()}
+
+
+def wall(user):
+    """弹幕墙：已公开评价里点赞最多的原话。点开定位到原评论；原评论修改或撤回后这里同步变化。"""
+    query = public_reviews().select_related('author', 'teacher', 'offering__course').annotate(
+        like_count=Count('likes')).order_by('-like_count', '-published_at', 'id')[:40]
+    items = []
+    for r in query:
+        data = review_data(r, user)
+        data['subject'] = r.teacher.name if r.teacher_id else f'{r.offering.course.name} · {r.offering.term}'
+        items.append(data)
+    return {'items': items, 'rule': '按点赞数选取已公开评价的原话；点击跳到原评论。'}
+
+
+def site_of(address):
+    host = (urlsplit(address).hostname or '').lower()
+    for key, (label, hosts) in SITES.items():
+        if host in hosts:
+            return key, label
+    return 'other', host
+
+
+def mention_data(m, user, private=False):
+    key, label = site_of(m.url)
+    result = {'id': str(m.pk), 'site': key, 'siteLabel': label, 'url': m.url, 'title': m.title, 'summary': m.summary,
+              'created': m.created, 'own': user.is_authenticated and m.author_id == user.pk,
+              'subjectType': 'teacher' if m.teacher_id else 'course', 'subjectId': str(m.teacher_id or m.course_id)}
+    if private:
+        result.update(state=m.state, note=m.note)
+    return result
+
+
+def submit_mention(user, body):
+    require(user, verified=True)
+    throttle('reputation-mention', str(user.pk), 10)
+    kind = body.get('subjectType')
+    if kind == 'teacher':
+        target = {'teacher': one(Teacher, body.get('subjectId'), active=True)}
+    elif kind == 'course':
+        target = {'course': one(GuideCourse, body.get('subjectId'))}
+    else:
+        raise Problem('请选择教师或课程。')
+    address = url(body.get('url', ''), True)
+    if urlsplit(address).scheme != 'https':
+        raise Problem('请填写 https 开头的原帖链接。')
+    if ExternalMention.objects.filter(url=address, **target).exists():
+        raise Problem('这条讨论已经有同学提交过了。', 409)
+    m = ExternalMention.objects.create(author=user, url=address, site=site_of(address)[0],
+        title=text(body.get('title', ''), 160, True), summary=text(body.get('summary', ''), 300, True), **target)
+    Audit.objects.create(actor=user, action='mention-submit', target=str(m.pk), detail={'url': address})
+    for staff in Member.objects.filter(is_staff=True, is_active=True).exclude(pk=user.pk):
+        notify(staff, None, 'mention', f'mention:{m.pk}:{staff.pk}', f'有同学提交了一条站外讨论链接（{site_of(address)[1]}），等你核对。')
+    return mention_data(m, user, True)
+
+
+def teacher_request(user, teacher, body):
+    """老师本人或同学申请更正资料、撤下照片：记录并通知维护者处理。"""
+    throttle('teacher-request', str(user.pk), 5)
+    kind = body.get('kind')
+    if kind not in ('correction', 'photo', 'removal'):
+        raise Problem('请选择更正资料、撤下照片或其他请求。')
+    detail = {'kind': kind, 'body': text(body.get('body', ''), 2000, True), 'name': teacher.name}
+    Audit.objects.create(actor=user, action='teacher-request', target=f'teacher:{teacher.pk}', detail=detail)
+    label = {'correction': '更正资料', 'photo': '撤下照片', 'removal': '其他请求'}[kind]
+    for staff in Member.objects.filter(is_staff=True, is_active=True):
+        notify(staff, None, 'teacher-request', f'teacher-request:{teacher.pk}:{staff.pk}:{timezone.now():%Y%m%d%H%M}',
+               f'关于「{teacher.name}」的{label}申请，请到口碑审核页处理。')
+    return {'ok': True, 'message': '已收到，维护者核对后处理。撤下照片的申请会优先处理。'}
+
+
+def board_get(request, parts):
+    user, q = request.user, request.GET
+    route = '/'.join(parts)
+    if route == 'rankings':
+        return rankings(q.get('kind', 'teachers'), user)
+    if route == 'wall':
+        return wall(user)
+    if route == 'tags':
+        return {'items': TAGS, 'limit': 3}
+    if route == 'mentions':
+        query = ExternalMention.objects.filter(state='published')
+        if q.get('teacher'):
+            query = query.filter(teacher=one(Teacher, q['teacher'], active=True))
+        elif q.get('course'):
+            query = query.filter(course=one(GuideCourse, q['course']))
+        else:
+            raise Problem('请指定教师或课程。')
+        return {'items': [mention_data(m, user) for m in query.order_by('-decided_at', '-created')[:50]],
+                'rule': '站外讨论只收链接和同学自己的一句话概括，标明来源站点；本站不抓取、不转载原帖，也不计入评分。'}
+    if route == 'mentions/mine':
+        require(user)
+        return {'items': [mention_data(m, user, True) for m in ExternalMention.objects.filter(author=user).order_by('-created')[:100]]}
+    if route == 'mentions/pending':
+        require(user, staff=True)
+        items = []
+        for m in ExternalMention.objects.filter(state='pending').select_related('teacher', 'course').order_by('created')[:100]:
+            data = mention_data(m, user, True)
+            data['subjectName'] = m.teacher.name if m.teacher_id else m.course.name
+            items.append(data)
+        return {'items': items}
+    if route == 'faculty':
+        require(user, staff=True)
+        from .faculty import status
+        return status()
+    raise Problem('页面不存在。', 404)
+
+
+def board_post(request, parts, body):
+    user = request.user
+    route = '/'.join(parts)
+    if route == 'mentions':
+        return submit_mention(user, body)
+    if len(parts) == 3 and parts[0] == 'mentions':
+        m = one(ExternalMention, parts[1])
+        require(user, verified=True)
+        if parts[2] == 'withdraw':
+            if m.author_id != user.pk and not user.is_staff:
+                raise Problem('只能撤回自己提交的链接。', 403)
+            m.state = 'withdrawn'
+        elif parts[2] == 'moderate':
+            require(user, staff=True)
+            if m.author_id == user.pk:
+                raise Problem('自己提交的链接需由另一位维护者核对。', 403)
+            if m.state != 'pending' or body.get('decision') not in ('approve', 'reject'):
+                raise Problem('这条链接的状态已变化。', 409)
+            m.state = 'published' if body['decision'] == 'approve' else 'rejected'
+            m.note = text(body.get('note', ''), 300)
+            notify(m.author, None, 'mention', f'mention-result:{m.pk}',
+                   f'你提交的站外讨论链接{"已通过" if m.state == "published" else "没有通过"}' + (f'：{m.note}' if m.note else '。'))
+        else:
+            raise Problem('操作不存在。', 404)
+        m.decided_at = timezone.now()
+        m.save()
+        Audit.objects.create(actor=user, action='mention-' + m.state, target=str(m.pk))
+        return mention_data(m, user, True)
+    if parts and parts[0] == 'faculty':
+        require(user, staff=True)
+        from . import faculty
+        if route == 'faculty/setup':
+            if type(body.get('enabled', True)) is not bool:
+                raise Problem('请明确是否启用。')
+            sources = faculty.ensure_sources(body.get('enabled', True))
+            Audit.objects.create(actor=user, action='faculty-setup', target='faculty', detail={'enabled': body.get('enabled', True)})
+            return {'sources': sources.count(), 'enabled': body.get('enabled', True)}
+        if route == 'faculty/run':
+            if not Source.objects.filter(kind='faculty').exists():
+                faculty.ensure_sources(True)
+            now = timezone.now()
+            sources = Source.objects.filter(kind='faculty', enabled=True)
+            if body.get('college'):
+                sources = sources.filter(name=text(body['college'], 60))
+            jobs = []
+            for source in sources:
+                job, _ = Job.objects.get_or_create(key=f'source:{source.pk}:manual:{int(now.timestamp()) // 600}',
+                    defaults={'kind': 'source', 'payload': {'id': str(source.pk)}, 'due': now})
+                jobs.append({'id': str(job.pk), 'college': source.name, 'state': job.state})
+            Audit.objects.create(actor=user, action='faculty-run', target='faculty', detail={'jobs': len(jobs)})
+            return {'jobs': jobs}
+        if route == 'faculty/photos':
+            decision = body.get('decision')
+            if body.get('college') and decision == 'approve-all':
+                done = 0
+                for teacher in Teacher.objects.filter(faculty=text(body['college'], 120)):
+                    if (teacher.profile or {}).get('photoCandidate'):
+                        faculty.decide_photo(user, teacher, 'approve')
+                        done += 1
+                return {'approved': done}
+            return faculty.decide_photo(user, one(Teacher, body.get('teacher')), decision)
     raise Problem('操作不存在。', 404)

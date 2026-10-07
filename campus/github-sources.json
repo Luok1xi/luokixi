@@ -1,0 +1,11 @@
+{
+  "minStars": 100,
+  "activeDays": 730,
+  "maxInspect": 8,
+  "sources": [
+    {"name": "机器人与机电", "query": "topic:robotics", "category": "mech"},
+    {"name": "嵌入式与硬件", "query": "topic:embedded", "category": "embedded"},
+    {"name": "开发效率工具", "query": "topic:developer-tools", "category": "software"},
+    {"name": "科研与数据可视化", "query": "topic:data-visualization", "category": "research"}
+  ]
+}

@@ -1,0 +1,531 @@
+/* ==========================================================================
+   Apple 风格的页面骨架（参照 apple.com 首页、Apple Store、Apple News、iOS 设置）
+   - 两段式大标题：前半句黑、后半句灰（Apple Store 的“商店。选购心仪产品的最佳方式。”）
+   - 浅灰页面底 + 白色圆角卡片；首页是一块接一块的通栏大块
+   - 板块页顶部有吸顶的小导航：左边板块名，右边几个跳转链接和一枚蓝色胶囊
+   - 字重最多 600；正文 17px；按钮是蓝色实心胶囊或蓝色描边胶囊，文字链接带“›”
+   只动 transform 和 opacity；颜色、圆角、缓动都用 tokens.css 的变量
+   ========================================================================== */
+
+/* ---------- 页面底色 ---------- */
+
+body.ap-page {
+  background: var(--bg-alt);
+}
+
+.ap-wrap {
+  width: 100%;
+  max-width: calc(1200px + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.ap-wrap-text {
+  max-width: calc(980px + var(--gutter) * 2);
+}
+
+/* ---------- 两段式标题 ---------- */
+
+.ap-h1 {
+  font-size: clamp(40px, 5.2vw, 64px);
+  font-weight: 600;
+  line-height: 1.07;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.ap-h2 {
+  font-size: clamp(26px, 3.2vw, 40px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.ap-h3 {
+  font-size: clamp(21px, 2.2vw, 28px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.ap-h1 > span,
+.ap-h2 > span,
+.ap-h3 > span {
+  color: var(--fg-2);
+}
+
+.ap-kicker {
+  color: var(--fg-2);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.004em;
+}
+
+.ap-kicker.is-new { color: #b64400; }
+:root[data-theme="dark"] .ap-kicker.is-new { color: #ff9f6b; }
+
+.ap-body {
+  color: var(--fg);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: -0.012em;
+}
+
+.ap-sub {
+  color: var(--fg-2);
+  font-size: 14px;
+  line-height: 1.43;
+}
+
+/* 文字链接：蓝色，后面跟“›”，悬停时箭头往右挪一点 */
+.ap-more {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--link);
+  font-size: 17px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.ap-more::after {
+  content: "›";
+  font-size: 1.2em;
+  line-height: 0.5;
+  transition: transform 260ms var(--spring-snappy);
+}
+
+.ap-more:hover { text-decoration: underline; }
+.ap-more:hover::after { transform: translateX(3px); }
+
+/* ---------- 板块小导航（apple.com 产品页的吸顶条） ---------- */
+
+.ap-localnav {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 40;
+  background: var(--nav-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.ap-localnav-inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 52px;
+}
+
+.ap-localnav-title {
+  margin-right: auto;
+  color: var(--fg);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.004em;
+  white-space: nowrap;
+}
+
+.ap-localnav-title:hover { text-decoration: none; }
+
+.ap-localnav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ap-localnav-links::-webkit-scrollbar { display: none; }
+
+.ap-localnav-links a,
+.ap-localnav-links button {
+  color: var(--fg);
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0.88;
+}
+
+.ap-localnav-links a:hover,
+.ap-localnav-links button:hover { color: var(--link); opacity: 1; text-decoration: none; }
+
+.ap-localnav-links [aria-current="page"],
+.ap-localnav-links [aria-pressed="true"] { color: var(--fg-2); opacity: 1; }
+
+.ap-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 14px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+  transition: background var(--dur-1), transform 300ms var(--spring-bouncy);
+}
+
+.ap-pill:hover { background: var(--accent-hover); text-decoration: none; }
+.ap-pill:active { transform: scale(0.95); }
+.ap-pill.is-quiet { background: var(--fill-2); color: var(--fg); }
+
+@media (max-width: 760px) {
+  .ap-localnav-inner { gap: 14px; height: 48px; }
+  .ap-localnav-title { font-size: 19px; }
+  .ap-localnav-links { display: none; }
+}
+
+/* ---------- 板块首屏：左对齐的两段式标题 + 右侧几条帮助链接（Apple Store） ---------- */
+
+.ap-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px 48px;
+  padding: 56px 0 40px;
+}
+
+.ap-masthead-aside {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  padding-bottom: 6px;
+  font-size: 14px;
+}
+
+.ap-masthead-aside b { font-weight: 600; }
+
+@media (max-width: 760px) {
+  .ap-masthead { grid-template-columns: 1fr; padding: 32px 0 24px; }
+}
+
+/* ---------- 分区 ---------- */
+
+.ap-section { padding: 0 0 56px; }
+
+.ap-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* ---------- Apple Store 的白卡片 ---------- */
+
+.ap-card {
+  position: relative;
+  display: block;
+  border-radius: var(--r-m);
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 400ms var(--spring-smooth), box-shadow 400ms var(--spring-smooth);
+}
+
+a.ap-card:hover,
+button.ap-card:hover,
+.ap-card.is-hoverable:hover {
+  text-decoration: none;
+  transform: scale(1.012);
+  box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.16);
+}
+
+a.ap-card:active,
+button.ap-card:active { transform: scale(0.985); }
+
+:root[data-theme="dark"] .ap-card { box-shadow: none; background: #1d1d1f; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ap-card { box-shadow: none; background: #1d1d1f; }
+}
+
+/* ---------- 首页大块（apple.com 首页的 tile） ---------- */
+
+.ap-tiles {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.ap-tiles.is-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.ap-tile {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px 28px;
+  overflow: hidden;
+  background: var(--bg-alt);
+  color: var(--fg);
+  text-align: center;
+}
+
+.ap-tile.is-white { background: var(--bg); }
+.ap-tile.is-dark { background: #000; color: #f5f5f7; }
+.ap-tile.is-dark .ap-tile-sub { color: #f5f5f7; }
+
+.ap-tile-kicker {
+  margin-bottom: 4px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.ap-tile-title {
+  font-size: clamp(36px, 4.6vw, 56px);
+  font-weight: 600;
+  line-height: 1.07;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.ap-tiles.is-two .ap-tile-title { font-size: clamp(30px, 3.4vw, 40px); }
+
+.ap-tile-sub {
+  margin-top: 6px;
+  font-size: clamp(19px, 2vw, 28px);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: 0.007em;
+  text-wrap: balance;
+}
+
+.ap-tiles.is-two .ap-tile-sub { font-size: clamp(17px, 1.6vw, 21px); }
+
+.ap-tile-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+/* 大块下半部分：审过的配图，或者真实内容（热帖、名录） */
+.ap-tile-body {
+  width: min(100%, 720px);
+  margin-top: 36px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.ap-tile-media {
+  position: relative;
+  width: calc(100% + 56px);
+  margin: 36px -28px -56px;
+  aspect-ratio: 16 / 7;
+}
+
+.ap-tiles.is-two .ap-tile-media { aspect-ratio: 4 / 3; }
+
+/* 配图还没交付（或者还在加载）时不留空白，整块收成纯文字 */
+.ap-tile-media[data-art]:not(.has-art):not(:has(img)) { display: none; }
+.ap-tile-media > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- 美术插槽（art.js）：审过的图淡入 ---------- */
+
+.art-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-out);
+}
+
+.has-art > .art-layer { opacity: 1; }
+
+.art-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.art-img.is-dark { display: none; }
+:root[data-theme="dark"] .art-img.is-light { display: none; }
+:root[data-theme="dark"] .art-img.is-dark { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .art-img.is-light { display: none; }
+  :root:not([data-theme="light"]) .art-img.is-dark { display: block; }
+}
+
+/* 大数字：倒计时、数量 */
+.ap-figure {
+  display: block;
+  margin: 26px 0 0;
+  font-family: var(--font-num);
+  font-size: clamp(88px, 13vw, 168px);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.ap-figure small {
+  display: block;
+  margin-top: 10px;
+  color: var(--fg-2);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.ap-tile.is-dark .ap-figure small { color: #a1a1a6; }
+
+@media (max-width: 760px) {
+  .ap-tiles { padding: 12px 0; }
+  .ap-tiles.is-two { grid-template-columns: 1fr; }
+  .ap-tile { padding: 44px 20px; }
+  .ap-tile-media { width: calc(100% + 40px); margin: 28px -20px -44px; }
+}
+
+/* ---------- 成组列表（iOS 设置 / Apple 帮助页） ---------- */
+
+.ap-list {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--r-m);
+  background: var(--bg-elev);
+  list-style: none;
+}
+
+.ap-list > li + li,
+.ap-list > a + a,
+.ap-list > div + div { border-top: 1px solid var(--line-soft); }
+
+.ap-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 12px 18px;
+  color: var(--fg);
+}
+
+a.ap-row:hover { text-decoration: none; background: var(--fill); }
+
+.ap-row-text { display: grid; gap: 2px; min-width: 0; }
+.ap-row-text b { overflow: hidden; font-size: 17px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.ap-row-text span { overflow: hidden; color: var(--fg-2); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 圆角方形小图标：SF Symbols 线稿放在彩色底上 */
+.ap-symbol {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: hsl(var(--h, 211) 85% 52%);
+  color: #fff;
+}
+
+.ap-symbol svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ap-chev {
+  width: 9px;
+  height: 14px;
+  fill: none;
+  stroke: var(--fg-4);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 排行：Apple News 的热门话题，红色大号序号 */
+.ap-rank {
+  min-width: 28px;
+  color: #e30000;
+  font-family: var(--font-num);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+}
+
+:root[data-theme="dark"] .ap-rank { color: #ff453a; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .ap-rank { color: #ff453a; }
+}
+
+/* ---------- App Store 的评论卡片：一条一条竖着排 ---------- */
+
+.ap-review {
+  display: grid;
+  gap: 8px;
+  padding: 20px 22px;
+  border-radius: var(--r-m);
+  background: var(--bg-elev);
+}
+
+.ap-review-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ap-review-head b { font-size: 17px; font-weight: 600; }
+.ap-review-head span { flex: none; color: var(--fg-2); font-size: 14px; }
+.ap-review-stars { color: #ff9500; font-size: 13px; letter-spacing: 1px; }
+.ap-review p { font-size: 15px; line-height: 1.6; }
+.ap-review-foot { color: var(--fg-2); font-size: 13px; }
+
+/* ---------- 空状态 ---------- */
+
+.ap-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border-radius: var(--r-m);
+  background: var(--bg-elev);
+  text-align: center;
+}
+
+.ap-empty b { font-size: 21px; font-weight: 600; }
+.ap-empty p { max-width: 30em; color: var(--fg-2); font-size: 15px; }
+
+/* ---------- 入场：Apple 官网的标准（位移约 30px、1 秒、平缓缓出） ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .ap-rise { animation: ap-rise 900ms var(--ease-apple) both; animation-delay: calc(var(--i, 0) * 70ms); }
+}
+
+@keyframes ap-rise {
+  from { opacity: 0; transform: translate3d(0, 24px, 0); }
+}
+
+/* ---------- 全站搜索（search.js）：分组标题右侧的“在板块里看全部” ---------- */
+
+.spot-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.spot-group a { color: var(--link); font-size: 12px; font-weight: 400; }
+.spot-pending { padding: 14px 20px; font-size: 13px; }
+.spot-icon { font-size: 11px; letter-spacing: -0.02em; }
+
+@media (max-width: 760px) {
+  .spot { margin-top: 6vh; }
+  .spot-hint { display: none; }
+}

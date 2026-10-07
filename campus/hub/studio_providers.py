@@ -86,14 +86,14 @@ def codex_command(executable, directory, schema, result, model=''):
     return command + ['-']
 
 
-def codex(prompt, cfg, stopped=lambda: False):
+def codex(prompt, cfg, stopped=lambda: False, *, output_schema=None, parse_result=None):
     if stopped():
         raise Problem('本轮已停止。', 409)
     # TEMP is outside the website: no repository config/hooks, no private files in context.
     with tempfile.TemporaryDirectory(prefix='luokixi-studio-') as tmp:
         root = Path(tmp)
         schema, result = root / 'schema.json', root / 'reply.json'
-        schema.write_text(json.dumps(SCHEMA), encoding='utf-8')
+        schema.write_text(json.dumps(output_schema or SCHEMA), encoding='utf-8')
         command = codex_command(cfg['codex_executable'], root, schema, result, cfg['codex_model'])
         env = {k: v for k, v in os.environ.items() if k.upper() in {
             'PATH', 'SYSTEMROOT', 'WINDIR', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA',
@@ -106,7 +106,7 @@ def codex(prompt, cfg, stopped=lambda: False):
                 try:
                     process.stdin.write(prompt.encode('utf-8'))
                     process.stdin.close()
-                    deadline = time.monotonic() + 180
+                    deadline = time.monotonic() + (240 if output_schema else 180)
                     while process.poll() is None:
                         if stopped() or time.monotonic() > deadline:
                             process.kill()
@@ -137,6 +137,6 @@ def codex(prompt, cfg, stopped=lambda: False):
                     model = str(event['model'])[:100]
             if result.stat().st_size > 150000:
                 raise Problem('Codex 结果过大，本轮已停止。', 502)
-            return reply_json(result.read_text(encoding='utf-8')), model, usage
+            return (parse_result or reply_json)(result.read_text(encoding='utf-8')), model, usage
         except (OSError, subprocess.SubprocessError):
             raise Problem('无法启动本机 Codex，请检查可执行文件和登录。', 503)

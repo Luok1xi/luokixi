@@ -1,8 +1,9 @@
 import { initShell, observeReveal, observeLive } from '../js/shell.js';
 import { loadCommunity, projectCard, fmtNum } from '../js/community.js';
-import { coverSVG } from '../js/cover.js';
+import { coverMediaHTML as coverSVG } from '../js/cover.js';
 import { CATEGORIES } from '../js/schema.js';
 import { esc } from '../js/data.js';
+import { mountRepository } from '../js/repository-browser.js';
 import '../styles/community.css';
 
 initShell();
@@ -108,3 +109,5 @@ loadCommunity()
     observeReveal();
     observeLive();
   });
+
+mountRepository(document.querySelector('#repository-browser'));

@@ -572,3 +572,12 @@
     transform: none;
   }
 }
+
+/* ---------- 本站下载（Opus） ---------- */
+.dc-dl { display: grid; gap: 10px; margin: 16px 0; padding: 0; list-style: none; }
+.dc-dl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--fill); }
+.dc-dl li > div { display: grid; gap: 2px; min-width: 0; }
+.dc-dl b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dc-dl span, .dc-dl code { color: var(--fg-2); font-size: 12px; }
+.dc-dl small { color: var(--warn); font-size: 11px; }
+.rail-download svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }

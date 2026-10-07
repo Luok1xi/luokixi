@@ -7,7 +7,7 @@ body[data-page="map"] #main > .section,body[data-page="map"] footer { display:no
 .atlas-heading span{font-size:11px;letter-spacing:.22em;font-weight:800}.atlas-heading b{font-size:clamp(22px,2.8vw,40px);letter-spacing:-.04em}
 .cx-panel {left:20px;top:20px;bottom:20px;width:330px;max-height:calc(100% - 40px);border-radius:24px;background:var(--bg-elev);box-shadow:0 12px 40px #1538291b;backdrop-filter:none;}
 .cx-panel-head{padding:18px}.cx-panel-body{overscroll-behavior:contain}.cx-panel-foot{font-size:11px}
-.atlas-categories {position:absolute;z-index:610;left:385px;top:106px;right:24px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 12px;pointer-events:none}
+.atlas-categories {position:absolute;z-index:610;left:385px;top:22px;right:24px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:4px 4px 12px;pointer-events:none}
 .atlas-categories .cx-theme{pointer-events:auto;background:var(--bg-elev);color:var(--fg);box-shadow:0 3px 12px #20342b14;font-size:12px;min-height:40px;padding:5px 12px 5px 6px}
 .atlas-categories .cx-theme[aria-pressed="true"]{background:#174637;color:#fff}.cx-theme-icon{width:26px;height:26px}
 .cx-legend{display:none!important}.cx-map-note{max-width:330px;left:390px;bottom:18px;font-size:12px}.cx-wheel-hint{display:none}
@@ -23,7 +23,7 @@ body[data-page="map"] #main > .section,body[data-page="map"] footer { display:no
 @media(hover:hover) and (pointer:fine){.cm-label:hover .atlas-pin{transform:translateY(-4px)}}
 @media(max-width:760px){
  .atlas-heading{left:18px;top:18px}.atlas-heading span{font-size:9px}.atlas-heading b{font-size:22px}
- .atlas-categories{left:12px;right:12px;top:82px}.atlas-categories .cx-theme{font-size:11px}
+ .atlas-categories{left:12px;right:12px;top:12px}.atlas-categories .cx-theme{font-size:11px}
  .cx-panel{left:8px;right:8px;top:auto;bottom:0;width:auto;height:78%;max-height:none;border-radius:24px 24px 0 0;transform:translateY(calc(100% - var(--peek,180px)));transition:transform 260ms cubic-bezier(.32,.72,0,1)}
  .cx-panel.is-open{transform:none}.cx-panel-head{padding:4px 16px 10px}.cx-panel-foot{padding-bottom:14px}.cx-handle{height:26px}.cx-handle::before{margin:10px auto}
  .cx-panel.is-detail .cx-panel-head{display:none}.cx-panel.is-detail{height:70%}.cx-panel.is-detail .atlas-service{margin:0}.cx-panel.is-detail .bc{gap:10px}
@@ -31,3 +31,87 @@ body[data-page="map"] #main > .section,body[data-page="map"] footer { display:no
  .atlas-pin{width:28px;height:30px;border-radius:10px 10px 10px 2px}.atlas-pin svg{width:18px;height:18px}.cm-label b{font-size:9px;max-width:106px}
 }
 @media(prefers-reduced-motion:reduce){.cx-panel,.atlas-pin{transition:none}}
+
+/* ---------- 三种标记（Opus）：地点是圆形徽章，活动是圆角方块，限时事件是星形爆闪 + 倒计时 ---------- */
+.cx-pin.is-place > i { border-radius: 50% 50% 50% 4px; }
+.cx-pin.is-event > i { border-radius: 9px 9px 9px 3px; background: linear-gradient(160deg, hsl(var(--h) 80% 56%), hsl(calc(var(--h) + 24) 76% 44%)); }
+.cx-pin.is-burst > i {
+  border-radius: 0;
+  background: linear-gradient(160deg, #ffd60a, #ff9f0a);
+  color: #5c3800;
+  clip-path: polygon(50% 0%, 61% 18%, 82% 10%, 79% 32%, 100% 39%, 84% 55%, 96% 75%, 73% 76%, 68% 98%, 50% 85%, 32% 98%, 27% 76%, 4% 75%, 16% 55%, 0% 39%, 21% 32%, 18% 10%, 39% 18%);
+  box-shadow: none;
+  transform: none;
+  width: 36px;
+  height: 36px;
+  left: 0;
+  top: 0;
+}
+.cx-pin.is-burst > i .glyph { transform: none; }
+.cx-pin-left {
+  position: absolute;
+  left: 50%;
+  top: 40px;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: #1d1d1f;
+  color: #ffd60a;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+/* 今天的课：序号 + 时间 + 课名的胶囊；“下一节”带脉冲 */
+.cx-cls { width: auto; min-width: 28px; height: 28px; padding: 0 10px 0 3px; gap: 6px; display: inline-flex; align-items: center; border-radius: var(--r-pill); white-space: nowrap; }
+.cx-cls b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(255, 255, 255, 0.45); font-size: 12px; }
+.cx-cls em { font-size: 11px; font-style: normal; font-weight: 700; }
+.cx-cls.is-next::after { border-radius: var(--r-pill); }
+
+/* ---------- 楼的小窗（Leaflet popup） ---------- */
+.mp-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: 18px;
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.45), 0 0 0 0.5px var(--line-soft);
+}
+.mp-popup .leaflet-popup-content { margin: 0; font: inherit; }
+.mp-pop .btn-primary, .mp-pop .btn-primary:hover { color: #fff; }
+.mp-pop .btn-secondary { color: var(--fg); }
+.mp-popup .leaflet-popup-tip { background: var(--bg-elev); box-shadow: none; }
+.mp-popup .leaflet-popup-close-button { top: 10px !important; right: 10px !important; width: 26px !important; height: 26px !important; border-radius: 50%; background: var(--fill-2) !important; color: var(--fg-2) !important; font: 18px/24px var(--font-sans) !important; }
+.mp-pop { display: grid; gap: 6px; padding: 16px 18px 14px; }
+.mp-pop-kicker { display: flex; align-items: center; gap: 6px; color: var(--fg-2); font-size: 12px; font-weight: 600; }
+.mp-pop-icon { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: var(--fill-2); color: var(--fg); }
+.mp-pop-icon svg { width: 15px; height: 15px; }
+.mp-pop-title { padding-right: 26px; font-size: 19px; font-weight: 600; line-height: 1.25; }
+.mp-pop-meta { color: var(--fg-2); font-size: 13px; }
+.mp-pop-classes { display: grid; gap: 4px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.mp-pop-classes li { padding: 6px 10px; border-radius: 10px; background: var(--fill); }
+.mp-pop-classes li b { margin-right: 6px; font-family: var(--font-num); }
+.mp-pop-classes li.is-now { background: rgba(48, 209, 88, 0.16); }
+.mp-pop-classes li.is-next { background: var(--accent-soft); }
+.mp-pop-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.mp-pop-actions .btn { min-height: 32px; font-size: 13px; }
+.mp-pop-note { color: var(--fg-3); font-size: 11px; }
+.mp-pop-foot { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--line-soft); font-size: 13px; }
+.mp-pop-foot button, .mp-pop-foot a { color: var(--link); font-size: 13px; }
+.mp-pop-foot [aria-pressed="true"] { color: var(--ok); }
+
+/* ---------- 校园服务（Opus）：校历、交通、公告、官方入口 ---------- */
+.cx-services { margin: 4px 0 18px; }
+.cx-svc-list { display: grid; margin: 0; padding: 0; overflow: hidden; border-radius: 16px; background: var(--bg-alt); list-style: none; }
+.cx-svc { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; }
+.cx-svc + .cx-svc { border-top: 1px solid var(--line-soft); }
+.cx-svc .ap-symbol { width: 30px; height: 30px; border-radius: 8px; }
+.cx-svc .ap-symbol svg { width: 17px; height: 17px; }
+.cx-svc-text { display: grid; gap: 1px; min-width: 0; }
+.cx-svc-text b { font-size: 13px; }
+.cx-svc-text span { color: var(--fg-2); font-size: 11px; line-height: 1.4; }
+.cx-svc-go { color: var(--link); font-size: 12px; white-space: nowrap; }
+.mp-pop-news { display: grid; gap: 4px; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: var(--fill); font-size: 12px; }
+.mp-pop-news b { color: var(--fg-2); font-size: 11px; }
+.mp-pop-news a, .mp-pop-news span { display: flex; justify-content: space-between; gap: 8px; color: var(--fg); }
+.mp-pop-news small { flex: none; color: var(--fg-3); }

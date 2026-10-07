@@ -1,5 +1,108 @@
 # Codex → Opus：学校知识库后端协作
 
+## 2026-10-07 · 第 42 次同步 · 汇总当前开发成果更新 GitHub
+
+Owner 要求把 Opus 和其他开发内容一并更新 GitHub。Codex 仅认领发布整理、集成检查和必要的兼容修复，使用既有独立发布副本；不改变你当前页面设计，也不重启本机业务进程或代站主处理真实内容。已读取你的第 17 次交接，发布范围包括北矿娘九项技能/聊天窗口/后台接线、教师资料与校圈口碑改版、动效第二版，以及此前分类/导读/镜像仓库与监督讨论。保留全部远程提交历史；密钥、账号库、学校试卷和运行缓存不入库；Pages 仍为手动发布入口。检查结果与最终 GitHub 提交完成后补入本条。
+
+集成检查已完成：发布副本 Hub 142 项全过，前端 12 项通过，图片工具 17 项通过/1 项跳过，内容校验及 150 模块构建通过。旧 supervisor 测试仍要求普通通知，已明确以 HUB_BEIKUANG=0 测兼容分支，并新增默认开启时的请示改道/答复/清理回归，未改你的产品行为。源码及原 Git 历史扫描无待处理凭据命中。完整纳入范围和验证边界见 [docs/INTEGRATION_20261007.md](docs/INTEGRATION_20261007.md)。本轮不执行真实库迁移或开启自动内容审核。
+
+## 2026-10-07 08:54 · 第 41 次同步 · Owner 要求保存并交由 Opus 接手
+
+Owner 最新原话：“把你的工作保存 交给opus处理”。**Codex 已停止继续开发，释放本轮文件认领，由 Opus 接手后续整合与界面。** 下方第 40 次的“暂勿并行改”到本条为止，不再锁定文件。现有源码已保存在当前项目，不需要从临时目录再合并一遍。
+
+- 本轮包含：分类机器人、十章中文导读及审核、官方与本站文件下载、HTTPX 传输复用、北矿娘请示/公告/两席讨论、通知内直接操作及讨论房间直达。
+- 入口：`projects.html`、`project.html`、`me.html#notices` / `#maintenance`、`studio.html?room=d157dea4-21cb-40c3-86ec-7760147d090b`。接口与运行文档：`docs/PROJECT_REPOSITORY.md`。现有真人账号、学校账号与手机同步均未为测试改动。
+- 验收：119 项基线通过，随后新增的两席讨论与分类修正对应 14 项回归通过；144 模块最终构建通过。真实浏览器完成下载和 Range；390px 的请示回复、导读审核、公告核对及房间直达均通过，测试审批只发生在隔离数据。
+- 实际内容：SimpleFOC v2.4.0 源码包已在本站，十章导读与北矿娘公告待站主核对；有六项待答请示。两席真实模型讨论已完成。动态计数后续以接口为准。
+- 当前运行：17860 前台、17861 后台和本机 studio worker 保持运行；每日导读每批最多 2 个、每周镜像检查已启用，仍受共享预算/次数/容量限制。电脑关闭后不会运行。后台队列仍有其他来源采集，排队不代表已完成；重启前先确认没有正在生成的模型任务。临时 18170 / 18171 测试服务已关闭，测试密码文件已删。
+- 接手优先项：整合仓库/监督台视觉；保留可操作通知、必填审核确认、来源引用、待审状态、源码/安装包区分。继续你的 faculty / circle / fx 工作；不把本轮局部验收算作教师或动效模块验收。真实导读与公告不能用测试脚本自动批准。
+- 本地功能快照：`C:/Users/user/Documents/Codex/2026-10-06/zhe/work/handoff/20261007-0854/luokixi-codex-handoff.zip`，内附逐文件校验清单及验收证据。不含密钥、账号数据库、模型配置或下载镜像。共享文件仅作恢复参考，请勿整包覆盖你后续改动。本轮没有提交/推送 Git 或部署公网。
+
+## 2026-10-07 · 第 40 次同步 · 分类 / 详细中文导读 / 本站仓库下载 / 北矿娘（已落地）
+
+已看到你第 16 次认领；未修改 faculty / 0013 / reputation / circle / fx。0012_mirror_provenance 已在本机迁移。144 模块最终构建通过；已真实生成 SimpleFOC 十章约 4400 字导读及北矿娘公告（均待审），真实保存 5,914,638 字节 MIT 源码包。17861 和已有 studio worker 已重载并验证。公告审核和 AI 工作室只做必要接线，布局可继续由你整理。通知“查看这次讨论”直达 `studio.html?room=<uuid>`，已验证自动打开该房间。
+
+**最终交付补充：** 接口、约束、运行开关及实测见 [docs/PROJECT_REPOSITORY.md](docs/PROJECT_REPOSITORY.md)。实际 Edge 同源下载完成，整包 SHA-256 相符、Range 206；390px 通知完成导读同意、请示回复、两席讨论入队、公告确认与公开详情，测试审批均为隔离数据。119 项基线测试后新增两席讨论、电机分类回归，相关 14 项通过。现有本机 17860/17861 与 studio worker 已运行新版；启用 HUB_GUIDE_AUTO / HUB_MIRROR_AUTO，任务按真实队列等待，额度仍为每天最多 ¥5、Codex 12 次，自动导读每批最多两个；未部署或推送。
+
+北矿娘与 Codex 的**真实讨论已经完成**，房间 `d157dea4-21cb-40c3-86ec-7760147d090b`（studio 页面可见），两席均使用已登录的 Codex，未伪称 Claude 接入或继承桌面私聊。讨论指出电机控制项目不应只因 foc-algorithm 标签落到“算法与刷题”，已修正规则并把 SimpleFOC 主类改为嵌入式；后续讨论输入补充分类对应证据与本站镜像元数据。北矿娘目前有六项请示、一篇真实公告草稿，SimpleFOC 中文导读待审，均未代站主确认。导读中“网站提供”歧义已改成“原仓库官方入口”，留下编辑说明；镜像版本始终以实时文件列表为准。
+
+请你重点美化现有 `mountRepository`、`guideReviews`、`supervisorReviews`，保留其 data-* 事件标记、审批必填确认、待审状态和下载类型提示。新增 studio 的北矿娘名称与四成员校验也已接通，不要退回旧三席硬限制。原 me 手机同步保留。验收证据：`C:/Users/user/Documents/Codex/2026-10-06/zhe/work/repository-browser-qa/`。
+
+**追加 Owner 最新要求：北矿娘总监督。** 已接入规则复核、向站主请示、第一人称公告草稿、北矿娘与 Codex 两席讨论入口；公告继续复用 entries/review，待确认的疑问未解决时不允许通过。北矿娘不是校方官方身份。通知沿用第 39 次修复，可直接回复与审核，不再只有提醒。
+
+接口已进入联调：`GET repositories?q=&category=&download=local` 返回已公开/已编辑收录项目的分类、官方文件、本站副本与真实可用状态；`GET supervisor`、`POST supervisor/answer`、`POST supervisor/discuss`、`POST supervisor/announcement`。你负责最终仓库和监督台的视觉布局；Codex 已在 projects 页面嵌入可替换的 `mountRepository` 功能块，个人中心使用可复用的 `supervisorReviews` / `guideReviews`，避免再次让用户只能收到通知却不能操作。
+
+Owner 提醒优先找 GitHub 成熟实现，本轮已筛选 HTTPX / PyGithub / Scrapling：采集传输采用 `encode/httpx` 0.28.1 的连接池、HTTP/2、流式读取，保留官方域名白名单、DNS 固定与跨站去认证头；现有网页采集继续复用 Scrapling。未为同一个 API 再叠一套 PyGithub 客户端和额度账本。新增依赖记入 `campus/hub-requirements.txt`。
+
+Owner 要求做分类机器人、爬取下载链接、详细中文总结和类似仓库的资料组织，让无法顺畅访问 GitHub 的同学尽量可在本站下载，并同意与你分工。
+
+- Codex 认领：GitHub 元数据和官方下载链接整理、多标签分类与依据、分章节中文导读及原文引用、任务队列接线、本机文件镜像与版本/大小/SHA-256/来源/许可证信息、可查询的仓库目录接口和测试。沿用现有审核入口；自动整理不替用户点同意，也不冒充实测。
+- 交给 Opus：仓库目录和项目页视觉设计。请复用后续提供的接口，把“用途/人群/运行条件/步骤/常见限制/原文依据”和“本站下载/原站下载/仅源码/尚未缓存”清楚分层。分类筛选包含机器人、嵌入式、软件工具、算法、课程资料、科研；具体字段稳定后补文档。你可先做视觉方案，暂勿并行改 github_guides / mirror / maintenance / worker。
+- Codex 会给现有项目页和维护页补最小功能入口以便验收，不另建与之重复的 UI。未部署公网；本机镜像可验证实际下载，但不声称全国用户已可访问。只镜像有明确可再分发许可且满足条件的文件，保留原作者与来源；代码包与安装包分开。
+
+## 2026-10-07 · 第 39 次同步 · 机器人通知现在可直接审核（已完成，本机已生效）
+
+Owner 反馈只能收到机器人通知、无法同意。原因是通知列表只有文字，审核入口藏在维护面板。现在 `me.html#notices` 的旧/新机器人消息都有“查看并审核项目 / 新闻”按钮，点击在通知页展开当前待审队列，可直接同意或退回；保留三项项目核对，查看和已读不会发布。成功后刷新队列、通知待审数量、未读角标。加载失败可重试，提交失败保留表单，新闻版本冲突会提示并重新读取。
+
+- 后端新增 `campus/hub/notifications.py`，GET notifications 的每项新增 `action: null | {kind,label,pending?}`。只针对当前维护者的 maintenance 消息、按可信 key 前缀生成，支持历史消息，无数据库迁移。kind 为 review-github / review-news / maintenance；pending 是当前队列总数，不假称原批次未处理数。降权后不返回审批入口，旧审批接口仍校验权限。
+- 前端新增 `src/js/maintenance-review.js`，通知页和维护页复用同一套表单；`me.js` 接线，`account.css` 只补通知审核容器和窄屏排版。你的手机同步、其他个人中心分区和接口保持原样。
+- 验收：104 项 Hub 测试通过，138 模块生产构建通过；真实 Edge 桌面 1440 / 手机 390 在隔离数据库完成已读 → 旧通知展开 → 项目/新闻同意 → 不推荐/退回 → 数量归零，另测加载失败重试、提交失败保留输入、他人已处理产生 409、维护页/手机同步回归，无浏览器脚本错误或横向溢出。
+- 真实前台 17860 已更新，17861 后端已重载并健康；只读核对现有通知可映射到 8 个 GitHub 候选和 12 条待审新闻。本轮未代 Owner 审批任何真实内容，未修改账号。验收截图和结果位于 `C:/Users/user/Documents/Codex/2026-10-06/zhe/work/notification-browser-qa/`。
+
+## 2026-10-07 · 第 38 次同步 · GitHub 采集与配图机器人已在本机启动
+
+Owner 要求继续你的工作，接入 GitHub 优质资源采集并实际启动配图机器人。Codex 接手 maintenance / GitHub 公共 API 与新 github_crawler / project_media 模块、对应测试和运行文档；复用现有任务队列，不另起一套系统。新增候选项目池：公开仓库、许可、活跃度、README 与来源可核查，自动筛选不冒充人工严选或实测；原有精选审核继续保留。
+
+接手时发现项目配图接口尚未接入页面，第一图规则也可能抓到 logo / 徽章。本轮已补图像尺寸与格式校验、截图/演示图排序、来源署名、失败保留上次结果，并给现有 catalogue / feed 接上封面。me.js 维护面板补任务和候选审核控件；community.js / discover.js 只接线。以上接口已稳定，你可继续沿用。
+
+**完成与当前事实：**
+
+- 新增 `hub/github_api.py`、`github_crawler.py`、`project_media.py` 和 `campus/github-sources.json`；复用 Job / ExternalCache / github/curate。共享 API 缓存 / ETag / 限流等待，跨域重定向剥离认证头；不调用模型、不执行仓库代码、不启用自动镜像。
+- 真实首轮取得 8 个候选：commaai/openpilot、ClickHouse/ClickHouse、affaan-m/ECC、d3/d3、NaiboWang/EasySpider、raysan5/raylib、DietrichGebert/ponytail、netdata/netdata。按公开状态、许可证、Star 下限、近期提交和 README 筛选；**不是人工严选或实测**。它们在站主个人中心的“维护机器人 → GitHub 候选项目”中，核对原文、许可和下载后才加入推荐流；审核仍保留原来的三项检查。
+- 已检查 17 个项目，7 个取得验证过的原图：Dummy-Robot、ElectronBot、OpenCat、SimpleFOC、EasySpider、ECC、openpilot。其中前四个属于现有公开目录，其余是待审候选。赞助段落、候补名单 banner、头像拼图、徽章和小图已过滤；EasySpider 实测曾抓到赞助商广告，现已改为 features_CN 项目介绍图。3 个项目图片检查仍失败，7 个未找到合适图，均保留真实状态/原有概念封面。
+- 修复原有“抓到了但前端不用”的断点：`loadCommunity()` 读取维护图片缓存（1.2 秒超时，不阻塞离线目录）；`feed` 返回 cover / coverCredit / category，discover 显示 README 原图署名。图片只引用原地址，不把代码许可证当作图片授权。
+- 本机 17861 后台已重载并启用调度：GitHub 每 24 小时、配图每 72 小时，新候选自动排队补图。手动成功也计入间隔，partial/failed 至少等 1 小时；后台关闭时不运行。17860 前台与账号数据保留。6 条学校新闻亦由既有维护任务进入待审，未自动公开；镜像未启用。
+- 验收：94 项 Hub 测试、3 项客户端测试通过，137 模块生产构建通过。桌面 1440 / 手机 390 真实前台已显示 Dummy-Robot 原图（检查解码、可见透明度和截图）；无横向溢出。隔离数据库实测登录 → 8 候选 → 核对并采纳 1 个 → 剩余 7 个 → 开源流出现原图；真实站点候选仍保留 8 个，没有为测试发布真实项目。
+- 浏览器验收还定位了登录跳转后的 ViewTransition opt-in 时机错误：只在 `src/partials/head.html` 提前声明 opt-in，`shell.js` 处理离页转场取消；不修改动画样式或时长。最终整条浏览器流程无脚本错误。
+
+操作与边界见 [GITHUB_COLLECTOR.md](docs/GITHUB_COLLECTOR.md)。截图/测试记录在 Codex 工作区 `work/crawler-browser-qa/`，真实采集数据仍只保存在被忽略的本机数据库。隔离浏览器验收服务已在收尾时关闭，不改你的其它后台服务。本轮没有推送整个并行工作目录。
+
+## 2026-10-06 · 第 37 次同步 · 按 iOS「设置」系统符号收敛图标（已验证）
+
+Owner 要求研究 iOS 设置里这类图标的制作方式。已核对 Apple SF Symbols 和 Icon Composer：本网站功能入口采用前者的统一网格/字重/单色符号思路；上一版桌面 App 小插画会简化。保留 Owner 指定的统一石墨灰。
+
+只修改 `app-icons.js` / `app-icons.css` 和新增少量 Lucide SVG 路径（官方仓库固定提交，保留 ISC/MIT 许可证），不安装整套运行时，不修改你的首页模板或入口链接。Web 实际使用 Lucide，不冒充 Apple 原生 SF Symbols。
+
+已落地：九个统一 24×24 网格符号，白色 1.9 描边，石墨灰底 #484d55；六个快捷入口为 44px，其他入口为 34px。取消原小插画与多层渐变；日历显示通用课表符号，不再显示动态日期。API 仍为 appIcon(name, label)，图形已内联，无额外图片请求。完整许可证与固定来源/文件校验保存在 src/js/vendor/。
+
+验收：117 模块生产构建通过；本机 Edge 桌面 1440px / 手机视口 390px 实际打开网站并查看截图，六入口同色、白色描边、链接不变，无横向溢出或脚本错误。截图在 Codex 工作区 work/settings-icons-qa/，不是实体手机验收。后续请继续复用此 API 和单一颜色，不恢复分功能彩底。本条覆盖第 36 次中原创小插画的描述。
+
+参考：https://developer.apple.com/sf-symbols/ 、https://developer.apple.com/icon-composer/ 。前者提供统一字重、尺度和渲染模式的系统符号思路；后者面向分层 App 图标。本轮仅采用功能符号思路，并未声称取得系统设置 App 的内部实现。
+
+## 2026-10-06 · 第 36 次同步 · 单色图标、动效与配图工具已接入
+
+Owner 最新否决彩虹图标，**统一石墨灰**。`appIcon()` 已替换 today.js 的 sym helper；六快捷入口与“今天”列表共用同一套原创 SVG。不要恢复不同功能不同彩底。原布局、导航、页面结构保持你这轮版本。
+
+动效：开场 SVG 描边导致的整屏重绘已消除；跳过从当前画面淡出180ms，芯片不再先重置后退出。轮播按下即停自动播放，修复长距离拖动回弹。仍保留 Collins、品牌/文字/板块入场与减少动态效果。冷开场 Edge CPU4x测试见 docs/MOTION_AND_ART_20261006.md；不要声称保证实体手机60FPS。
+
+配图：`scripts/art_pipeline.py` / `scripts/art-assets.json` / `docs/ART_PIPELINE.md` 就绪。3张新母图+2张已有母图，20张响应尺寸WebP、28个复用插槽；最大146KB。`public/art/manifest.json` 已登记，`art.js` 按尺寸选择/解码/失败降级。`coverMediaHTML` 优先真实项目图，否则显示带说明的分类概念图；discover/projects/community/home 的 import 做了精确替换，不改模板。discover 的 p.cover/it.cover 也已透传，请在你新接入 projects/media 时继续传 cover，不要只传 slug/category。
+
+资料分类 small alt 已清空；小图始终保留文字名称。新闻继续使用真实来源，教师/用户/真实地点缺照不虚构。新增真实项目媒体可自然取代分类概念图。图片及提示词/来源位置见文档；全部由 Codex检查，不写你已审核。
+
+实际通过：四页面桌面/手机图片加载、无横向溢出/JS错误；最终石墨灰一致性、入口链接与图片404回退；5项弹簧测试；配图工具17通过/1Windows权限跳过；28slots校验；Vite构建。你的#14维护/镜像/开吧代码没有在此冒领验收，亦未开启新后台任务。本轮未推送你正在编辑的整站快照。你的后续布局可以继续，图片与图标API已稳定。
+
+## 2026-10-06 · 第 35 次同步 · 首页动效与全站配图工具（进行中）
+
+收到第 13 次回信，Owner 又明确要求 Codex 继续优化首页动画、查找开源 Apple 风格动效，并编写低成本配图工具、补齐应有图片。你继续处理已认领的全站排版；我避开 today.js 下方章节、today.css / app-store.css、apple.css、tokens/components、materials/map/me/search 等界面文件。
+
+我认领 `src/js/{carousel,carousel-motion,opening,art,cover}.js`、`src/styles/collins-carousel.css`、新的配图工具 / 资产配置 / 文档，以及 `public/art/`。若必须增加页面插槽，会在此给出精确接线说明，避免覆盖你的模板。研究与检查放独立 work 目录。图片记录来源、概念图用途与尺寸；不把生成图冒充新闻现场、教师照片或校园实拍。生成按主题母图复用、缓存与响应尺寸控制成本，不设置付费后台自动任务。
+
+正在做：剩余卡顿定位、图片插槽覆盖清单、可复用素材审查。资料页我已看见 `mat-*` 插槽，会统一登记；首页下方与校圈/发现的配图位请使用 `data-art` 并调用 `mountArt`。请留意本文件后续列出的最终插槽及接线契约。完成后追加实测结果与工具命令。
+
+Owner 补充：新版首页“今天的课”等图标太粗糙，要求 Codex 改为 iOS 式设计。我将新增 `src/js/app-icons.js` / `src/styles/app-icons.css`，仅精确替换 `today.js` 的 `sym()` 图标 helper 和增加一个 import；其余首页模板仍由你负责。六个快捷入口采用同一套圆角彩色矢量图标，避免为了小图标增加位图下载。
+
+**最新更正：Owner 明确否决六种彩底，要求统一一种颜色。图标现统一石墨灰，白色主体与灰阶细节，不再采用不同功能不同颜色；请沿用 `appIcon()`，不要恢复彩虹配色。**
+
 ## 2026-10-06 · 第 34 次同步 · 首页性能与新闻真实配图
 
 Owner 反馈首页仍卡顿，后续明确配图是指首页大新闻。Codex 本轮接管 carousel / carousel-motion / opening / story 和相关样式、today 媒体呈现、featured 新闻配图。改为解析弹簧关键帧与 WAAPI，去除每帧层级和实时模糊，保留 Collins 翻转；拖动取消与后台恢复清理状态。新闻详情改用真实 DOM 上的可中断 FLIP，避免浏览器快照挡住关闭按钮。新闻首图采用官方升旗报道第 2 张，保留来源和李昕潞署名；原创机械手候选未接入。

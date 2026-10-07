@@ -10,7 +10,8 @@ import 'leaflet/dist/leaflet.css';
 import { initShell, observeReveal, observeLive, reducedMotion } from '../js/shell.js';
 import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { PLACE_TYPES, glyphSVG, fmtTime, timeLeft, toLocalInput, withOffset } from '../js/places.js';
-import { campusServiceHTML } from '../js/campus-services.js';
+import { campusServiceHTML, campusServiceButtons } from '../js/campus-services.js';
+import { mapIcon } from '../js/map-icons.js';
 import { BUILDING_USE, createCampusMap, pointInFeature, buildingModelSVG } from '../js/campus-map.js';
 import { DAYS, classesOn, courseSuggestions, importMe, loadMe, newId, quests, saveMe, todayIndex, toggleVisited, visitedSet } from '../js/quests.js';
 import { esc } from '../js/data.js';
@@ -167,7 +168,7 @@ function initMap() {
   L.control.zoom({ position: 'bottomright', zoomInTitle: '放大', zoomOutTitle: '缩小' }).addTo(map);
   map.createPane('cx-quest').style.zIndex = '595';
   cm = createCampusMap(map, {
-    onBuilding: (f) => (bpick ? bpick(f) : selectBuilding(f.properties.osm)),
+    onBuilding: (f) => (bpick ? bpick(f) : openBuildingPop(f)),
   });
   pinLayer.addTo(map);
   questLayer.addTo(map);
@@ -248,12 +249,17 @@ function focusOn(latlng, zoom = Math.max(map.getZoom(), 17.5)) {
   else map.flyTo(target, zoom, { duration: 0.28 });
 }
 
+// 三种标记一眼分开：限时事件是星形爆闪 + 倒计时，活动是圆角方块，其他地点是圆形徽章
+const pinKind = (f) => (isEvent(f) ? 'burst' : f.properties.placeType === 'event' ? 'event' : 'place');
+
 function pinIcon(f) {
   const p = f.properties;
-  const cls = ['cx-pin', f.id === st.selected ? 'is-on' : '', p.expired ? 'is-expired' : '', isEvent(f) ? 'is-temp' : ''].filter(Boolean).join(' ');
+  const kind = pinKind(f);
+  const cls = ['cx-pin', `is-${kind}`, f.id === st.selected ? 'is-on' : '', p.expired ? 'is-expired' : '', isEvent(f) ? 'is-temp' : ''].filter(Boolean).join(' ');
+  const left = isEvent(f) ? timeLeft(p.data.expiresAt).replace('还剩 ', '') : '';
   return L.divIcon({
     className: 'cx-pin-wrap',
-    html: `<span class="${cls}" style="--h:${PLACE_TYPES[p.placeType].hue}"><i>${glyphSVG(p.placeType)}</i></span>`,
+    html: `<span class="${cls}" style="--h:${PLACE_TYPES[p.placeType].hue}"><i>${glyphSVG(p.placeType)}</i>${left ? `<em class="cx-pin-left">${esc(left)}</em>` : ''}</span>`,
     iconSize: [36, 44],
     iconAnchor: [18, 42],
   });
@@ -299,7 +305,7 @@ function drawToday() {
     L.marker(ll, {
       pane: 'cx-quest',
       keyboard: false,
-      icon: L.divIcon({ className: 'cx-pin-wrap', html: `<span class="cx-cls is-${x.status}" title="${esc(`${x.slot.start} ${x.course.name}`)}">${i + 1}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
+      icon: L.divIcon({ className: 'cx-pin-wrap', html: `<span class="cx-cls is-${x.status}" title="${esc(`${x.slot.start} ${x.course.name}`)}"><b>${i + 1}</b><em>${esc(x.slot.start)} ${esc(x.course.name.slice(0, 8))}</em></span>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
     })
       .on('click', () => selectBuilding(b.properties.osm))
       .addTo(questLayer);
@@ -607,6 +613,61 @@ function placesHTML() {
 
 // ---------- 渲染：楼宇 ----------
 
+// 校历、两校区交通由 Codex 从学校公开通知整理（data/calendar.json、data/shuttle.json）；
+// 图书馆、体育部公告由维护机器人读学校公开网站（/api/hub/campus/notices）。都没有的时候如实说“待接入”。
+const json = (path) => fetch(path, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+const svc = { notices: null, calendar: null, shuttle: null, loaded: false };
+async function loadServices() {
+  if (svc.loaded) return;
+  svc.loaded = true;
+  // 面板可能比“社区服务是否在线”的检查先渲染，这里自己等一下状态
+  const online = (await hubState()).online;
+  const [calendar, shuttle, notices] = await Promise.all([json('data/calendar.json'), json('data/shuttle.json'), online ? hubApi.campusNotices().catch(() => null) : null]);
+  Object.assign(svc, { calendar, shuttle, notices });
+  if (view() === 'buildings') renderBody();
+}
+
+function termWeek(cal) {
+  const now = Date.now();
+  const weeks = cal?.weeks ?? [];
+  let cur = null;
+  for (const w of weeks) if (Date.parse(w.start) <= now) cur = w;
+  return cur ? cur.n : null;
+}
+
+const SVC = (icon, h, title, sub, action) => `<li class="cx-svc"><span class="ap-symbol" style="--h:${h}">${icon}</span><span class="cx-svc-text"><b>${title}</b><span>${sub}</span></span>${action}</li>`;
+const IC = {
+  cal: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+  bus: '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="13" rx="3"/><path d="M5 11h14M8 20v-3M16 20v-3M8.5 14h.01M15.5 14h.01"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M3 5c4-2 7-1 9 1 2-2 5-3 9-1v15c-4-2-7-1-9 0-2-1-5-2-9 0zM12 6v14"/></svg>',
+  ball: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 2.6 14.6 0 17M12 3.5c-2.6 2.4-2.6 14.6 0 17"/></svg>',
+  school: '<svg viewBox="0 0 24 24"><path d="m2 8 10-5 10 5-10 5zM6 11v6c4 3 8 3 12 0v-6"/></svg>',
+  seat: '<svg viewBox="0 0 24 24"><path d="M7 4v8h10V4M5 12h14v3H5zM7 15v5M17 15v5"/></svg>',
+};
+
+function servicesHTML() {
+  loadServices();
+  const n = svc.notices;
+  const lib = n?.library ?? {};
+  const libLatest = lib.items?.[0];
+  const sport = n?.sports?.find((x) => x.list?.includes('cgyy')) ?? n?.sports?.[0];
+  const week = termWeek(svc.calendar);
+  const routes = svc.shuttle?.routes ?? [];
+  const ext = (href, text = '查看') => `<a class="cx-svc-go" href="${esc(href)}" target="_blank" rel="noopener">${text} ↗</a>`;
+  return `<section class="cx-services" aria-label="校园服务">
+    <h3 class="cx-group-h">校园服务</h3>
+    <ul class="cx-svc-list" role="list">
+      ${SVC(IC.cal, 4, '校历', week ? `${esc(svc.calendar.term ?? '本学期')} · 第 ${week} 周` : '本学期校历待接入（教务处公开校历）', svc.calendar?.source ? ext(svc.calendar.source) : ext('https://jwc.cumtb.edu.cn/', '教务处'))}
+      ${SVC(IC.bus, 150, '两校区交通', routes.length ? `${routes.length} 条线路 · ${esc(routes[0].from)} → ${esc(routes[0].to)}` : '校车时刻待核对；学校公开后会显示在这里', routes[0]?.source ? ext(routes[0].source) : '')}
+      ${SVC(IC.book, 262, '图书馆公告', libLatest ? `${esc(libLatest.title)} · ${esc(libLatest.date)}` : lib.status === 'needs-browser' ? '公告页需要浏览器读取，维护者装好浏览器组件后会自动显示' : st.online ? '正在读取…' : '需要社区服务', ext(lib.url || 'https://lib.cumtb.edu.cn/', '官网'))}
+      ${SVC(IC.seat, 211, '图书馆座位', '官网预约 + 放号前提醒（本站不代登录、不代抢座）', '<a class="cx-svc-go" href="reservations.html">座位助手 →</a>')}
+      ${SVC(IC.ball, 28, '体育场馆', sport ? `${esc(sport.title)}${sport.date ? ` · ${esc(sport.date)}` : ''}` : '预约指南 · 在“矿大北京体育服务号”里由你确认', ext(sport?.url || 'https://tiyu.cumtb.edu.cn/xwzx/cgyy.htm', '预约指南'))}
+      ${SVC(IC.school, 330, '教务与教室', '课表请自己填进“我的课程”；空教室和借用流程以教务处为准', ext('https://jwc.cumtb.edu.cn/', '教务处'))}
+    </ul>
+    ${n?.checked ? `<p class="cx-hint">公告由维护机器人读学校公开网站，核对于 ${esc(fmtTime(n.checked))}。</p>` : ''}
+  </section>`;
+}
+
 function buildingsHTML() {
   if (!cm?.data) return `<div class="cx-empty"><p>${esc(st.mapError || '正在加载楼宇数据…')}</p></div>`;
   const all = cm.buildings();
@@ -616,7 +677,7 @@ function buildingsHTML() {
     .map((use) => [use, named.filter((b) => b.properties.use === use)])
     .filter(([, list]) => list.length);
   const sparse = all.length < 20;
-  return `${sparse ? `<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>${esc(campusName(st.campus))}的楼还没画全。</strong>OpenStreetMap 上目前只有 ${all.length} 栋楼。可以在 OpenStreetMap 上补画，本站更新数据后就会出现在这里。</span></p>` : ''}
+  return `${servicesHTML()}${sparse ? `<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>${esc(campusName(st.campus))}的楼还没画全。</strong>OpenStreetMap 上目前只有 ${all.length} 栋楼。可以在 OpenStreetMap 上补画，本站更新数据后就会出现在这里。</span></p>` : ''}
     <p class="cx-count">${named.length} 栋有名字${all.length > named.length ? `，另有 ${all.length - named.length} 栋还没有名字（地图上能点，卡片里没有名称）` : ''}</p>
     ${groups
       .map(([use, list]) => `<h3 class="cx-group-h"><i class="cm-swatch cm-sw-${use}" aria-hidden="true"></i>${BUILDING_USE[use].name}</h3>
@@ -871,6 +932,78 @@ function select(id, { zoom = true } = {}) {
   requestAnimationFrame(() => focusOn(latlngOf(f), zoom ? Math.max(map.getZoom(), 17.5) : map.getZoom()));
   $('#cx-detail-title')?.focus({ preventScroll: true });
 }
+
+// ---------- 点楼：在楼上弹出小窗（用途、层数、今天在这里的课、预约入口、导航、详情） ----------
+
+let pop = null;
+function popNoticeHTML(use) {
+  const n = svc.notices;
+  if (!n) return '';
+  const list = use === 'library' ? n.library?.items ?? [] : use === 'sports' ? n.sports ?? [] : [];
+  if (!list.length) return '';
+  return `<div class="mp-pop-news"><b>最新公告</b>${list.slice(0, 2).map((x) => x.url
+    ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}<small>${esc(x.date ?? '')}</small></a>`
+    : `<span>${esc(x.title)}<small>${esc(x.date ?? '')}</small></span>`).join('')}</div>`;
+}
+
+function buildingPopHTML(b) {
+  const p = b.properties;
+  const use = BUILDING_USE[p.use] ?? BUILDING_USE.other;
+  const inside = inCampus().filter((f) => pointInFeature(f.geometry.coordinates, b));
+  const today = classesOn(st.me, todayIndex()).filter((x) => x.course.building?.osm === p.osm);
+  const visited = visitedSet(st.me, st.campus).has(p.osm);
+  const [lat, lng] = centerOf(b);
+  return `<div class="mp-pop" data-osm="${esc(p.osm)}">
+    <p class="mp-pop-kicker"><span class="mp-pop-icon cm-l-${esc(p.use)}">${mapIcon(p.use)}</span>${esc(use.name)} · ${esc(campusName(st.campus))}</p>
+    <h3 class="mp-pop-title">${esc(p.name || '一栋还没有名字的楼')}</h3>
+    <p class="mp-pop-meta">${p.levels ? `${p.levels} 层` : '层数未知'}${inside.length ? ` · 同学标了 ${inside.length} 个地点` : ''}</p>
+    ${today.length ? `<ul class="mp-pop-classes">${today.map((x) => `<li class="is-${x.status}"><b>${esc(x.slot.start)}</b>${esc(x.course.name)}${x.course.room ? ` · ${esc(x.course.room)}` : ''}</li>`).join('')}</ul>` : ''}
+    ${campusServiceButtons(p.use, st.campus)}
+    ${popNoticeHTML(p.use)}
+    <div class="mp-pop-foot">
+      <button type="button" data-pop="detail">详情</button>
+      <a href="${esc(baiduMarker(lat.toFixed(6), lng.toFixed(6), p.name || '矿大校园内的楼', campusName(st.campus)))}" target="_blank" rel="noopener noreferrer">导航 ↗</a>
+      <button type="button" data-pop="visit" aria-pressed="${visited}">${visited ? '✓ 到过' : '我到过'}</button>
+      <button type="button" data-pop="course">放一门课</button>
+    </div>
+  </div>`;
+}
+
+function openBuildingPop(f) {
+  const osm = f.properties.osm;
+  if (!svc.loaded) loadServices().then(() => pop?.isOpen() && pop.setContent(buildingPopHTML(f)));
+  cm.select(osm);
+  pop?.remove();
+  pop = L.popup({ className: 'mp-popup', maxWidth: 320, minWidth: 260, autoPanPaddingTopLeft: [mobile.matches ? 16 : 420, 120], autoPanPaddingBottomRight: [24, 24], offset: [0, -4] })
+    .setLatLng(centerOf(f))
+    .setContent(buildingPopHTML(f))
+    .openOn(map);
+  pop.once('remove', () => {
+    if (st.building !== osm) cm.select(st.building);
+    pop = null;
+  });
+}
+
+// 小窗里的按钮
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.mp-pop [data-pop]');
+  if (!b) return;
+  const osm = b.closest('.mp-pop').dataset.osm;
+  const f = cm.building(osm);
+  if (!f) return;
+  if (b.dataset.pop === 'detail') {
+    map.closePopup();
+    selectBuilding(osm);
+  } else if (b.dataset.pop === 'visit') {
+    const on = toggleVisited(st.me, st.campus, osm);
+    saveAndRender();
+    toast(on ? '点亮了这栋楼。' : '已取消“到过”。');
+    pop?.setContent(buildingPopHTML(f));
+  } else if (b.dataset.pop === 'course') {
+    map.closePopup();
+    openMe({ building: f });
+  }
+});
 
 function selectBuilding(osm, { zoom = true } = {}) {
   const b = cm.building(osm);

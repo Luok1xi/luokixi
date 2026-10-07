@@ -1,0 +1,14 @@
+/* 社区制度（Opus · 2026-10-07）：App Store 文档页，正文 17px，分区之间一条细线 */
+
+body.rules-page { background: var(--bg); }
+.rules-main { max-width: calc(820px + var(--gutter) * 2); }
+.rules-lead { margin: 4px 0 22px; color: var(--fg-2); font-size: 19px; line-height: 1.6; }
+.rules-toc { margin-bottom: 18px; }
+.rules-toc .as-icon { width: 44px; height: 44px; font-size: 18px; }
+.rules-section { scroll-margin-top: calc(var(--nav-h) + 16px); }
+.rules-section h2 { margin-bottom: 10px; font-size: clamp(24px, 2.6vw, 30px); font-weight: 700; letter-spacing: -0.01em; }
+.rules-section h3 { margin: 18px 0 6px; font-size: 17px; font-weight: 700; }
+.rules-section ul { display: grid; gap: 8px; margin: 0; padding-left: 1.2em; }
+.rules-section li { font-size: 16px; line-height: 1.75; }
+.rules-section li::marker { color: var(--ios-label-2); }
+.rules-foot { margin-top: 28px; }

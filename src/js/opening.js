@@ -1,10 +1,10 @@
-// 首页开场：标志描线 → 品牌字升起 → 六个板块名排成一行 → 每个字飞回顶栏里自己的位置，页面同时淡入。
-// 开场直接“接”到真实导航上，而不是播完再切。只用 Web Animations（不依赖 GSAP），除了标志描线外只动 transform 和 opacity。
-// 每个标签页会话首次进入时播放；系统要求减少动态效果时不播；点任意处、按任意键立即进入；数据最多等 2.6 秒。
+// Brand, letters and board chips hand off to the real navigation. Only transform/opacity animate.
+// The SVG stays static: animating its stroke used to repaint the full opening overlay each frame.
+// Once per tab session. A click/key skips from the current presentation in 180ms.
 // 首页被浏览器预先渲染时（悬停在“首页”上），等真正切过来那一刻再播，不在后台白白播完。
 const EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
-const MIN_MS = 1250;
-const MAX_MS = 2600;
+const MIN_MS = 1100;
+const MAX_MS = 1800;
 
 const anim = (el, frames, opts) => el.animate(frames, { fill: 'both', easing: EASE, ...opts });
 
@@ -21,6 +21,7 @@ export function playOpening(tasks = []) {
 
   const el = document.createElement('div');
   el.className = 'op';
+  el.style.contain = 'layout paint';
   el.setAttribute('aria-hidden', 'true');
   el.innerHTML = `
     <div class="op-core">
@@ -40,57 +41,68 @@ export function playOpening(tasks = []) {
   root.classList.remove('intro-pending');
   document.body.style.overflow = 'hidden';
 
-  const path = el.querySelector('path');
-  const len = path.getTotalLength();
-  path.style.strokeDasharray = len;
-  anim(path, [{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 900, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' });
+  const mark = el.querySelector('.op-mark');
+  anim(mark, [{ opacity: 0, transform: 'translateY(10px) scale(0.94)' }, { opacity: 1, transform: 'none' }], { duration: 480 });
   el.querySelectorAll('.op-word span').forEach((s, i) =>
-    anim(s, [{ transform: 'translateY(70%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 700, delay: 220 + i * 45 }),
+    anim(s, [{ transform: 'translateY(70%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 440, delay: 120 + i * 34 }),
   );
-  anim(el.querySelector('.op-sub'), [{ transform: 'translateY(8px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 600, delay: 620 });
+  anim(el.querySelector('.op-sub'), [{ transform: 'translateY(8px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 360, delay: 320 });
   const chips = [...el.querySelectorAll('.op-boards span')];
   chips.forEach((s, i) =>
-    anim(s, [{ transform: 'translateY(14px) scale(0.92)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 560, delay: 760 + i * 70 }),
+    anim(s, [{ transform: 'translateY(14px) scale(0.92)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 360, delay: 500 + i * 42 }),
   );
 
   // 真实进度：首页的几项数据加载完一项走一格
   const bar = el.querySelector('.op-bar i');
   let done = 0;
-  const bump = () => anim(bar, [{ transform: `scaleX(${done / Math.max(1, tasks.length)})` }, { transform: `scaleX(${++done / Math.max(1, tasks.length)})` }], { duration: 300 });
+  const bump = () => { done++; if (!leaving && el.isConnected) bar.style.transform = `scaleX(${done / Math.max(1, tasks.length)})`; };
   const ready = Promise.allSettled(tasks.map((t) => Promise.resolve(t).finally(bump)));
 
   let resolveStart;
   const start = new Promise((r) => (resolveStart = r));
   let leaving = false;
 
-  const exit = () => {
+  const exit = (event) => {
     if (leaving) return;
     leaving = true;
     removeEventListener('keydown', exit);
     el.style.pointerEvents = 'none';
     document.body.style.overflow = '';
-    // 每个板块名从开场的位置飞到导航里的位置（FLIP：先量两边的位置，再只用 transform 过去）
-    const chipRects = chips.map((chip, i) => ({ from: chip.getBoundingClientRect(), to: targets[i]?.getBoundingClientRect() }));
+    // Capture all current values before writing/cancelling, so a skip never flashes
+    // hidden chips or resets a half-finished transform to its logical endpoint.
+    const presentations = [...el.querySelectorAll('.op-mark,.op-word span,.op-sub,.op-boards span,.op-bar i')].map(node => {
+      const style = getComputedStyle(node);
+      return { node, transform: style.transform, opacity: style.opacity };
+    });
+    const complete = () => { el.remove(); resolveStart(true); };
+    if (event?.type) {
+      presentations.forEach(({ node, transform, opacity }) => { node.style.transform = transform; node.style.opacity = opacity; });
+      el.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
+      anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 }).finished.then(complete, complete);
+      return;
+    }
+    const chipRects = chips.map((chip, i) => ({ from: chip.getBoundingClientRect(), to: targets[i]?.getBoundingClientRect(), height: chip.offsetHeight }));
     const brand = document.querySelector('.gn-brand')?.getBoundingClientRect();
-    const mark = el.querySelector('.op-mark');
     const m = mark.getBoundingClientRect();
+    presentations.forEach(({ node, transform, opacity }) => { node.style.transform = transform; node.style.opacity = opacity; });
+    el.getAnimations({ subtree: true }).forEach(animation => animation.cancel());
     chips.forEach((chip, i) => {
-      const { from, to } = chipRects[i];
+      const { from, to, height } = chipRects[i];
       if (!to?.width) return;
-      const dx = to.left + to.width / 2 - (from.left + from.width / 2);
-      const dy = to.top + to.height / 2 - (from.top + from.height / 2);
-      const k = Math.min(1, (to.height || 12) / from.height);
-      anim(chip, [{ transform: 'none', opacity: 1 }, { transform: `translate(${dx}px, ${dy}px) scale(${k})`, opacity: 0.2 }], { duration: 620, delay: i * 24, easing: 'cubic-bezier(0.5, 0, 0.2, 1)' });
+      const matrix = new DOMMatrixReadOnly(chip.style.transform === 'none' ? undefined : chip.style.transform);
+      const dx = matrix.e + to.left + to.width / 2 - (from.left + from.width / 2);
+      const dy = matrix.f + to.top + to.height / 2 - (from.top + from.height / 2);
+      const k = Math.min(1, (to.height || 12) / height);
+      anim(chip, [{ transform: chip.style.transform, opacity: chip.style.opacity }, { transform: `translate(${dx}px, ${dy}px) scale(${k})`, opacity: 0.15 }], { duration: 400, delay: i * 16 });
     });
     if (brand) {
-      anim(mark, [{ transform: 'none' }, { transform: `translate(${brand.left + 11 - (m.left + m.width / 2)}px, ${brand.top + brand.height / 2 - (m.top + m.height / 2)}px) scale(${22 / m.width})` }], { duration: 620, easing: 'cubic-bezier(0.5, 0, 0.2, 1)' });
+      anim(mark, [{ transform: mark.style.transform }, { transform: `translate(${brand.left + 11 - (m.left + m.width / 2)}px, ${brand.top + brand.height / 2 - (m.top + m.height / 2)}px) scale(${22 / m.width})` }], { duration: 400 });
     }
-    anim(el.querySelector('.op-word'), [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.96)' }], { duration: 320 });
-    anim(el.querySelector('.op-sub'), [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
-    anim(el.querySelector('.op-bar'), [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+    anim(el.querySelector('.op-word'), [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(0.96)' }], { duration: 220 });
+    anim(el.querySelector('.op-sub'), [{ opacity: el.querySelector('.op-sub').style.opacity }, { opacity: 0 }], { duration: 160 });
+    anim(el.querySelector('.op-bar'), [{ opacity: 1 }, { opacity: 0 }], { duration: 120 });
     // Reveal the rendered page once, without overlapping another hero entrance.
-    const complete = () => { el.remove(); resolveStart(true); };
-    anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 520, delay: 300, easing: 'ease-out' }).finished.then(complete, complete);
+    anim(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 380, delay: 100, easing: 'ease-out' }).finished.then(complete, complete);
   };
 
   Promise.race([

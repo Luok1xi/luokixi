@@ -1,2 +1,29 @@
-<header class="press-heading"><div><p>矿大人的校园报</p><h1>校圈<span aria-hidden="true">.</span></h1></div><a class="press-account" href="me.html">我的校圈 ↗</a></header>
-<nav class="press-nav" aria-label="校圈内容"><a href="circle.html" data-circle-view="forum">校园动态</a><a href="reputation.html" data-circle-view="teachers" data-tab="teachers">教师口碑</a><a href="reputation.html?view=courses" data-circle-view="courses" data-tab="courses">课程评价</a></nav>
+<header class="as-head">
+  <div class="as-head-text">
+    <p class="as-date" data-today-date>矿大人的校园圈</p>
+    <h1 class="as-largetitle" data-vt-title>校圈</h1>
+  </div>
+  <div class="as-head-actions">
+    <a class="as-avatar" href="me.html" data-circle-avatar aria-label="我的校圈">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.9-3.6 3.6-5.5 7-5.5s6.1 1.9 7 5.5"/></svg>
+    </a>
+  </div>
+</header>
+<nav class="as-seg cs-tabs" data-vt-seg aria-label="校圈内容">
+  <i class="as-seg-thumb" aria-hidden="true"></i>
+  <a href="circle.html" data-circle-view="forum">动态</a>
+  <a href="reputation.html" data-circle-view="teachers" data-tab="teachers">教师口碑</a>
+  <a href="reputation.html?view=courses" data-circle-view="courses" data-tab="courses">课程评价</a>
+</nav>
+<div class="as-compact-bar" aria-hidden="true"><span class="as-compact-title">校圈</span></div>
+<script>
+  // 在第一帧之前标出当前分段：换页转场截图时滑块已经在对的位置；日期也照 App Store 的样子写在大标题上方
+  (function () {
+    var q = new URLSearchParams(location.search), page = location.pathname.split('/').pop() || '';
+    var view = page.indexOf('reputation') === 0 ? (q.get('view') === 'courses' || q.has('course') || q.has('offering') ? 'courses' : 'teachers') : 'forum';
+    var tab = document.querySelector('[data-circle-view="' + view + '"]');
+    if (tab) { tab.classList.add('is-active'); tab.setAttribute('aria-current', 'page'); }
+    var d = document.querySelector('[data-today-date]');
+    try { if (d) d.textContent = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: 'long', day: 'numeric', weekday: 'long' }).format(new Date()); } catch (e) {}
+  })();
+</script>

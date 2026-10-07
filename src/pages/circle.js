@@ -1,24 +1,612 @@
+// 校圈（Opus · 2026-10-07 改版）：App Store 的版式 + 虎扑的组织方式。
+// 从上到下：搜索 → 校园头条（Today 大卡片）→ 校圈热榜（近 7 天，编号 + 变化）→ 逛吧（货架）→ 教师评分（货架）→ 帖子流（竖排）。
+// 帖子详情从被点的卡片“长”出来；楼层编号，获赞最多的回复先放上面（亮回复）。
+// 接口：circle/feed、circle/hot、circle/posts/<id>/thread、circle/replies/<id>/like、reputation/rankings（campus/hub/circle.py、reputation.py）。
 import { initShell } from '../js/shell.js';
-import { hubApi,hubState,loginURL } from '../js/hub.js';
+import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { esc } from '../js/data.js';
-import '../styles/product-forms.css';
+import { pop, rollTo, openFrom, closeTo, setSegment, refreshFx } from '../js/fx.js';
 import '../styles/circle-news.css';
-initShell();if(matchMedia('(max-width:760px)').matches)document.querySelector('.press-forums').open=false;document.querySelector('[data-circle-view=forum]').classList.add('is-active');const $=s=>document.querySelector(s),S={boards:[],items:[],lane:'recommended',board:'',cursor:null,serial:0,thread:null,user:null};
-const campusName={all:'全校',shahe:'沙河',xueyuanlu:'学院路'};
-function boards(){ $('#circle-boards').innerHTML=[{id:'',name:'全部吧',description:'看看校园里正在发生什么'},...S.boards].map((b,i)=>`<button data-board-id="${esc(b.id)}" aria-pressed="${S.board===b.id}"><span class="forum-icon" style="--forum-h:${20+i*43}">${['☷','◉','✦','⌘','↗','∑','▤'][i]||'#'}</span><span><b>${esc(b.name)}</b><small>${b.id ? `${b.posts||0} 篇帖子` : '校园里的所有讨论'}</small></span></button>`).join('');$('#post-board').innerHTML=S.boards.map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');}
-function card(p){const d=p.data;return `<article class="circle-post"><div class="post-author"><span class="author-avatar">${esc((p.owner?.name||'同学').slice(0,1))}</span><span><b>${esc(p.owner?.name||'同学')}</b><small>${esc(campusName[d.circle?.campus]||'全校')} · ${esc(S.boards.find(b=>b.id===d.circle?.board)?.name||'校园话题')}</small></span><span class="post-date">${esc((d.circle?.publishedAt||p.created||'').slice(0,10))}</span></div><button class="post-open" data-post="${esc(p.id)}"><h2>${esc(d.title)}</h2><p>${esc(d.body||d.summary||'')}</p></button>${p.photos?.length?`<div class="post-photos">${p.photos.slice(0,3).map(src=>`<img src="${esc(src)}" loading="lazy" alt="投稿照片">`).join('')}</div>`:''}${p.selection?`<p class="post-selection">编辑精选 · ${esc(p.selection.reason)}</p>`:''}<div class="post-footer"><button data-like="${esc(p.id)}" aria-pressed="${p.liked}">${p.liked?'♥':'♡'} ${p.likes||0}</button><button data-post="${esc(p.id)}">评论 ${p.replies||0}</button><button data-star="${esc(p.id)}">${p.starred?'★ 已收藏':'☆ 收藏'}</button></div></article>`;}
-async function load(more=false){const serial=++S.serial;$('#circle-feed').setAttribute('aria-busy','true');$('#circle-status').textContent='正在加载…';try{const r=await hubApi.circleFeed({lane:S.lane,board:S.board,campus:$('#circle-campus').value,q:$('#circle-q').value.trim(),cursor:more?S.cursor:null});if(serial!==S.serial)return;S.cursor=r.nextCursor;S.items=more?[...S.items,...r.items]:r.items;$('#circle-feed').innerHTML=S.items.map(card).join('')||'<div class="product-empty"><span class="empty-symbol">✦</span><h2>第一条好讨论，从你开始。</h2><p>这里还没有公开帖子。分享一个真实经历，或发起一次合作。</p><button class="btn btn-primary" data-compose>发布第一条</button></div>';$('#circle-more').hidden=!S.cursor;if(!matchMedia('(prefers-reduced-motion:reduce)').matches)$('#circle-feed').animate([{opacity:.35,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)'});$('#circle-status').textContent=S.lane==='recommended'?'根据主动选择的兴趣和编辑核对推荐，可切换“最新”。':'';}catch(e){if(serial!==S.serial)return;$('#circle-status').innerHTML=`${esc(e.message)} <button class="btn-link" data-retry>重试</button>`;}finally{if(serial===S.serial)$('#circle-feed').setAttribute('aria-busy','false');}}
-async function compose(){const s=await hubState();if(!s.user){location.href=loginURL();return;}$('#circle-editor').showModal();$('#post-board').value=S.board||S.boards[0]?.id||'';$('#circle-form').elements.campus.value=$('#circle-campus').value;}
-async function thread(id){const r=await hubApi.entry(id);S.thread=id;const d=r.data||{};$('#thread-body').innerHTML=`<p class="section-label">${esc(r.owner?.name||'同学')} · ${esc(campusName[d.circle?.campus]||'全校')}</p><h2>${esc(d.title)}</h2><div class="thread-text">${esc(d.body)}</div>${d.circle?.external?.url?`<a href="${esc(d.circle.external.url)}" target="_blank" rel="noopener">阅读原文 ↗</a>`:''}<h3>讨论</h3>${(r.replies||[]).map(x=>`<div class="thread-reply"><b>${esc(x.author?.name||x.owner?.name||'同学')}</b><p>${esc(x.body)}</p>${x.state!=='published'?'<small>待审核 · 仅作者与维护者可见</small>':''}</div>`).join('')||'<p class="small-note">暂无公开回复。</p>'}`;$('#reply-status').textContent='';if(!$('#circle-thread').open)$('#circle-thread').showModal();}
-document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;try{if(b.hasAttribute('data-close'))b.closest('dialog').close();if(b.hasAttribute('data-board-id')){S.board=b.dataset.boardId;boards();boardDetails();await load();}if(b.hasAttribute('data-hot')){$('#circle-q').value=b.dataset.hot;S.board='';boards();boardDetails();await load();$('#circle-feed').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});}if(b.hasAttribute('data-follow-board')){const board=S.boards.find(x=>x.id===S.board);await hubApi.followBoard(board.id,!board.followed,true);board.followed=!board.followed;boardDetails();}if(b.hasAttribute('data-post'))await thread(b.dataset.post);if(b.hasAttribute('data-compose'))await compose();if(b.hasAttribute('data-retry'))await load();if(b.hasAttribute('data-like')||b.hasAttribute('data-star')){b.disabled=true;const p=S.items.find(x=>x.id===(b.dataset.like||b.dataset.star));if(b.hasAttribute('data-like')){const r=await hubApi.likeCirclePost(p.id,!p.liked);Object.assign(p,r);}else{await hubApi.star(p.id,!p.starred);p.starred=!p.starred;}$('#circle-feed').innerHTML=S.items.map(card).join('');}}catch(err){$('#circle-status').textContent=err.message;}finally{b.disabled=false;}});
-$('#circle-compose').onclick=compose;$('#circle-more').onclick=()=>load(true);$('#circle-campus').onchange=()=>{load();loadTrends();};$('#circle-lanes').onchange=e=>{S.lane=e.target.value;load();};$('#circle-search').onsubmit=e=>{e.preventDefault();load();$('#circle-feed').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});};let timer;$('#circle-q').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>load(),200);};
-$('#circle-form').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,b=f.querySelector('[type=submit]'),v=Object.fromEntries(new FormData(f)),photos=[...f.elements.photos.files];if(photos.length>9){$('#post-status').textContent='最多上传 9 张照片。';return;}b.disabled=true;try{const uploads=[];for(const file of photos){$('#post-status').textContent=`正在上传 ${file.name}`;uploads.push((await hubApi.upload(file)).id);}const r=await hubApi.createCirclePost({title:v.title,body:v.body,tags:v.tags.split(/[，,、\s]+/).filter(Boolean).slice(0,10),uploads,rightsConfirmed:f.elements.rights.checked,circle:{format:'thread',board:v.board,campus:v.campus,visibility:'public'}});await hubApi.submit(r.id,r.editRevision);$('#post-status').innerHTML='已提交审核。<a href="me.html#entries">查看投稿进度 →</a>';f.reset();}catch(err){$('#post-status').textContent=err.message;}finally{b.disabled=false;}};
-$('#thread-reply').onsubmit=async e=>{e.preventDefault();const f=e.currentTarget,b=f.querySelector('button');b.disabled=true;try{const result=await hubApi.reply(S.thread,f.elements.body.value);f.reset();await thread(S.thread);$('#reply-status').textContent=result.state==='published'?'回复已发布。':'回复已提交，审核后公开。';}catch(err){$('#reply-status').textContent=err.message;}finally{b.disabled=false;}};
-async function init(){const s=await hubState();S.user=s.user;const r=await hubApi.circleBoards();S.boards=r.items.map(b=>({...b,name:b.name.endsWith('吧')?b.name:`${b.name}吧`}));boards();await load();const params=new URLSearchParams(location.search);if(params.has('compose'))compose();if(params.get('post'))await thread(params.get('post'));}
-loadNews();loadTrends();
-init().catch(e=>{$('#circle-status').textContent=e.message;$('#circle-feed').innerHTML='<div class="product-empty"><h2>社区服务暂未连接。</h2><p>论坛需要在线账号与审核服务。已发布的项目仍可在开源广场浏览。</p><a href="discover.html">去开源广场 →</a></div>';});
 
-function boardDetails(){const b=S.boards.find(x=>x.id===S.board),box=$('#board-info');$('#circle-feed-title').textContent=b?b.name:'大家正在聊';box.hidden=!b;if(!b)return;box.innerHTML=`<h3>${esc(b.name)}</h3><p>${esc(b.description)}</p><small>${esc(b.rules||'分享真实经历，尊重彼此；投稿审核后公开。')}</small><button data-follow-board>${b.followed?'已关注 · 点击取消':'＋ 关注这个吧'}</button>`;}
-let trendSerial=0;
-async function loadTrends(){const serial=++trendSerial;try{const r=await hubApi.request('circle/trends?campus='+encodeURIComponent($('#circle-campus').value));if(serial!==trendSerial)return;$('#circle-hot').innerHTML=r.items.length?r.items.map(t=>`<button data-hot="${esc(t.term)}">${esc(t.term)}<small>${t.posts} 帖</small></button>`).join(''):'<span>还没有近期热议，来分享校园见闻。</span>';$('#circle-hot').title=r.definition;}catch{if(serial!==trendSerial)return;$('#circle-hot').textContent='近期讨论暂时无法读取。';}}
-async function loadNews(){try{const r=await fetch('data/featured.json',{signal:AbortSignal.timeout(5000)});if(!r.ok)throw Error();const d=await r.json(),now=Date.now();const n=d.items.find(x=>x.kind==='news'&&(!x.startsAt||Date.parse(x.startsAt)<=now)&&(!x.expiresAt||Date.parse(x.expiresAt)>now));if(!n){$('#circle-news').innerHTML='<p class="press-eyebrow">校园新闻</p><h2>下一条校园故事，等你发现。</h2><p>还没有在展示期内的编辑新闻。</p>';return;}const url=new URL(n.href||n.source?.url);if(!['https:','http:'].includes(url.protocol)||url.username||url.password)throw Error();$('#circle-news').innerHTML=`<a href="${esc(url.href)}" target="_blank" rel="noopener"><div class="press-lead-copy"><span class="press-news-label">校园头条 · ${esc(n.source?.name||'编辑核对')}</span><h2>${esc(n.title)}</h2><p>${esc(n.dek)}</p><span class="press-news-source">${esc(n.publishedAt?.slice(0,10)||'')} · 阅读学校原报道 ↗</span></div><div class="press-date-art" aria-hidden="true"><span>CAMPUS<br>JOURNAL</span><b>${esc(n.eventAt?.slice(5).replace('-',' / ')||'NEWS')}</b><i>在矿大，记录每个值得记住的瞬间。</i></div></a>`;}catch{$('#circle-news').innerHTML='<h2>校园新闻暂时无法读取</h2><p>可以继续搜索和浏览同学的讨论。</p>';}}
+initShell();
+
+const $ = (s, root = document) => root.querySelector(s);
+const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const scrollToEl = (el) => el?.scrollIntoView({ behavior: reduced() ? 'instant' : 'smooth', block: 'start' });
+const CAMPUS = { all: '全校', shahe: '沙河', xueyuanlu: '学院路' };
+const S = { boards: [], items: [], lane: 'recommended', board: '', cursor: null, serial: 0, thread: null, user: null, proposals: [], news: [] };
+
+// 图标：Lucide（ISC 许可，见 src/js/vendor/LUCIDE-LICENSE.txt）
+const ICON = {
+  flame: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  comment: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+};
+
+function timeAgo(iso) {
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return '';
+  const s = (Date.now() - t) / 1000;
+  if (s < 60) return '刚刚';
+  if (s < 3600) return `${Math.floor(s / 60)} 分钟前`;
+  if (s < 86400) return `${Math.floor(s / 3600)} 小时前`;
+  if (s < 86400 * 7) return `${Math.floor(s / 86400)} 天前`;
+  return new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: 'long', day: 'numeric' }).format(t);
+}
+const fmtDay = (iso) => {
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? '' : new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai', month: 'long', day: 'numeric' }).format(t);
+};
+const safeHref = (u) => {
+  try { const x = new URL(u); return ['https:', 'http:'].includes(x.protocol) && !x.username && !x.password ? x.href : ''; } catch { return ''; }
+};
+const boardName = (id) => S.boards.find((b) => b.id === id)?.name || '校园话题';
+const initial = (name) => esc([...(name || '同')][0]);
+const stars = (v) => {
+  const pct = v == null ? 0 : Math.max(0, Math.min(100, (v / 5) * 100));
+  return `<span class="as-stars" aria-hidden="true">★★★★★<span style="width:${pct}%">★★★★★</span></span>`;
+};
+
+function needLogin(message = '登录后才能这样做。') {
+  status(`${message} <a href="${esc(loginURL())}">登录 / 注册 ›</a>`, true);
+}
+function status(html, isHTML = false) {
+  const box = $('#circle-status');
+  if (isHTML) box.innerHTML = html; else box.textContent = html;
+}
+
+// ---------- 吧 ----------
+function boardIcon(b) {
+  return `<span class="as-icon cs-board-icon" aria-hidden="true">${initial(b.name.replace(/吧$/, ''))}</span>`;
+}
+function renderBoards() {
+  const add = `<button class="as-lockup cs-board-new" type="button" data-propose>
+      <span class="as-icon is-add" aria-hidden="true">${ICON.plus}</span>
+      <span class="as-lockup-text"><b>开一个新吧</b><span>找不到想聊的？申请开吧，审核后开通</span></span>
+      <span class="as-get is-small">申请</span></button>`;
+  $('#circle-boards').innerHTML = add + S.boards.map((b) => `
+    <div class="as-lockup" data-board-id="${esc(b.id)}" role="button" tabindex="0" aria-pressed="${S.board === b.id}">
+      ${boardIcon(b)}
+      <span class="as-lockup-text"><b>${esc(b.name)}</b><span>${esc(b.description || '')}</span><small>${b.posts || 0} 篇帖子${b.followed ? ' · 已关注' : ''}</small></span>
+      <span class="as-get is-small">进入</span>
+    </div>`).join('');
+  $('#post-board').innerHTML = S.boards.map((b) => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join('');
+}
+function renderBoardInfo() {
+  const b = S.boards.find((x) => x.id === S.board);
+  const box = $('#board-info');
+  $('#circle-feed-title').textContent = b ? b.name : '大家正在聊';
+  $('#circle-feed-sub').textContent = b ? `${b.posts || 0} 篇帖子` : '来自矿大同学的帖子';
+  box.hidden = !b;
+  if (!b) return;
+  box.innerHTML = `${boardIcon(b)}
+    <div class="cs-board-info-text"><p>${esc(b.description || '')}</p><small>吧规：${esc(b.rules || '分享真实经历，尊重彼此；投稿审核后公开。')}</small></div>
+    <div class="cs-board-info-actions">
+      <button class="as-get ${b.followed ? 'is-on' : 'is-primary'} is-small" type="button" data-follow-board>${b.followed ? '已关注' : '关注'}</button>
+      <button class="as-see-all" type="button" data-board-id="">看全部吧</button>
+    </div>`;
+}
+async function selectBoard(id) {
+  S.board = id;
+  renderBoards();
+  renderBoardInfo();
+  await load();
+  scrollToEl($('#cs-feed-section'));
+}
+
+// ---------- 帖子流（竖排） ----------
+function postCard(p) {
+  const d = p.data || {};
+  const c = d.circle || {};
+  const photos = (p.photos || []).slice(0, 3);
+  return `<article class="cs-post fx-press" data-post="${esc(p.id)}">
+    <header class="cs-post-head">
+      <span class="cs-avatar" aria-hidden="true">${initial(p.owner?.name)}</span>
+      <span class="cs-post-who"><b>${esc(p.owner?.name || '同学')}</b><span>${esc(boardName(c.board))} · ${esc(CAMPUS[c.campus] || '全校')}</span></span>
+      <time class="cs-post-time" datetime="${esc(c.publishedAt || p.created || '')}">${esc(timeAgo(c.publishedAt || p.created || ''))}</time>
+    </header>
+    <h3 class="cs-post-title">${esc(d.title || '')}</h3>
+    ${d.body || d.summary ? `<p class="cs-post-body">${esc(d.body || d.summary)}</p>` : ''}
+    ${photos.length ? `<div class="cs-post-photos is-${photos.length}">${photos.map((src) => `<img src="${esc(src)}" loading="lazy" decoding="async" alt="同学上传的照片">`).join('')}</div>` : ''}
+    ${p.selection ? `<p class="cs-post-pick"><span class="as-hot-badge">精选</span>${esc(p.selection.reason)}</p>` : ''}
+    <footer class="as-review-foot cs-post-foot">
+      <button type="button" data-like="${esc(p.id)}" aria-pressed="${Boolean(p.liked)}" aria-label="亮了">${ICON.flame}<span class="num">${p.likes || 0}</span></button>
+      <button type="button" data-open="${esc(p.id)}" aria-label="评论">${ICON.comment}<span class="num">${p.replies || 0}</span></button>
+      <button type="button" data-star="${esc(p.id)}" aria-pressed="${Boolean(p.starred)}">${ICON.star}<span>${p.starred ? '已收藏' : '收藏'}</span></button>
+    </footer>
+  </article>`;
+}
+function renderFeed() {
+  $('#circle-feed').innerHTML = S.items.map(postCard).join('') || `<div class="as-empty">
+      <b>${S.lane === 'following' ? '你关注的人还没有发帖' : '第一条好讨论，从你开始'}</b>
+      <p>${S.lane === 'following' ? '去“逛吧”关注几个吧，或者看看“推荐”。' : '这里还没有公开帖子。分享一个真实经历，或发起一次合作。'}</p>
+      <button class="as-get is-primary" type="button" data-compose>发帖</button></div>`;
+  refreshFx($('#circle-feed'));
+}
+async function load(more = false) {
+  const serial = ++S.serial;
+  $('#circle-feed').setAttribute('aria-busy', 'true');
+  if (!more) status('');
+  try {
+    const r = await hubApi.circleFeed({ lane: S.lane, board: S.board, campus: $('#circle-campus').value, q: $('#circle-q').value.trim(), cursor: more ? S.cursor : null });
+    if (serial !== S.serial) return;
+    S.cursor = r.nextCursor;
+    S.items = more ? [...S.items, ...r.items] : r.items;
+    renderFeed();
+    $('#circle-more').hidden = !S.cursor;
+    if (S.lane === 'recommended' && S.items.length) status('按你主动选择的兴趣、关注和编辑精选排序；想按时间看就切到“最新”。');
+  } catch (e) {
+    if (serial !== S.serial) return;
+    if (e.status === 401) needLogin('“关注”需要登录。');
+    else status(`${esc(e.message)} <button class="as-see-all" type="button" data-retry>重试</button>`, true);
+  } finally {
+    if (serial === S.serial) $('#circle-feed').setAttribute('aria-busy', 'false');
+  }
+}
+
+// ---------- 热榜（虎扑热榜：编号、热度、和昨天比的变化） ----------
+function trend(change) {
+  if (!change || change.kind === 'new') return '<span class="is-new">新</span>';
+  if (change.kind === 'up') return `<span class="is-up">▲${change.by}</span>`;
+  if (change.kind === 'down') return `<span class="is-down">▼${change.by}</span>`;
+  return '<span class="is-flat">—</span>';
+}
+async function loadHot() {
+  const box = $('#cs-hot');
+  try {
+    const r = await hubApi.circleHot({ campus: $('#circle-campus').value });
+    $('#cs-hot-window').textContent = `${r.window} · 回复与点赞`;
+    $('#cs-hot-rule').dataset.rule = r.definition;
+    box.innerHTML = r.items.length ? r.items.map((it) => `<li>
+        <button class="as-chart-row" type="button" data-post="${esc(it.id)}">
+          <span class="as-rank">${it.rank}</span>
+          <span class="as-chart-text"><b>${esc(it.title)}</b><span>${esc(it.boardName.endsWith('吧') ? it.boardName : `${it.boardName}吧`)} · ${it.replies} 回复 · ${it.likes} 亮</span></span>
+          <span class="as-trend"><b class="num">${it.heat}</b>${trend(it.change)}</span>
+        </button></li>`).join('')
+      : '<li class="as-empty cs-span"><b>近 7 天还没有热帖</b><p>热榜按回复和点赞计算。发一篇、回一帖，它就会动起来。</p></li>';
+  } catch (e) {
+    box.innerHTML = `<li class="as-empty cs-span"><b>热榜暂时读不到</b><p>${esc(e.message)}</p></li>`;
+  }
+}
+
+// ---------- 教师评分货架（虎扑评分墙：分数、人数、一句最热原话） ----------
+async function loadRatings() {
+  const box = $('#cs-rate');
+  try {
+    const r = await hubApi.reputationRankings('teachers');
+    const seen = new Set();
+    const items = [...r.hot, ...r.top].filter((t) => !seen.has(t.id) && seen.add(t.id)).slice(0, 10);
+    box.innerHTML = items.length ? items.map((t) => {
+      const s = t.stats || {};
+      const photo = t.photo?.url && safeHref(t.photo.url);
+      return `<a class="as-card cs-rate-card" href="reputation.html?teacher=${encodeURIComponent(t.id)}">
+        <span class="cs-rate-top">
+          <span class="as-icon cs-rate-photo">${photo ? `<img src="${esc(photo)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : initial(t.name)}</span>
+          <span class="as-lockup-text"><b>${esc(t.name)}</b><span>${esc([t.faculty, t.title].filter(Boolean).join(' · '))}</span></span>
+        </span>
+        <span class="cs-rate-score"><b class="num">${s.average == null ? '—' : s.average.toFixed(1)}</b>${stars(s.average)}<small>${s.count} 人评价${s.smallSample ? ' · 样本较少' : ''}</small></span>
+        ${t.highlight ? `<blockquote>“${esc(t.highlight.body)}”</blockquote>` : '<blockquote class="is-empty">还没有原话，来写第一条</blockquote>'}
+      </a>`;
+    }).join('') : `<a class="as-card cs-rate-card is-empty" href="reputation.html"><span class="as-lockup-text"><b>还没有足够的评分</b><span>评分要 5 人以上才上榜。去给教过你的老师写一条吧。</span></span><span class="as-get">去评价</span></a>`;
+    box.querySelectorAll('img').forEach((img) => img.addEventListener('error', () => { img.parentElement.textContent = '师'; }, { once: true }));
+    refreshFx(box);
+  } catch {
+    box.innerHTML = `<a class="as-card cs-rate-card is-empty" href="reputation.html"><span class="as-lockup-text"><b>教师口碑</b><span>评分服务暂时读不到，点开看看教师目录。</span></span></a>`;
+  }
+}
+
+// ---------- 校园头条：编辑精选（featured.json）+ 维护机器人抓到、维护者审过的学校新闻 ----------
+async function loadNews() {
+  const now = Date.now();
+  const out = [];
+  try {
+    const r = await fetch('data/featured.json', { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      const d = await r.json();
+      for (const n of d.items || []) {
+        if (n.kind === 'news' && (!n.startsAt || Date.parse(n.startsAt) <= now) && (!n.expiresAt || Date.parse(n.expiresAt) > now)) {
+          out.push({ title: n.title, dek: n.dek || n.reason || '', url: safeHref(n.href || n.source?.url), source: n.source?.name || '编辑核对', date: n.publishedAt || n.eventAt || '', media: n.media });
+        }
+      }
+    }
+  } catch { /* 精选文件缺失时只用学校新闻 */ }
+  try {
+    const r = await hubApi.catalogue({ kind: 'news' });
+    for (const e of r.items || []) {
+      const d = e.data || {};
+      out.push({ title: d.title, dek: d.summary || '', url: safeHref(d.links?.source), source: d.sourceNote || '学校新闻', date: d.publishedAt || e.updated, media: d.media });
+    }
+  } catch { /* 社区服务未连接 */ }
+  const seen = new Set();
+  S.news = out.filter((n) => n.title && n.url && !seen.has(n.url) && seen.add(n.url))
+    .sort((x, y) => (Date.parse(y.date) || 0) - (Date.parse(x.date) || 0)).slice(0, 5);
+  const box = $('#circle-news');
+  if (!S.news.length) {
+    box.innerHTML = `<article class="as-card as-today is-plain">
+      <div class="as-today-top"><p class="as-eyebrow">校园头条</p><h2>今天还没有核对过的学校新闻</h2></div>
+      <div class="as-today-bottom"><p>维护机器人会定时读矿大新闻网，维护者核对后出现在这里。</p></div></article>`;
+    return;
+  }
+  const [lead, ...rest] = S.news;
+  const img = lead.media?.src && safeHref(lead.media.src);
+  box.innerHTML = `<article class="as-card as-today${img ? '' : ' is-plain'}">
+      ${img ? `<img src="${esc(img)}" alt="${esc(lead.media.alt || lead.title)}" loading="eager" decoding="async" referrerpolicy="no-referrer">` : ''}
+      <div class="as-today-top"><p class="as-eyebrow">校园头条 · ${esc(lead.source)}</p><h2>${esc(lead.title)}</h2></div>
+      <div class="as-today-bottom">
+        ${lead.dek ? `<p>${esc(lead.dek)}</p>` : ''}
+        <div class="as-today-actions"><a class="as-get is-primary" href="${esc(lead.url)}" target="_blank" rel="noopener">阅读原文</a><button class="as-get" type="button" data-discuss="0">讨论这条</button></div>
+        <small>${lead.date ? esc(fmtDay(lead.date)) : ''}${lead.media?.credit ? ` · 图片：${esc(lead.media.credit)}` : ''}</small>
+      </div>
+    </article>
+    ${rest.length ? `<ol class="as-chart cs-news-more">${rest.map((n, i) => `<li><div class="as-chart-row">
+        <span class="as-rank cs-news-dot" aria-hidden="true"></span>
+        <a class="as-chart-text" href="${esc(n.url)}" target="_blank" rel="noopener"><b>${esc(n.title)}</b><span>${esc(n.source)}${n.date ? ` · ${esc(fmtDay(n.date))}` : ''}</span></a>
+        <button class="as-get is-small" type="button" data-discuss="${i + 1}">讨论</button></div></li>`).join('')}</ol>` : ''}`;
+  const pic = box.querySelector('.as-today > img');
+  pic?.addEventListener('error', () => { pic.closest('.as-today').classList.add('is-plain'); pic.remove(); }, { once: true });
+  refreshFx(box);
+}
+
+let trendSerial = 0;
+async function loadTrends() {
+  const serial = ++trendSerial;
+  const box = $('#circle-hot');
+  try {
+    const r = await hubApi.request(`circle/trends?campus=${encodeURIComponent($('#circle-campus').value)}`);
+    if (serial !== trendSerial) return;
+    box.innerHTML = r.items.length ? `<span class="cs-trends-label">大家在聊</span>${r.items.map((t) => `<button class="as-tag" type="button" data-hot="${esc(t.term)}">${esc(t.term)}<b>${t.posts}</b></button>`).join('')}` : '';
+    box.title = r.definition;
+  } catch {
+    if (serial === trendSerial) box.innerHTML = '';
+  }
+}
+
+// ---------- 发帖 ----------
+async function compose() {
+  const s = await hubState();
+  if (!s.user) { location.href = loginURL(); return; }
+  const dlg = $('#circle-editor');
+  dlg.showModal();
+  $('#post-board').value = S.board || S.boards[0]?.id || '';
+  $('#circle-form').elements.campus.value = $('#circle-campus').value;
+  $('#circle-form').elements.title.focus();
+}
+async function discuss(i) {
+  const n = S.news[Number(i)];
+  if (!n) return;
+  await compose();
+  const f = $('#circle-form');
+  if (!$('#circle-editor').open) return;
+  f.elements.title.value = `【讨论】${n.title}`.slice(0, 160);
+  if (!f.elements.body.value) f.elements.body.value = `原文：${n.url}\n\n`;
+  if (S.boards.some((b) => b.id === 'daily')) $('#post-board').value = 'daily';
+  f.elements.body.focus();
+}
+$('#circle-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.currentTarget;
+  const btn = f.querySelector('[type=submit]');
+  const v = Object.fromEntries(new FormData(f));
+  const photos = [...f.elements.photos.files];
+  if (photos.length > 9) { $('#post-status').textContent = '最多上传 9 张照片。'; return; }
+  btn.disabled = true;
+  try {
+    const uploads = [];
+    for (const file of photos) {
+      $('#post-status').textContent = `正在上传 ${file.name}`;
+      uploads.push((await hubApi.upload(file)).id);
+    }
+    const r = await hubApi.createCirclePost({
+      title: v.title, body: v.body, tags: v.tags.split(/[，,、\s]+/).filter(Boolean).slice(0, 10), uploads,
+      rightsConfirmed: f.elements.rights.checked, circle: { format: 'thread', board: v.board, campus: v.campus, visibility: 'public' },
+    });
+    await hubApi.submit(r.id, r.editRevision);
+    $('#post-status').innerHTML = '已提交审核，通过后出现在帖子流里。<a href="me.html#entries">查看投稿进度 ›</a>';
+    f.reset();
+  } catch (err) {
+    $('#post-status').textContent = err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------- 帖子详情：楼层 + 亮回复 ----------
+function replyHTML(r, lit = false) {
+  return `<article class="cs-floor${lit ? ' is-lit' : ''}" id="${lit ? 'lit' : 'floor'}-${esc(r.id)}">
+    <header><b>${esc(r.author?.name || '同学')}</b>${r.isOwner ? '<span class="cs-op">楼主</span>' : ''}<span>${r.floor ? `${r.floor} 楼` : '待审核'} · ${esc(timeAgo(r.created))}</span></header>
+    <p>${esc(r.body)}</p>
+    ${r.state === 'published' ? `<footer class="as-review-foot"><button type="button" data-reply-like="${esc(r.id)}" aria-pressed="${r.liked}" ${r.own ? 'disabled title="不能点亮自己的回复"' : ''}>${ICON.flame}<span class="num">${r.likes}</span><span>亮</span></button></footer>` : '<footer class="as-fine">待审核 · 只有你和维护者能看到</footer>'}
+  </article>`;
+}
+function threadHTML(t) {
+  const p = t.post;
+  const d = p.data || {};
+  const c = d.circle || {};
+  const byId = new Map(t.replies.map((r) => [r.id, r]));
+  const lit = t.lit.map((id) => byId.get(id)).filter(Boolean);
+  return `<article class="cs-op-post">
+      <p class="as-review-meta"><span class="as-tag">${esc(boardName(c.board))}</span>${esc(CAMPUS[c.campus] || '全校')} · ${esc(timeAgo(c.publishedAt || p.created || ''))}</p>
+      <h2>${esc(d.title || '')}</h2>
+      <p class="cs-op-who"><span class="cs-avatar" aria-hidden="true">${initial(p.owner?.name)}</span><b>${esc(p.owner?.name || '同学')}</b><span class="cs-op">楼主</span></p>
+      <div class="cs-op-body">${esc(d.body || '')}</div>
+      ${(p.photos || []).length ? `<div class="cs-op-photos">${p.photos.map((src) => `<img src="${esc(src)}" loading="lazy" alt="同学上传的照片">`).join('')}</div>` : ''}
+      ${c.external?.url ? `<p><a class="as-see-all" href="${esc(safeHref(c.external.url))}" target="_blank" rel="noopener">阅读原文 ›</a></p>` : ''}
+      ${p.selection ? `<p class="cs-post-pick"><span class="as-hot-badge">精选</span>${esc(p.selection.reason)}</p>` : ''}
+      <footer class="as-review-foot">
+        <button type="button" data-like="${esc(p.id)}" aria-pressed="${Boolean(p.liked)}">${ICON.flame}<span class="num">${p.likes || 0}</span><span>亮</span></button>
+        <button type="button" data-star="${esc(p.id)}" aria-pressed="${Boolean(p.starred)}">${ICON.star}<span>${p.starred ? '已收藏' : '收藏'}</span></button>
+      </footer>
+    </article>
+    ${lit.length ? `<section class="cs-lit" aria-label="亮了的回复"><h3>这些回复亮了</h3>${lit.map((r) => replyHTML(r, true)).join('')}</section>` : ''}
+    <section class="cs-floors" aria-label="全部回复"><h3>全部回复 · ${t.replies.filter((r) => r.state === 'published').length}</h3>
+      ${t.replies.map((r) => replyHTML(r)).join('') || '<p class="as-fine">还没有回复，来坐沙发。</p>'}</section>`;
+}
+async function openThread(id, from) {
+  const dlg = $('#circle-thread');
+  try {
+    const t = await hubApi.circleThread(id);
+    S.thread = id;
+    $('#thread-board').textContent = boardName(t.post.data?.circle?.board);
+    $('#thread-body').innerHTML = threadHTML(t);
+    $('#reply-status').textContent = '';
+    if (!dlg.open) {
+      if (from) openFrom(dlg, from); else dlg.showModal();
+      dlg.scrollTop = 0;
+    }
+  } catch (e) {
+    status(e.message);
+  }
+}
+$('#thread-reply').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.currentTarget;
+  const btn = f.querySelector('button');
+  const s = await hubState();
+  if (!s.user) { location.href = loginURL(); return; }
+  btn.disabled = true;
+  try {
+    const result = await hubApi.reply(S.thread, f.elements.body.value);
+    f.reset();
+    await openThread(S.thread);
+    $('#reply-status').textContent = result.state === 'published' ? '回复已发布。' : '回复已提交，审核后公开（只有你和维护者能先看到）。';
+  } catch (err) {
+    $('#reply-status').textContent = err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------- 申请开吧（同学）与开通 / 驳回（维护者） ----------
+async function proposeBoard() {
+  const s = await hubState();
+  if (!s.user) { location.href = loginURL(); return; }
+  if (!s.user.emailVerified) { status('验证邮箱之后才能申请开吧。<a href="me.html#account">去验证 ›</a>', true); return; }
+  $('#board-status').textContent = '';
+  $('#board-dialog').showModal();
+  $('#board-form').elements.name.focus();
+}
+$('#board-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.currentTarget;
+  const btn = f.querySelector('[type=submit]');
+  btn.disabled = true;
+  try {
+    const r = await hubApi.proposeBoard({ name: f.elements.name.value.trim(), description: f.elements.description.value.trim(), rules: f.elements.rules.value.trim() });
+    $('#board-status').textContent = r.message || '已提交，维护者审核后开通。';
+    f.reset();
+  } catch (err) {
+    $('#board-status').textContent = err.message;
+  } finally {
+    btn.disabled = false;
+  }
+});
+async function loadProposals() {
+  if (!S.user?.moderator) return;
+  try {
+    const r = await hubApi.boardProposals();
+    S.proposals = r.items || [];
+    $('#board-review').hidden = !S.proposals.length;
+    $('#board-review-n').textContent = S.proposals.length;
+  } catch { /* 维护者接口暂时读不到时不显示入口 */ }
+}
+function renderProposals() {
+  $('#board-review-list').innerHTML = S.proposals.map((p) => `<article class="cs-proposal" data-proposal="${esc(p.id)}">
+      <h3>${esc(p.name)}吧</h3><p>${esc(p.description)}</p>${p.rules ? `<p class="as-fine">吧规：${esc(p.rules)}</p>` : ''}
+      <p class="as-fine" data-note>申请人：${esc(p.proposer?.name || '同学')}${p.created ? ` · ${esc(fmtDay(p.created))}` : ''}</p>
+      <div class="cs-proposal-actions"><button class="as-get is-primary is-small" type="button" data-approve="${esc(p.id)}">开通</button>
+        <input data-reason placeholder="驳回理由（必填）" maxlength="300"><button class="as-get is-small" type="button" data-reject="${esc(p.id)}">驳回</button></div>
+    </article>`).join('') || '<p class="as-fine">没有待开通的吧。</p>';
+}
+$('#board-review-list').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-approve],[data-reject]');
+  if (!b) return;
+  const card = b.closest('[data-proposal]');
+  const p = S.proposals.find((x) => x.id === card.dataset.proposal);
+  b.disabled = true;
+  try {
+    if (b.hasAttribute('data-approve')) {
+      await hubApi.saveBoard({ id: p.id, name: `${p.name}吧`, description: p.description, rules: p.rules, active: true });
+    } else {
+      const reason = card.querySelector('[data-reason]').value.trim();
+      if (!reason) { card.querySelector('[data-reason]').focus(); b.disabled = false; return; }
+      await hubApi.rejectBoard(p.id, reason);
+    }
+    await loadProposals();
+    renderProposals();
+    await loadBoards();
+  } catch (err) {
+    card.querySelector('[data-note]').textContent = err.message;
+    b.disabled = false;
+  }
+});
+
+// ---------- 点赞（亮了）、收藏、关注 ----------
+async function toggleLike(btn) {
+  const id = btn.dataset.like;
+  const on = btn.getAttribute('aria-pressed') !== 'true';
+  const s = await hubState();
+  if (!s.user) { needLogin('登录后才能点亮。'); return; }
+  btn.disabled = true;
+  try {
+    const r = await hubApi.likeCirclePost(id, on);
+    const item = S.items.find((x) => x.id === id);
+    if (item) Object.assign(item, { likes: r.likes, liked: r.liked });
+    $$(`[data-like="${CSS.escape(id)}"]`).forEach((b) => {
+      b.setAttribute('aria-pressed', String(r.liked));
+      rollTo(b.querySelector('.num'), r.likes, on ? 1 : -1);
+    });
+    if (on) pop(btn.querySelector('svg'));
+  } catch (e) {
+    status(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function toggleReplyLike(btn) {
+  const on = btn.getAttribute('aria-pressed') !== 'true';
+  const s = await hubState();
+  if (!s.user) { $('#reply-status').innerHTML = `登录后才能点亮回复。<a href="${esc(loginURL())}">登录 ›</a>`; return; }
+  btn.disabled = true;
+  try {
+    const r = await hubApi.likeCircleReply(btn.dataset.replyLike, on);
+    $$(`[data-reply-like="${CSS.escape(r.id)}"]`).forEach((b) => {
+      b.setAttribute('aria-pressed', String(r.liked));
+      rollTo(b.querySelector('.num'), r.likes, on ? 1 : -1);
+    });
+    if (on) pop(btn.querySelector('svg'));
+  } catch (e) {
+    $('#reply-status').textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+async function toggleStar(btn) {
+  const id = btn.dataset.star;
+  const s = await hubState();
+  if (!s.user) { needLogin('登录后才能收藏。'); return; }
+  const on = btn.getAttribute('aria-pressed') !== 'true';
+  btn.disabled = true;
+  try {
+    await hubApi.star(id, on);
+    const item = S.items.find((x) => x.id === id);
+    if (item) item.starred = on;
+    $$(`[data-star="${CSS.escape(id)}"]`).forEach((b) => {
+      b.setAttribute('aria-pressed', String(on));
+      b.querySelector('span').textContent = on ? '已收藏' : '收藏';
+    });
+    if (on) pop(btn.querySelector('svg'));
+  } catch (e) {
+    status(e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ---------- 事件 ----------
+document.addEventListener('click', async (e) => {
+  const t = e.target;
+  const close = t.closest('[data-close]');
+  if (close) {
+    const dlg = close.closest('dialog');
+    if (dlg.id === 'circle-thread') closeTo(dlg); else dlg.close();
+    return;
+  }
+  const like = t.closest('[data-like]');
+  if (like) { e.stopPropagation(); await toggleLike(like); return; }
+  const star = t.closest('[data-star]');
+  if (star) { e.stopPropagation(); await toggleStar(star); return; }
+  const rlike = t.closest('[data-reply-like]');
+  if (rlike) { await toggleReplyLike(rlike); return; }
+  if (t.closest('[data-propose]')) { await proposeBoard(); return; }
+  const boardBtn = t.closest('[data-board-id]');
+  if (boardBtn) { await selectBoard(boardBtn.dataset.boardId); return; }
+  if (t.closest('[data-follow-board]')) {
+    const b = S.boards.find((x) => x.id === S.board);
+    const s = await hubState();
+    if (!s.user) { needLogin('登录后才能关注吧。'); return; }
+    try {
+      await hubApi.followBoard(b.id, !b.followed, true);
+      b.followed = !b.followed;
+      renderBoards();
+      renderBoardInfo();
+      if (b.followed) pop($('[data-follow-board]'));
+    } catch (err) { status(err.message); }
+    return;
+  }
+  const hotTerm = t.closest('[data-hot]');
+  if (hotTerm) {
+    $('#circle-q').value = hotTerm.dataset.hot;
+    S.board = '';
+    renderBoards();
+    renderBoardInfo();
+    await load();
+    scrollToEl($('#cs-feed-section'));
+    return;
+  }
+  const lane = t.closest('[data-lane]');
+  if (lane) {
+    S.lane = lane.dataset.lane;
+    setSegment($('#circle-lanes'), [...$$('#circle-lanes > button')].indexOf(lane));
+    await load();
+    return;
+  }
+  const post = t.closest('[data-post], [data-open]');
+  if (post && !t.closest('a')) {
+    const card = post.closest('.cs-post, .as-chart-row') || post;
+    await openThread(post.dataset.post || post.dataset.open, card);
+    return;
+  }
+  if (t.closest('[data-compose]')) { await compose(); return; }
+  if (t.closest('[data-retry]')) { await load(); return; }
+  const disc = t.closest('[data-discuss]');
+  if (disc) { await discuss(disc.dataset.discuss); return; }
+  if (t.closest('#cs-hot-rule')) { status($('#cs-hot-rule').dataset.rule || '近 7 天发布的公开帖，按回复和点赞计算。'); return; }
+});
+document.addEventListener('keydown', (e) => {
+  const board = e.target.closest?.('[data-board-id][role=button]');
+  if (board && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectBoard(board.dataset.boardId); }
+});
+$('#circle-compose').addEventListener('click', compose);
+$('#circle-more').addEventListener('click', () => load(true));
+$('#circle-campus').addEventListener('change', () => { load(); loadTrends(); loadHot(); });
+$('#circle-search').addEventListener('submit', (e) => { e.preventDefault(); load(); scrollToEl($('#cs-feed-section')); });
+let typing;
+$('#circle-q').addEventListener('input', () => { clearTimeout(typing); typing = setTimeout(() => load(), 220); });
+$('#board-propose').addEventListener('click', proposeBoard);
+$('#board-review').addEventListener('click', () => { renderProposals(); $('#board-review-dialog').showModal(); });
+
+// ---------- 启动 ----------
+async function loadBoards() {
+  const r = await hubApi.circleBoards();
+  S.boards = r.items.map((b) => ({ ...b, name: b.name.endsWith('吧') ? b.name : `${b.name}吧` }));
+  renderBoards();
+  renderBoardInfo();
+}
+async function init() {
+  const s = await hubState();
+  S.user = s.user;
+  if (S.user) {
+    const a = $('[data-circle-avatar]');
+    a.classList.add('is-user');
+    a.textContent = [...(S.user.name || S.user.username)][0].toUpperCase();
+  }
+  if (!s.online) throw new Error('offline');
+  const params = new URLSearchParams(location.search);
+  if (params.get('q')) $('#circle-q').value = params.get('q');
+  await loadBoards();
+  await load();
+  if (params.has('compose')) compose();
+  if (params.get('post')) await openThread(params.get('post'));
+  loadProposals();
+}
+
+loadNews();
+loadTrends();
+loadHot();
+loadRatings();
+init().catch(() => {
+  status('');
+  $('#circle-feed').innerHTML = `<div class="as-empty"><b>社区服务暂未连接</b><p>帖子和吧需要在线账号与审核服务。已发布的项目仍可在开源广场浏览。</p><a class="as-get" href="discover.html">去开源广场</a></div>`;
+});

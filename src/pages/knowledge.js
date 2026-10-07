@@ -111,3 +111,6 @@ if (campusAvailable) {
   $('#result-count').textContent='';
   document.querySelectorAll('.kb button,.kb input,.kb select').forEach(node=>node.disabled=true);
 }
+
+// 全站搜索带着关键词过来时（knowledge.html?q=…），填好并直接检索
+{const q0=new URLSearchParams(location.search).get('q');if(q0){$('#query').value=q0;$('#search-form').requestSubmit();}}

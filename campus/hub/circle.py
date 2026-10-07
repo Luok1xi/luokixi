@@ -15,7 +15,8 @@ from django.utils.dateparse import parse_datetime
 from .core import (Problem, require, text, url, string_list, public_entries, entry_data,
                    member_data, save_entry, throttle, notify, contribute)
 from .models import (CampusBoard, BoardFollow, CreatorFollow, CirclePreference, CircleLike,
-                     CircleFeedback, CircleSelection, Entry, Member, Upload, Audit, Contribution)
+                     CircleFeedback, CircleSelection, Entry, ExternalCache, Member, Reply, ReplyLike,
+                     Upload, Audit, Contribution)
 
 VERSION = 'campus-explicit-v1'
 PAGE_SIZE = 12
@@ -291,6 +292,114 @@ def feed(request):
             'hasMore': bool(next_cursor), 'notice': '本轮最多 200 条；最新为发布时间排序，推荐依据显式兴趣与核对记录。'}
 
 
+# ---------- 校圈热榜（虎扑热榜）：近 7 天发布的公开帖，按回复、点赞、有帮助计热度，72 小时减半 ----------
+HOT_DAYS = 7
+HOT_HALF_LIFE_HOURS = 72
+HOT_DEFINITION = '近 7 天发布的公开帖；热度 = 回复×3 + 点赞×2 + 有帮助×2（精选另加 3），每 72 小时减半。箭头和昨天的榜比。'
+
+
+def hot_rows(campus):
+    """全站同一份榜（按校区），5 分钟内复用；个人的屏蔽在读取时再去掉。"""
+    key = f'circle:hot:{campus}'
+    now = timezone.now()
+    cache = ExternalCache.objects.filter(pk=key).first()
+    data = dict(cache.data) if cache else {}
+    if cache and cache.checked and (now - cache.checked).total_seconds() < 300 and 'rows' in data:
+        return data
+    since = now - timedelta(days=HOT_DAYS)
+    query = public_entries().filter(kind='topic', created__gte=now - timedelta(days=HOT_DAYS + 30),
+        published__circle__board__in=CampusBoard.objects.filter(active=True).values_list('id', flat=True))
+    if campus != 'all':
+        query = query.filter(published__circle__campus__in=[campus, 'all'])
+    query = query.select_related('owner', 'circle_selection').annotate(
+        like_n=Count('circle_likes', filter=Q(circle_likes__revision=F('public_revision')), distinct=True),
+        reply_n=Count('reply', filter=Q(reply__state='published'), distinct=True),
+        useful_n=Count('circle_feedback', filter=Q(circle_feedback__action='useful', circle_feedback__revision=F('public_revision')), distinct=True))
+    rows = []
+    for entry in query[:500]:
+        info = entry.published.get('circle', {})
+        published = parse_datetime(info.get('publishedAt', '')) or entry.created
+        if timezone.is_naive(published) or published < since:
+            continue
+        chosen = selection(entry)
+        if info.get('format') == 'link' and not chosen:
+            continue
+        base = entry.reply_n * 3 + entry.like_n * 2 + entry.useful_n * 2 + (3 if chosen else 0)
+        age = max(0, (now - published).total_seconds() / 3600)
+        heat = base * 0.5 ** (age / HOT_HALF_LIFE_HOURS)
+        rows.append({'id': str(entry.pk), 'title': entry.published.get('title', ''), 'board': info.get('board', ''),
+                     'campus': info.get('campus', 'all'), 'owner': entry.owner.username if entry.owner_id else '',
+                     'likes': entry.like_n, 'replies': entry.reply_n, 'heat': round(heat * 10),
+                     'publishedAt': published.isoformat(), '_sort': heat})
+    rows.sort(key=lambda r: r['publishedAt'], reverse=True)
+    rows.sort(key=lambda r: -r['_sort'])
+    rows = [{k: v for k, v in r.items() if k != '_sort'} for r in rows if r['heat'] > 0][:30]
+    # 变化箭头：每天第一次计算时，把昨天的名次存成 previous
+    day = timezone.localtime(now).date().isoformat()
+    if data.get('day') != day:
+        data = {'day': day, 'previous': data.get('current', {})}
+    data['current'] = {r['id']: i + 1 for i, r in enumerate(rows[:10])}
+    data['rows'] = rows
+    ExternalCache.objects.update_or_create(key=key, defaults={'data': data, 'checked': now, 'success': now, 'error': ''})
+    return data
+
+
+def hot(request):
+    campus = text(request.GET.get('campus', 'all'), 20)
+    if campus not in ('all', 'shahe', 'xueyuanlu'):
+        raise Problem('校区无效。')
+    data = hot_rows(campus)
+    pref, _, _, ignored = context(request.user)
+    ignored = set(map(str, ignored))
+    boards = {b.pk: b.name for b in CampusBoard.objects.filter(active=True)}
+    items = []
+    for row in data.get('rows', []):
+        if row['id'] in ignored or row['owner'] in pref['mutedCreators'] or row['board'] in pref['mutedBoards']:
+            continue
+        rank = len(items) + 1
+        before = data.get('previous', {}).get(row['id'])
+        change = {'kind': 'new'} if before is None else {'kind': 'up' if before > rank else 'down' if before < rank else 'flat', 'by': abs(before - rank)}
+        items.append(dict({k: v for k, v in row.items() if k != 'owner'}, rank=rank, change=change,
+                          boardName=boards.get(row['board'], '校园话题')))
+        if len(items) == 10:
+            break
+    return {'items': items, 'window': f'近 {HOT_DAYS} 天', 'definition': HOT_DEFINITION,
+            'previousDay': bool(data.get('previous')), 'updatedAt': timezone.now().isoformat()}
+
+
+# ---------- 帖子详情：楼层 + 亮回复（获赞最多的回复先放在上面） ----------
+LIT_MAX = 3
+
+
+def thread(request, entry):
+    user = request.user
+    query = Reply.objects.filter(entry=entry, state='published')
+    if user.is_authenticated:
+        query = Reply.objects.filter(entry=entry).filter(Q(state='published') | Q(author=user))
+    replies = list(query.select_related('author').annotate(like_n=Count('likes')).order_by('created', 'id')[:300])
+    liked = set(ReplyLike.objects.filter(user=user, reply__in=replies).values_list('reply_id', flat=True)) if user.is_authenticated else set()
+    floor, items = 1, []
+    for r in replies:
+        published = r.state == 'published'
+        if published:
+            floor += 1
+        items.append({'id': str(r.pk), 'body': r.body, 'author': member_data(r.author), 'state': r.state,
+                      'floor': floor if published else None, 'likes': r.like_n, 'liked': r.pk in liked,
+                      'own': user.is_authenticated and r.author_id == user.pk, 'isOwner': r.author_id == entry.owner_id,
+                      'created': r.created.isoformat()})
+    lit = sorted((i for i in items if i['state'] == 'published' and i['likes'] >= 1), key=lambda i: (-i['likes'], i['floor']))[:LIT_MAX]
+    return {'post': card(entry, user), 'replies': items, 'lit': [i['id'] for i in lit],
+            'litRule': '获赞最多的回复先放在上面（亮了），其余按楼层时间排列。'}
+
+
+def board_proposals():
+    pending = list(CampusBoard.objects.filter(active=False, pk__startswith='u-'))
+    audits = {a.target: a for a in Audit.objects.filter(action='circle-board-proposal', target__in=[b.pk for b in pending]).select_related('actor')}
+    return [{'id': b.pk, 'name': b.name, 'description': b.description, 'rules': b.rules,
+             'proposer': member_data(audits[b.pk].actor) if b.pk in audits and audits[b.pk].actor_id else None,
+             'created': audits[b.pk].created.isoformat() if b.pk in audits else None} for b in pending]
+
+
 def get(request, route):
     user = request.user
     if route == 'circle/trends':
@@ -312,11 +421,16 @@ def get(request, route):
             'definition':'近 7 天最新 500 篇可见公开帖中的标签出现次数；不是搜索次数。'}
     if route == 'circle/feed':
         return feed(request)
+    if route == 'circle/hot':
+        return hot(request)
     if route == 'circle/boards':
         follows = dict(BoardFollow.objects.filter(user=user).values_list('board_id', 'notify')) if user.is_authenticated else {}
         return {'items': [{'id': b.pk, 'name': b.name, 'description': b.description, 'rules': b.rules,
                 'followed': b.pk in follows, 'notify': follows.get(b.pk, False),
                 'posts': visible(user).filter(published__circle__board=b.pk).count()} for b in CampusBoard.objects.filter(active=True)]}
+    if route == 'circle/board-proposals':
+        require(user, staff=True)
+        return {'items': board_proposals()}
     if route == 'circle/preferences':
         require(user)
         return preference(user)
@@ -332,6 +446,8 @@ def get(request, route):
     parts = route.split('/')
     if len(parts) == 3 and parts[1] == 'posts':
         return card(public_post(user, parts[2]), user)
+    if len(parts) == 4 and parts[1] == 'posts' and parts[3] == 'thread':
+        return thread(request, public_post(user, parts[2]))
     raise Problem('校圈接口不存在。', 404)
 
 
@@ -397,16 +513,66 @@ def post(request, route, body):
         else:
             model.objects.filter(**lookup).delete()
         return {'enabled': body['enabled'], 'notify': body.get('notify', False) if body['enabled'] else False}
+    if route == 'circle/board-proposals':
+        # 同学申请开一个吧：先建成未开通的吧，维护者开通（circle/boards，active=true）或驳回
+        throttle('board-proposal', str(user.pk), 3)
+        name = text(body.get('name', ''), 20, True).removesuffix('吧').strip()
+        description = text(body.get('description', ''), 300, True)
+        rules = text(body.get('rules', ''), 2000)
+        if len(name) < 2:
+            raise Problem('吧名至少两个字。')
+        if CampusBoard.objects.filter(name__in=[name, name + '吧']).exists():
+            raise Problem('已经有同名的吧，或者正在审核中。', 409)
+        if CampusBoard.objects.filter(active=False, pk__startswith='u-').count() >= 50:
+            raise Problem('待审核的开吧申请太多了，请稍后再提交。', 429)
+        identifier = 'u-' + secrets.token_hex(4)
+        board = CampusBoard.objects.create(pk=identifier, name=name, description=description, rules=rules, active=False)
+        Audit.objects.create(actor=user, action='circle-board-proposal', target=board.pk,
+                             detail={'name': name, 'description': description, 'rules': rules})
+        for staff in Member.objects.filter(is_staff=True, is_active=True).exclude(pk=user.pk):
+            notify(staff, None, 'board-proposal', f'board-proposal:{board.pk}:{staff.pk}', f'有同学申请开「{name}吧」，等你审核。')
+        return {'id': board.pk, 'state': 'pending', 'message': '已提交，维护者审核后开通。'}
+    if len(parts) == 4 and parts[1] == 'board-proposals' and parts[3] == 'reject':
+        require(user, staff=True)
+        board = CampusBoard.objects.filter(pk=parts[2], active=False).first()
+        if not board:
+            raise Problem('这条申请不存在或已经处理。', 404)
+        reason = text(body.get('reason', ''), 300, True)
+        proposal = Audit.objects.filter(action='circle-board-proposal', target=board.pk).first()
+        if proposal and proposal.actor_id:
+            notify(proposal.actor, None, 'board-proposal', f'board-rejected:{board.pk}', f'「{board.name}吧」没有开通：{reason}')
+        Audit.objects.create(actor=user, action='circle-board-reject', target=board.pk, detail={'reason': reason, 'name': board.name})
+        board.delete()
+        return {'ok': True}
     if route == 'circle/boards':
         require(user, staff=True)
         identifier = text(body.get('id', ''), 60, True)
         if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', identifier) or type(body.get('active', True)) is not bool:
             raise Problem('话题吧编号或状态无效。')
+        was_pending = CampusBoard.objects.filter(pk=identifier, active=False).exists()
         item, _ = CampusBoard.objects.update_or_create(pk=identifier, defaults={'name': text(body.get('name', ''), 80, True),
             'description': text(body.get('description', ''), 500), 'rules': text(body.get('rules', ''), 5000),
             'active': body.get('active', True)})
         Audit.objects.create(actor=user, action='circle-board', target=item.pk)
+        if was_pending and item.active:
+            proposal = Audit.objects.filter(action='circle-board-proposal', target=item.pk).first()
+            if proposal and proposal.actor_id:
+                notify(proposal.actor, None, 'board-proposal', f'board-approved:{item.pk}', f'你申请的「{item.name}吧」开通了，去发第一帖吧。')
         return {'id': item.pk}
+    if len(parts) == 4 and parts[1] == 'replies' and parts[3] == 'like':
+        reply = Reply.objects.filter(pk=parts[2], state='published').select_related('entry').first() if re.fullmatch(r'[0-9a-f-]{36}', parts[2]) else None
+        if not reply:
+            raise Problem('回复不存在。', 404)
+        public_post(user, str(reply.entry_id))
+        if type(body.get('enabled')) is not bool:
+            raise Problem('请明确点赞状态。')
+        if body['enabled'] and reply.author_id == user.pk:
+            raise Problem('不能给自己的回复点亮。')
+        if body['enabled']:
+            ReplyLike.objects.get_or_create(reply=reply, user=user)
+        else:
+            ReplyLike.objects.filter(reply=reply, user=user).delete()
+        return {'id': str(reply.pk), 'likes': reply.likes.count(), 'liked': body['enabled']}
     if len(parts) == 4 and parts[1] == 'posts':
         entry = public_post(user, parts[2])
         action = parts[3]

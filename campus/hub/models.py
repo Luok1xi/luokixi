@@ -243,6 +243,8 @@ class Teacher(models.Model):
     source_url = models.URLField(max_length=1000)
     photo = models.JSONField(default=dict, blank=True)
     teaching = models.JSONField(default=list, blank=True)
+    # 教师资料机器人（faculty.py）从学院官网读到的公开资料：学院、系、研究方向、来源页、核对时间
+    profile = models.JSONField(default=dict, blank=True)
     active = models.BooleanField(default=True)
     checked_at = models.DateTimeField(auto_now=True)
 
@@ -410,3 +412,104 @@ class CircleSelection(models.Model):
     reason = models.CharField(max_length=1000)
     reviewer = models.ForeignKey(Member, on_delete=models.PROTECT)
     checked_at = models.DateTimeField(auto_now=True)
+
+
+class MirrorAsset(models.Model):
+    """开源广场的本站下载：从 GitHub 正式发布镜像过来的文件（mirror.py）。只镜像允许再分发的许可证。"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    repository = models.CharField(max_length=140, db_index=True)
+    tag = models.CharField(max_length=120)
+    name = models.CharField(max_length=200)
+    size = models.PositiveBigIntegerField()
+    sha256 = models.CharField(max_length=64)
+    license = models.CharField(max_length=60)
+    source_url = models.URLField(max_length=600)
+    release_url = models.URLField(max_length=600, blank=True)
+    published = models.DateTimeField(null=True)
+    path = models.CharField(max_length=200)
+    downloads = models.PositiveIntegerField(default=0)
+    metadata = models.JSONField(default=dict)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['repository', 'tag', 'name'], name='hub_mirror_asset_unique')]
+
+
+class DeviceSync(models.Model):
+    """手机 App 同步上来的本人数据（sync.py、docs/MOBILE_SYNC.md）。只存数据，不存学校账号、密码或令牌。"""
+    user = models.ForeignKey(Member, on_delete=models.CASCADE)
+    kind = models.CharField(max_length=20)
+    data = models.JSONField(default=dict)
+    source = models.CharField(max_length=80, blank=True)
+    fetched_at = models.DateTimeField(null=True)
+    synced_at = models.DateTimeField(auto_now=True)
+    bytes = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'kind'], name='hub_device_sync_unique')]
+
+
+class ExternalMention(models.Model):
+    """站外讨论：同学提交的贴吧 / 虎扑 / 知乎等帖子链接，加上自己写的一句话概括。
+    本站不抓取、不转载原帖内容，也不计入评分；审核通过后在教师或课程页单独列出，并标明来源站点。"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    teacher = models.ForeignKey(Teacher, null=True, blank=True, on_delete=models.CASCADE, related_name='mentions')
+    course = models.ForeignKey(GuideCourse, null=True, blank=True, on_delete=models.CASCADE, related_name='mentions')
+    site = models.CharField(max_length=20)
+    url = models.URLField(max_length=1000)
+    title = models.CharField(max_length=160)
+    summary = models.CharField(max_length=300)
+    author = models.ForeignKey(Member, on_delete=models.PROTECT)
+    state = models.CharField(max_length=20, default='pending')
+    note = models.CharField(max_length=300, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['teacher', 'url'], name='hub_mention_teacher_url'),
+            models.UniqueConstraint(fields=['course', 'url'], name='hub_mention_course_url'),
+            models.CheckConstraint(condition=(models.Q(teacher__isnull=False, course__isnull=True) |
+                models.Q(teacher__isnull=True, course__isnull=False)), name='hub_mention_single_subject'),
+        ]
+
+
+class ReplyLike(models.Model):
+    """校圈回复的“亮了”：帖子详情顶部先放获赞最多的回复（虎扑亮回复）。"""
+    reply = models.ForeignKey(Reply, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(Member, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['reply', 'user'], name='hub_reply_like_unique')]
+
+
+class BeikuangTask(models.Model):
+    """交给北矿娘的活（beikuang.py）：机器人送来的新闻、候选项目、中文导读、教师照片、请示、她的公告草稿。
+    她按技能（campus/beikuang-skills/）核对：过了就自己发布，没过的在她的窗口里交给站主。"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    kind = models.CharField(max_length=20)
+    key = models.CharField(max_length=240, unique=True)
+    target = models.CharField(max_length=240)
+    title = models.CharField(max_length=240)
+    link = models.CharField(max_length=600, blank=True)
+    state = models.CharField(max_length=20, default='queued')
+    checks = models.JSONField(default=list)
+    note = models.TextField(blank=True)
+    data = models.JSONField(default=dict)
+    decided_by = models.CharField(max_length=60, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    decided = models.DateTimeField(null=True, blank=True)
+
+
+class BeikuangMessage(models.Model):
+    """北矿娘和站主的对话：站主发的话、她的回复、她主动的汇报（审核没过的事、每日小报告）。"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='beikuang_messages')
+    role = models.CharField(max_length=12)
+    kind = models.CharField(max_length=16, default='chat')
+    body = models.TextField()
+    data = models.JSONField(default=dict)
+    state = models.CharField(max_length=12, default='sent')
+    read = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)

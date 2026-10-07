@@ -3,6 +3,8 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Opt in before deferred bundles load, including the login redirect. -->
+<style>@media(prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}</style>
 <script>
   (function () {
     var d = document.documentElement;
@@ -27,9 +29,14 @@
       var clear = function () { delete d.dataset.vt; };
       e.viewTransition.finished.then(clear, clear);
       e.viewTransition.ready.catch(function () {});
+      // 页面在后台时转场可能一直不结束；最多 3 秒后清掉方向，免得影响之后的页内转场
+      setTimeout(clear, 3000);
     });
   })();
 </script>
+<!-- 鼠标停在链接上时提前准备下一页：轻页面直接在后台渲染好（点下去立刻出现，转场不再等空白页），
+     重页面（地图、开源流）和带分页快照的校圈只预取文件 -->
 <script type="speculationrules">
-{"prefetch":[{"urls":["map.html","materials.html","circle.html","discover.html","me.html"],"eagerness":"moderate"}]}
+{"prerender":[{"urls":["materials.html","reputation.html","reputation.html?view=courses","me.html","rules.html"],"eagerness":"moderate"}],
+ "prefetch":[{"urls":["./","map.html","circle.html","discover.html"],"eagerness":"moderate"}]}
 </script>

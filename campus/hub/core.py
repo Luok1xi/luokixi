@@ -275,6 +275,8 @@ def review_entry(user, entry, body):
     if decision not in ('approve','reject'):
         raise Problem('审核决定无效。')
     if decision == 'approve':
+        if entry.kind == 'announcement' and entry.slug.startswith('beikuang-') and entry.draft.get('supervisorQuestions') and body.get('supervisorQuestionsResolved') is not True:
+            raise Problem('请先回答北矿娘列出的疑问，再确认公告。')
         if entry.draft.get('circle') and entry.owner_id == user.pk:
             raise Problem('自己的校圈投稿需要其他维护者审核。', 403)
         if entry.owner_id:

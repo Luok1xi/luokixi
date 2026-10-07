@@ -6,7 +6,7 @@ import { playIntro } from '../js/intro.js';
 import { initGallery } from '../js/gallery.js';
 import { loadCommunity, communitySeries } from '../js/community.js';
 import { renderGrid } from '../js/heatmap.js';
-import { coverSVG } from '../js/cover.js';
+import { coverMediaHTML as coverSVG } from '../js/cover.js';
 import '../styles/home.css';
 import '../styles/community.css';
 

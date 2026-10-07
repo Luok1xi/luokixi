@@ -204,7 +204,8 @@ function guideHTML(d) {
     ${safeURL(gh.readmeUrl) ? `<p class="pd-guide-cta"><a class="btn btn-outline btn-sm" href="${esc(gh.readmeUrl)}" target="_blank" rel="noopener">阅读原文 README</a>${reviewed ? '' : '<span class="muted">以原文为准</span>'}</p>` : ''}
     ${generated
       ? `${guide.oneLiner ? `<p class="pd-oneliner">${esc(guide.oneLiner)}</p>` : ''}
-        ${(guide.sections ?? []).map((s) => `<div class="guide-sec"><h3>${esc(s.heading)}</h3><p>${esc(s.text)}</p><p class="guide-cite">依据：${cite(s.evidenceIds)}</p></div>`).join('')}
+        <nav class="pd-guide-cta" aria-label="中文说明书目录">${(guide.sections ?? []).map((s,i)=>`<a href="#guide-chapter-${i}">${esc(s.heading)}</a>`).join(' · ')}</nav>
+        ${(guide.sections ?? []).map((s,i) => `<div class="guide-sec" id="guide-chapter-${i}"><h3>${esc(s.heading)}</h3><p style="white-space:pre-wrap">${esc(s.text)}</p><p class="guide-cite">依据：${cite(s.evidenceIds)}</p></div>`).join('')}
         ${guide.unknowns?.length ? `<div class="guide-sec guide-unknown"><h3>原项目没有说明</h3><ul>${guide.unknowns.map((u) => `<li>${esc(u)}</li>`).join('')}</ul></div>` : ''}`
       : `<p class="muted">${esc(guide.message ?? '还没有生成中文导读。')}</p>`}
     ${release.length ? `<div class="guide-sec"><h3>官方发布包${gh.releaseVersion ? ` · ${esc(gh.releaseVersion)}` : ''}</h3><div class="dl-list">${release.map(dl).join('')}</div></div>` : ''}
@@ -293,6 +294,27 @@ function taskHTML(t) {
   </li>`;
 }
 
+// 本站下载：维护机器人从 GitHub 正式发布镜像过来的文件（只限允许再分发的开源许可证）
+function downloadHTML() {
+  const repo = ghRepo(viewData().links?.repo);
+  if (!repo) return '';
+  const m = st.mirror;
+  const original = `<a class="pd-dl-origin" href="https://github.com/${esc(repo)}/releases" target="_blank" rel="noopener">去 GitHub 原站下载 ↗</a>`;
+  const refresh = isMod() ? '<button class="btn btn-outline btn-sm" type="button" data-act="mirror-refresh">镜像最新版</button>' : '';
+  let body;
+  if (!m) body = '<p class="muted">正在读取本站镜像…</p>';
+  else if (m.error) body = `<p class="muted">本站镜像暂时读不到：${esc(m.error)}</p>`;
+  else if (m.items?.some(f=>f.available))
+    body = `<ul class="pd-dl" role="list">${m.items.filter(f=>f.available).map((f) => `<li>
+        <div><b>${esc(f.name)}</b><span>${esc(f.tag)} · ${fmtBytes(f.size)} · ${esc(f.license)}${f.downloads ? ` · 本站下载 ${fmtNum(f.downloads)} 次` : ''}</span>
+          <details><summary>版本与文件校验</summary><code style="overflow-wrap:anywhere;white-space:normal">SHA-256 ${esc(f.sha256)}</code><p>${f.integrity==='upstream-sha256-matched'?'已与 GitHub 官方 SHA-256 核对一致':'本站计算的 SHA-256；上游未提供可比对校验值'}</p><p>${f.kind==='source-archive'?'源码包，需要按项目说明构建':`系统：${esc(f.platform==='unknown'?'原文件名未说明':f.platform)} · 架构：${esc(f.architecture==='unknown'?'未确认':f.architecture)}`}</p>${f.licenseUrl?`<a href="${esc(f.licenseUrl)}" download>下载许可证与署名</a>`:''}</details></div>
+        <a class="btn btn-primary btn-sm" href="${esc(f.url)}" download>下载</a></li>`).join('')}</ul>
+      <p class="pd-hint">文件从原仓库原样保存，保留版本、来源与许可证。本站下载不依赖访问 GitHub；安装依赖、模型或联网服务可能仍需连接外部平台。</p>`;
+  else if (m.status === 'license-blocked') body = `<p class="muted">${esc(m.reason || '这个仓库没有声明允许再分发的开源许可证，本站不能转存。')}</p>`;
+  else body = '<p class="muted">本站还没有镜像这个项目的发布包。</p>';
+  return `<section class="pd-card card pd-download"><h2>下载</h2>${body}<div class="pd-dl-foot">${original}${refresh}</div></section>`;
+}
+
 function sideHTML(d) {
   const links = Object.entries(d.links ?? {}).filter(([, u]) => safeURL(u));
   const info = [
@@ -307,6 +329,7 @@ function sideHTML(d) {
   const tasks = e().tasks ?? [];
   const versions = st.history?.items ?? [];
   return `<aside class="pd-side">
+    ${downloadHTML()}
     ${links.length ? `<section class="pd-card card"><h2>链接</h2><ul class="pd-links" role="list">${links
       .map(([k, u]) => `<li><a href="${esc(u)}" target="_blank" rel="noopener"><span>${LINKS[k] ?? esc(k)}</span><span class="pd-host">${esc(new URL(u).hostname.replace(/^www\./, ''))}</span></a></li>`)
       .join('')}</ul></section>` : ''}
@@ -378,6 +401,11 @@ async function reload() {
 
 async function act(btn) {
   const a = btn.dataset.act;
+  if (a === 'mirror-refresh') {
+    const repo = ghRepo(viewData().links?.repo);
+    await hubApi.refreshMirror(repo);
+    return toast('已排队：后台机器人会检查许可证并镜像最新的正式版，稍后刷新这一页。');
+  }
   const x = e();
   if (a === 'star') {
     if (blocked('收藏')) return;
@@ -529,6 +557,17 @@ async function loadHistory() {
   } catch { /* 版本记录读不到不影响正文 */ }
 }
 
+async function loadMirror() {
+  const repo = ghRepo(viewData().links?.repo);
+  if (!repo) return;
+  try {
+    st.mirror = await hubApi.mirror(repo);
+  } catch (err) {
+    st.mirror = { error: err.message ?? '读取失败' };
+  }
+  render();
+}
+
 async function loadGithub() {
   const repo = ghRepo(viewData().links?.repo);
   if (!repo) return;
@@ -563,6 +602,7 @@ async function loadGithub() {
     render();
     loadHistory();
     loadGithub();
+    loadMirror();
   } catch (err) {
     if (err.status === 404)
       renderMessage('找不到这条内容。', '它可能不存在、已经撤回，或者还在审核中（审核中的内容只有作者和维护者能看到）。', '<a class="btn btn-primary" href="projects.html">去开源广场</a>');

@@ -1,0 +1,310 @@
+/* ==========================================================================
+   全站动效层（Opus · 2026-10-07 第二版：更顺、更像 Apple）
+   Apple 的动效：短、顺、有目的。大的东西（整页、弹窗）走 iOS 曲线、不回弹；小的东西（图标、按钮）才弹一下。
+   - 换页：
+     - 只截视口大小的整页（root），不再单独截几千像素高的 #main，快而稳；
+     - 板块之间：原地淡入，带一点点方向（iOS 切标签）；
+     - 点进详情：桌面轻推 48px，手机是真正的 iOS 整屏推入，带边缘阴影；返回反过来；
+     - 分段控件的滑块在两页之间滑过去。
+   - 弹窗：桌面轻轻浮起，手机从屏幕底部整张升起（iOS sheet），不淡入不回弹。
+   - 按压：按下缩到 0.96–0.98，松手顺回去。
+   - 滚动：只有大区块进入视口时浮上来，长列表的每一项不动（Apple 官网的做法）。
+   只动 transform 和 opacity；系统要求减少动态效果时全部关闭。
+   不处理：首页开场 / 轮播 / 故事卡片（Codex 的 carousel、opening、story 自带动效）。
+   ========================================================================== */
+
+/* ---------- 换页 ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  #main { view-transition-name: none; }
+  /* 每页最多一个分段控件写 data-vt-seg，名字唯一 */
+  .as-seg[data-vt-seg] > .as-seg-thumb { view-transition-name: page-seg; }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+  }
+
+  ::view-transition-old(root) { animation: fx-fade-out 160ms ease-out both; }
+  ::view-transition-new(root) { animation: fx-fade-in 300ms var(--ease-ios) both; }
+
+  html[data-vt="forward"]::view-transition-new(root) { animation: fx-from-right 340ms var(--ease-ios) both; }
+  html[data-vt="back"]::view-transition-new(root) { animation: fx-from-left 340ms var(--ease-ios) both; }
+
+  html[data-vt="in"]::view-transition-old(root) { animation: fx-push-under 400ms var(--ease-ios) both; }
+  html[data-vt="in"]::view-transition-new(root) { animation: fx-push-over 400ms var(--ease-ios) both; }
+  html[data-vt="out"]::view-transition-old(root) { z-index: 2; animation: fx-pop-off 360ms var(--ease-ios) both; }
+  html[data-vt="out"]::view-transition-new(root) { animation: fx-back-under 360ms var(--ease-ios) both; }
+
+  ::view-transition-group(page-seg) {
+    animation-duration: 380ms;
+    animation-timing-function: var(--ease-ios);
+  }
+
+  ::view-transition-old(page-seg),
+  ::view-transition-new(page-seg) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+}
+
+/* 手机：真正的 iOS 推入。新页整屏从右边滑进来盖住旧页，旧页往左退三成；返回反过来 */
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  html[data-vt="in"]::view-transition-new(root) { animation: fx-push-over-full 420ms var(--ease-ios) both; box-shadow: -10px 0 36px rgba(0, 0, 0, 0.16); }
+  html[data-vt="in"]::view-transition-old(root) { animation: fx-push-under-full 420ms var(--ease-ios) both; }
+  html[data-vt="out"]::view-transition-old(root) { animation: fx-pop-off-full 380ms var(--ease-ios) both; box-shadow: -10px 0 36px rgba(0, 0, 0, 0.16); }
+  html[data-vt="out"]::view-transition-new(root) { animation: fx-back-under-full 380ms var(--ease-ios) both; }
+}
+
+@keyframes fx-fade-out { to { opacity: 0; } }
+@keyframes fx-fade-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes fx-from-right { from { opacity: 0; transform: translateX(14px); } }
+@keyframes fx-from-left { from { opacity: 0; transform: translateX(-14px); } }
+@keyframes fx-push-over { from { opacity: 0; transform: translateX(48px); } }
+@keyframes fx-push-under { to { opacity: 0; transform: translateX(-24px); } }
+@keyframes fx-pop-off { to { opacity: 0; transform: translateX(48px); } }
+@keyframes fx-back-under { from { opacity: 0; transform: translateX(-24px); } }
+@keyframes fx-push-over-full { from { transform: translateX(100%); } }
+@keyframes fx-push-under-full { to { transform: translateX(-30%); } }
+@keyframes fx-pop-off-full { to { transform: translateX(100%); } }
+@keyframes fx-back-under-full { from { transform: translateX(-30%); } }
+
+/* ---------- 弹窗 ---------- */
+/* .dlg（全站搜索）和 .story（Codex 的故事卡片）有各自的动画；data-motion="flip" 的弹窗由 fx.js 从被点的卡片“长”出来 */
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+    transition: opacity 220ms ease-out, transform 360ms var(--ease-ios);
+  }
+
+  dialog[open]:not(.dlg):not(.story):not([data-motion="flip"]) {
+    opacity: 1;
+    transform: none;
+  }
+
+  @starting-style {
+    dialog[open]:not(.dlg):not(.story):not([data-motion="flip"]) {
+      opacity: 0;
+      transform: translateY(16px) scale(0.97);
+    }
+  }
+
+  dialog:not(.dlg):not(.story)::backdrop {
+    opacity: 0;
+    transition: opacity 280ms ease-out;
+  }
+
+  dialog[open]:not(.dlg):not(.story)::backdrop { opacity: 1; }
+
+  @starting-style {
+    dialog[open]:not(.dlg):not(.story)::backdrop { opacity: 0; }
+  }
+
+  /* 关闭动画需要 overlay 属性把弹窗留在顶层；不支持的浏览器直接关，避免闪到页面里 */
+  @supports (overlay: auto) {
+    dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+      transition: opacity 220ms ease-out, transform 360ms var(--ease-ios), overlay 220ms allow-discrete, display 220ms allow-discrete;
+    }
+
+    dialog:not([open]):not(.dlg):not(.story):not([data-motion="flip"]) {
+      transition-duration: 160ms, 220ms, 220ms, 220ms;
+      transition-timing-function: ease-in, cubic-bezier(0.4, 0, 1, 1), linear, linear;
+    }
+
+    dialog:not(.dlg):not(.story)::backdrop {
+      transition: opacity 240ms ease-out, overlay 240ms allow-discrete, display 240ms allow-discrete;
+    }
+  }
+}
+
+/* 手机：整张从屏幕底部升起，不淡入 */
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+    opacity: 1;
+    transform: translateY(100%);
+    transition: transform 420ms var(--ease-ios);
+  }
+
+  @starting-style {
+    dialog[open]:not(.dlg):not(.story):not([data-motion="flip"]) {
+      opacity: 1;
+      transform: translateY(100%);
+    }
+  }
+
+  @supports (overlay: auto) {
+    dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+      transition: transform 420ms var(--ease-ios), overlay 300ms allow-discrete, display 300ms allow-discrete;
+    }
+
+    dialog:not([open]):not(.dlg):not(.story):not([data-motion="flip"]) {
+      transition-duration: 280ms, 280ms, 280ms;
+      transition-timing-function: cubic-bezier(0.4, 0, 1, 1), linear, linear;
+    }
+  }
+}
+
+/* ---------- 按压：按下收一点，松手顺回去 ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(button, .btn, .ap-pill, .as-get, .as-seg a, .as-seg button) {
+    transition: transform 320ms var(--ease-ios);
+  }
+
+  :where(button, .btn, .ap-pill, .as-get):active:not(:disabled) {
+    transform: scale(0.96);
+    transition-duration: 80ms;
+    transition-timing-function: ease-out;
+  }
+
+  :where(.fx-press, .ap-card.is-hoverable, .ap-row, .as-card, .as-lockup, .as-chart-row, .rp-cell, .cs-post, .mt-row) {
+    transition: transform 380ms var(--ease-ios);
+  }
+
+  :where(.fx-press, .ap-card.is-hoverable, .ap-row, .as-card, .as-lockup, .as-chart-row, .rp-cell, .cs-post, .mt-row):active {
+    transform: scale(0.98);
+    transition-duration: 100ms;
+    transition-timing-function: ease-out;
+  }
+
+  /* 底部标签栏：点下去图标先压一下 */
+  .tabbar a svg { transition: transform 320ms var(--ease-ios); }
+  .tabbar a:active svg { transform: scale(0.84); transition-duration: 80ms; }
+}
+
+/* 悬停：大图慢慢放大一点（apple.com 的产品卡片），卡片本身不动 */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .as-today > img { transition: transform 900ms var(--ease-ios); }
+  .as-today:hover > img { transform: scale(1.03); }
+}
+
+/* ---------- 滚动：大区块进入视口时浮上来 ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .as-reveal {
+      animation: fx-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+
+  /* 不支持滚动时间线的浏览器：fx.js 用 IntersectionObserver 加 .is-in */
+  html.fx-io .as-reveal:not(.is-in) { opacity: 0; transform: translateY(24px); }
+  html.fx-io .as-reveal { transition: opacity 600ms ease-out, transform 700ms var(--ease-ios); }
+}
+
+@keyframes fx-reveal {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* iOS 大标题：往下滚时淡出上移；吸顶小标题淡入（手机） */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .as-largetitle {
+      animation: fx-title-collapse linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 140px;
+    }
+
+    .as-compact-title {
+      animation: fx-compact-in linear both;
+      animation-timeline: scroll(root);
+      animation-range: 100px 150px;
+    }
+  }
+}
+
+@keyframes fx-title-collapse {
+  to { opacity: 0; transform: translateY(-10px) scale(0.96); }
+}
+
+@keyframes fx-compact-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---------- 图标弹一下（SF Symbols 的 bounce），数字滚动 ---------- */
+
+.fx-pop { display: inline-block; }
+
+/* ---------- 加载中：骨架屏的流光（只移动一条渐变） ---------- */
+
+.as-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--fill-2);
+}
+
+.as-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.5) 50%, transparent 80%);
+  transform: translateX(-100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .as-skeleton::after { animation: fx-shimmer 1.4s ease-in-out infinite; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .as-skeleton::after {
+    background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.08) 50%, transparent 80%);
+  }
+}
+
+:root[data-theme="dark"] .as-skeleton::after {
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.08) 50%, transparent 80%);
+}
+
+@keyframes fx-shimmer { to { transform: translateX(100%); } }
+
+/* ---------- 全站搜索：打开时边框流过一圈彩光（Apple 智能的光晕），随后停成淡淡的一圈 ---------- */
+/* 彩色是一块旋转的锥形渐变，外层用遮罩只露出 2px 的边；动的只有旋转（transform） */
+
+.spot { isolation: isolate; }
+
+.spot-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  overflow: hidden;
+  border-radius: inherit;
+  padding: 2px;
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  opacity: 0.45;
+}
+
+.spot-glow i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140%;
+  aspect-ratio: 1;
+  background: conic-gradient(from 0deg, var(--g1), var(--g2), var(--g3), var(--g4), var(--g1));
+  transform: translate(-50%, -50%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .spot[open] .spot-glow { animation: fx-glow-settle 1200ms ease-out both; }
+  .spot[open] .spot-glow i { animation: fx-glow-spin 1200ms var(--ease-ios) both; }
+}
+
+@keyframes fx-glow-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(300deg); }
+}
+
+@keyframes fx-glow-settle {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0.45; }
+}

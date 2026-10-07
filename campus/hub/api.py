@@ -89,6 +89,12 @@ def get(request, route):
         from . import bookings
         return bookings.get(request,route)
     parts = route.split('/')
+    if parts[0] == 'sync':
+        from . import sync
+        return sync.get(request, route)
+    if parts[0] == 'beikuang':
+        from . import beikuang
+        return beikuang.get(request, route)
     if parts[0] == 'studio':
         from . import studio
         return studio.get(request, route)
@@ -98,9 +104,37 @@ def get(request, route):
     if parts[0] == 'clips':
         from . import clips
         return clips.get(request, route)
-    if parts[0] in {'teachers', 'courses', 'offerings', 'reviews'}:
+    if parts[0] in {'teachers', 'courses', 'offerings', 'reviews', 'reputation'}:
         from . import reputation
         return reputation.get(request, route)
+    # 维护机器人的结果：公告、项目配图是公开的；运行状态和待审新闻只给维护者
+    if route=='maintenance/status':
+        require(user, staff=True)
+        from .maintenance import status
+        return status()
+    if route=='supervisor':
+        require(user,staff=True)
+        from .supervisor import status
+        return status()
+    if route in ('campus/notices','projects/media'):
+        cache = ExternalCache.objects.filter(pk='maint:notices' if route=='campus/notices' else 'maint:project-media').first()
+        return {**(cache.data if cache else {}), 'checked': cache.checked.isoformat() if cache and cache.checked else None,
+                'error': cache.error if cache else '', 'ready': bool(cache and (cache.success or (route=='projects/media' and any(v.get('image') for v in cache.data.get('items',{}).values()))))}
+    if parts[0]=='mirror':
+        from .mirror import repository_name, serialize
+        from .models import MirrorAsset
+        if len(parts)==3 and parts[2] in ('file','license'):
+            asset = MirrorAsset.objects.filter(pk=parts[1]).first()
+            if not asset:
+                raise Problem('这个文件不存在或已下架。',404)
+            from .mirror_store import download
+            return download(request,asset,parts[2]=='license')
+        repository = repository_name(query.get('repository',''))
+        state = (ExternalCache.objects.filter(pk='maint:mirror').first() or ExternalCache(data={})).data.get('repositories',{}).get(repository,{})
+        assets = MirrorAsset.objects.filter(repository=repository).order_by('-published','-created')[:20]
+        return {'repository':repository,'items':[serialize(a) for a in assets],'status':state.get('status','unknown' if not assets else 'ok'),
+                'license':state.get('license',assets[0].license if assets else ''),'reason':state.get('reason',''),
+                'checkedAt':state.get('checkedAt'),'githubUrl':f'https://github.com/{repository}'}
     if route=='health':
         return {'ok':True,'version':'2.0','accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
     if route=='categories':
@@ -195,9 +229,8 @@ def get(request, route):
         return {'total':records.count(),'categories':totals,'items':items,'definition':'被采纳的公共贡献；不包含 Star 和外部刷题记录。'}
     if route=='notifications':
         require(user)
-        records = Notification.objects.filter(user=user).order_by('-created')
-        return {'unread':records.filter(read=False).count(),'items':[{'id':n.pk,'entry':str(n.entry_id) if n.entry_id else None,
-            'event':n.event,'text':n.text,'read':n.read,'created':n.created.isoformat()} for n in records[:100]]}
+        from .notifications import inbox
+        return inbox(user)
     if route=='moderation':
         require(user,staff=True)
         return {'entries':[entry_data(e,user,True) for e in Entry.objects.filter(state='pending').order_by('created')[:100]],
@@ -223,6 +256,9 @@ def get(request, route):
                 d.pop('readme',None)
                 items.append(d)
         return {'items':items,'ai':github_guides.ai_capabilities()}
+    if route=='repositories':
+        from .project_catalog import catalogue
+        return catalogue(query,user)
     if route=='feed':
         from .feed import cards
         return cards(request)
@@ -231,7 +267,10 @@ def get(request, route):
         cache = ExternalCache.objects.filter(pk=github_guides.cache_key(repo)).first()
         if not cache or not cache.success:
             raise Problem('尚未收录这个仓库，请先请求解析。',404)
-        return dict(cache.data,stale=bool(cache.error),lastSuccess=cache.success,error=cache.error)
+        data = dict(cache.data,stale=bool(cache.error),lastSuccess=cache.success,error=cache.error)
+        if not (user.is_authenticated and user.is_staff) and (data.get('guide') or {}).get('reviewState') != 'reviewed':
+            data['guide'] = {'state':'awaiting-review','message':'详细中文导读正在整理，核对后在此公开。'}
+        return data
     if route=='search/external':
         from .discovery import external_search
         throttle('search',request.META.get('REMOTE_ADDR',''),60)
@@ -258,6 +297,12 @@ def post(request, route, body):
     if route == 'bookings' or route.startswith('bookings/'):
         from . import bookings
         return bookings.post(request,route,body)
+    if parts[0] == 'sync':
+        from . import sync
+        return sync.post(request, route, body)
+    if parts[0] == 'beikuang':
+        from . import beikuang
+        return beikuang.post(request, route, body)
     if parts[0] == 'studio':
         from . import studio
         return studio.post(request, route, body)
@@ -267,9 +312,42 @@ def post(request, route, body):
     if parts[0] == 'clips':
         from . import clips
         return clips.post(request, route, body)
-    if parts[0] in {'teachers', 'courses', 'offerings', 'reviews', 'review-replies', 'review-cases'}:
+    if parts[0] in {'teachers', 'courses', 'offerings', 'reviews', 'review-replies', 'review-cases', 'reputation'}:
         from . import reputation
         return reputation.post(request, route, body)
+    if route=='maintenance/run':
+        require(user, staff=True)
+        from .maintenance import TASKS
+        tasks = list(TASKS) if body.get('task')=='all' else [body.get('task')]
+        if not all(t in TASKS for t in tasks):
+            raise Problem('未知的维护任务。')
+        if 'summaries' in tasks:
+            from .project_summaries import authorize
+            try: authorize(user)
+            except Problem:
+                if body.get('task')!='all': raise
+                tasks.remove('summaries')
+        jobs = [enqueue('maint-'+t,{},user) for t in tasks]
+        Audit.objects.create(actor=user,action='maintenance-run',target=','.join(tasks))
+        return {'jobs':[serialize_job(j) for j in jobs]}
+    if route=='mirror/refresh':
+        require(user, staff=True)
+        from .mirror import repository_name
+        repository = repository_name(body.get('repository',''))
+        job = enqueue('mirror-repo',{'repository':repository},user)
+        Audit.objects.create(actor=user,action='mirror-refresh',target=repository)
+        return {'job':serialize_job(job)}
+    if route=='supervisor/answer':
+        from .supervisor import answer
+        return answer(user,body)
+    if route=='supervisor/discuss':
+        from .supervisor import discuss
+        return discuss(request,body)
+    if route=='supervisor/announcement':
+        from .project_summaries import authorize
+        authorize(user)
+        throttle('supervisor-announcement',str(user.pk),3)
+        return serialize_job(enqueue('supervisor-draft',{},user))
     auth = {'auth/register':accounts.register,'auth/login':accounts.sign_in,'auth/reset-request':accounts.reset_request,
             'auth/reset-confirm':accounts.reset_confirm,'auth/verify':accounts.verify,'auth/profile':accounts.profile}
     if route in auth:
@@ -414,11 +492,19 @@ def post(request, route, body):
         throttle('github-inspect',str(user.pk),12)
         return serialize_job(enqueue('github-inspect',{'repository':github_guides.repository(body.get('repository',''))},user))
     if route=='github/summarize':
-        require(user,verified=True)
+        from .project_summaries import authorize
+        authorize(user)
         throttle('github-summary',str(user.pk),6)
         if not github_guides.ai_capabilities()['configured']:
             raise Problem(github_guides.ai_capabilities()['message'],503)
         return serialize_job(enqueue('github-summary',{'repository':github_guides.repository(body.get('repository',''))},user))
+    if route=='github/classify':
+        require(user,staff=True)
+        from .project_catalog import organize_repository
+        return organize_repository(body.get('repository',''))
+    if route=='github/guide/review':
+        from .project_summaries import review
+        return review(user,body)
     if route=='github/curate':
         return github_guides.curate(user,body)
     if route=='feed/feedback':

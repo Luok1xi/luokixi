@@ -1,0 +1,236 @@
+/* ==========================================================================
+   北矿娘的窗口（Opus · 2026-10-07）：iMessage 的对话 + App Store 的卡片。
+   她的消息灰色在左，站主的蓝色在右；交给站主的事是消息下面的一张张卡片。
+   ========================================================================== */
+
+.bk { display: grid; gap: 14px; }
+
+.bk-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; }
+
+.bk-avatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, #ff8fa3, #c86dd7 55%, #6e7bff);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px -8px rgba(200, 109, 215, 0.7);
+}
+
+.bk-avatar.is-big { width: 72px; height: 72px; font-size: 30px; }
+.bk-id h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.bk-id p { color: var(--ios-label-2); font-size: 13px; }
+.bk-head-actions { display: flex; gap: 8px; }
+
+.bk-stats { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.bk-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  background: var(--ios-fill);
+  color: var(--ios-label-2);
+  font-size: 13px;
+}
+
+.bk-stat b { color: var(--fg); font-size: 15px; font-weight: 700; }
+
+.bk-skills { margin-left: auto; font-size: 13px; }
+.bk-skills summary { cursor: pointer; color: var(--accent); list-style: none; }
+.bk-skills summary::-webkit-details-marker { display: none; }
+.bk-skills ul { position: absolute; z-index: 5; right: 0; display: grid; gap: 8px; width: min(360px, 86vw); margin-top: 8px; padding: 14px 16px; border-radius: 14px; background: var(--bg-elev); box-shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.3); list-style: none; }
+.bk-skills { position: relative; }
+.bk-skills li { display: grid; gap: 2px; }
+.bk-skills li span { color: var(--ios-label-2); font-size: 12px; line-height: 1.45; }
+
+/* ---------- 对话 ---------- */
+
+.bk-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 320px;
+  max-height: min(64vh, 720px);
+  padding: 16px 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 20px;
+  background: var(--bg-elev);
+  box-shadow: inset 0 0 0 0.5px var(--ios-sep);
+}
+
+.bk-skeleton { height: 280px; border-radius: 14px; }
+.bk-day { align-self: center; margin: 8px 0 2px; color: var(--ios-label-2); font-size: 12px; font-weight: 600; }
+
+.bk-row { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+.bk-row time { flex: none; color: var(--ios-label-2); font-size: 11px; opacity: 0; transition: opacity 150ms; }
+.bk-row:hover time { opacity: 1; }
+.bk-row.is-me { flex-direction: row-reverse; }
+
+.bk-mini {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(150deg, #ff8fa3, #c86dd7 55%, #6e7bff);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.bk-stack { display: grid; gap: 6px; min-width: 0; max-width: min(78%, 620px); }
+
+.bk-bubble {
+  max-width: min(78%, 560px);
+  padding: 9px 14px;
+  border-radius: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bk-stack .bk-bubble { max-width: 100%; justify-self: start; }
+.is-her .bk-bubble { border-bottom-left-radius: 6px; background: var(--ios-fill); color: var(--fg); }
+.is-me .bk-bubble { border-bottom-right-radius: 6px; background: var(--accent); color: #fff; }
+
+.bk-fallback { color: var(--ios-label-2); font-size: 11px; }
+
+/* 新消息：从下面轻轻浮上来（iMessage 发送的感觉） */
+@media (prefers-reduced-motion: no-preference) {
+  .bk-row.is-new { animation: bk-in 360ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+  .bk-row.is-me.is-new { transform-origin: right bottom; }
+  .bk-row.is-her.is-new { transform-origin: left bottom; }
+}
+
+@keyframes bk-in { from { opacity: 0; transform: translateY(12px) scale(0.96); } }
+
+/* 正在输入 */
+.bk-typing .bk-bubble { display: inline-flex; gap: 4px; padding: 13px 14px; }
+.bk-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--ios-label-2); opacity: 0.35; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bk-typing i { animation: bk-dot 1.2s ease-in-out infinite; }
+  .bk-typing i:nth-child(2) { animation-delay: 0.15s; }
+  .bk-typing i:nth-child(3) { animation-delay: 0.3s; }
+}
+
+@keyframes bk-dot { 30% { opacity: 1; } 60% { opacity: 0.35; } }
+
+/* 每日小报告 */
+.bk-report {
+  display: grid;
+  gap: 8px;
+  max-width: min(86%, 620px);
+  padding: 14px 16px;
+  border-radius: 20px;
+  border-bottom-left-radius: 6px;
+  background: linear-gradient(160deg, color-mix(in srgb, #ff8fa3 16%, var(--ios-fill)), color-mix(in srgb, #6e7bff 12%, var(--ios-fill)));
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.bk-report-title { color: #c2408f; font-size: 13px; font-weight: 700; }
+.bk-report-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.bk-report-chips span { display: inline-flex; align-items: baseline; gap: 4px; padding: 3px 10px; border-radius: var(--r-pill); background: var(--bg-elev); color: var(--ios-label-2); font-size: 12px; }
+.bk-report-chips b { color: var(--fg); font-size: 14px; }
+
+/* 交给站主的事 */
+.bk-tasks { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+
+.bk-task {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--bg-elev);
+  box-shadow: 0 0 0 0.5px var(--ios-sep), 0 4px 14px -10px rgba(0, 0, 0, 0.25);
+}
+
+.bk-task.is-closed { opacity: 0.72; box-shadow: 0 0 0 0.5px var(--ios-sep); }
+.bk-kind { align-self: start; padding: 2px 7px; border-radius: 6px; background: #484d55; color: #fff; font-size: 11px; font-weight: 700; }
+.bk-task-main { display: grid; gap: 3px; min-width: 0; }
+.bk-task-main b { display: -webkit-box; overflow: hidden; font-size: 14px; font-weight: 600; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.bk-task-main p { color: var(--ios-label-2); font-size: 13px; line-height: 1.45; }
+.bk-done { color: var(--ok) !important; font-weight: 600; }
+.bk-thumb { width: 72px; aspect-ratio: 3 / 4; margin-top: 4px; border-radius: 10px; object-fit: cover; background: var(--ios-fill); }
+.bk-task-actions, .bk-answer { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+.bk-answer input { flex: 1; min-width: 160px; height: 30px; padding: 0 12px; border: 0; border-radius: var(--r-pill); background: var(--ios-fill); color: var(--fg); font: inherit; font-size: 14px; }
+.bk-link { color: var(--accent); font-size: 13px; }
+.bk-task > .bk-link { grid-column: 2; }
+
+.bk-empty { display: grid; justify-items: center; gap: 8px; margin: auto; padding: 24px; text-align: center; }
+.bk-empty b { font-size: 17px; }
+.bk-empty p { max-width: 26em; color: var(--ios-label-2); font-size: 14px; line-height: 1.6; }
+
+/* ---------- 输入框 ---------- */
+
+.bk-compose {
+  position: sticky;
+  bottom: calc(var(--tabbar-h, 0px) + 8px);
+  z-index: 3;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--bg-elev) 90%, transparent);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+  backdrop-filter: saturate(180%) blur(16px);
+  box-shadow: 0 0 0 0.5px var(--ios-sep), 0 10px 30px -18px rgba(0, 0, 0, 0.35);
+}
+
+.bk-quick { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.bk-quick::-webkit-scrollbar { display: none; }
+.bk-quick .as-tag { flex: none; padding: 5px 12px; font-size: 13px; }
+.bk-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+
+.bk-field textarea {
+  min-height: 38px;
+  max-height: 160px;
+  padding: 8px 14px;
+  border: 0.5px solid var(--ios-sep);
+  border-radius: 19px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  resize: none;
+}
+
+.bk-field textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+
+.bk-send {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+}
+
+.bk-send svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.bk-note { min-height: 0; color: var(--ios-label-2); font-size: 12px; }
+.bk-note:empty { display: none; }
+
+@media (max-width: 760px) {
+  .bk-head { grid-template-columns: auto minmax(0, 1fr); }
+  .bk-head-actions { grid-column: 1 / -1; }
+  .bk-skills { margin-left: 0; }
+  .bk-thread { max-height: none; min-height: 50vh; padding: 12px 10px; }
+  .bk-stack, .bk-bubble { max-width: 86%; }
+  .bk-row time { display: none; }
+}
+
+/* 她的窗口开着时，右下角的“发布”悬浮按钮会挡住发送键 */
+body:has(.bk-compose) .fab { display: none; }

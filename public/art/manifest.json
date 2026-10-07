@@ -1,5 +1,1602 @@
 {
   "version": 1,
-  "_note": "页面美术插槽登记表（docs/ART_DIRECTION.md 第七节）。Codex 交付的图经 Opus 审稿通过后，在 slots 里按插槽名登记：{src, srcDark?, alt, w, h, focal?, review:\"approved\", meta}。src 必须在 art/ 目录下；没有登记或 review 不是 approved 的插槽，页面继续用数据生成的画面。",
-  "slots": {}
+  "_note": "Original concept artwork reviewed by Codex for this integration, with sources and prompts in each entry. Not documentary photographs. Missing real teacher/campus photographs are never generated. Rebuild after editing; art.js bundles this catalogue.",
+  "slots": {
+    "hero-exam": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "board-materials": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "project-course": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "hero-open-course": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "mat-all": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "mat-cet": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "mat-calc": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "mat-linalg": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "mat-ielts": {
+      "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+      "srcset": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp 96w, art/generated/art-e7299aa902b20d1730a2d95d-480.webp 480w, art/generated/art-e7299aa902b20d1730a2d95d-960.webp 960w, art/generated/art-e7299aa902b20d1730a2d95d-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖白书本、纸张与深蓝耳机组成的学习静物（AI 概念插画）",
+      "focal": "65% 48%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1114,
+          "sha256": "359f2421d960ac8503946d93c85850d94282cd4c4b372908021eb855ca03d033",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 9884,
+          "sha256": "069a8d54c60a84294940fc651aa18be80e6ef9ff64146cee5fd8df875ce23ee0",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 29796,
+          "sha256": "bb0076e130a1b7c6066d37a8543925054be86efcbf3307bc15e653def262a800",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-e7299aa902b20d1730a2d95d-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 80592,
+          "sha256": "e41166b2f812d41a45aab47f48ca11c6e6f554b7f7d21777843dcec549ac6f53",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 学习主题静物；不是任何真实考试材料的照片",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: product-mockup.\nAsset type: original photo-quality editorial hero banner for a university learning resource library; landscape approximately 1600 pixels wide, 16:10 aspect ratio.\nScene/backdrop: calm warm-ivory studio desk with softly directional natural morning light. Fine tonal separation, real shadows, authentic paper texture.\nSubject: one beautifully arranged compact group of everyday study tools: an unbranded closed cream clothbound book, several subtly layered unprinted ivory sheets held by a small silver clip, a refined matte midnight-blue pair of over-ear headphones, and one pale wooden pencil. The headphones sit naturally partly on the book and partly on the desk; no floating objects. Considered, believable still-life.\nStyle/medium: high-end editorial product photography, tactile, quiet, visually arresting through impeccable composition and material quality; soft daylight, gentle richness without oversaturation.\nComposition: a wide landscape frame with the arrangement in the center-right/upper-right, clean ivory negative space across the LEFT HALF and LOWER LEFT 30% for Chinese typography added later. Keep sufficient margins; elegant diagonal rhythm and a distinct recognizable silhouette, cropped gracefully at mobile size.\nPalette: warm ivory, soft paper white, deep desaturated blue, tiny natural wood accent.\nConstraints: no printed words, letters, numbers, logos, watermark, UI, people, campus buildings, fake exam content, branded product design. This is a general original study still-life, not a photo of any actual exam paper. No glowing objects, particles, neon, plastic toy look, implausible melting shapes. Full bleed image, no border.\n",
+        "sourceSha256": "96e255a21864215aa2837a792fb95feb46ecd304993ebba69b3908ec54a92ed4",
+        "recipeSha256": "e7299aa902b20d1730a2d95dcab0eef6d8743a135da0911141b51a49e988bec5",
+        "preparedAt": "2026-10-06T15:09:44.572796+00:00"
+      }
+    },
+    "hero-campus": {
+      "src": "art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+      "srcset": "art/generated/art-5cb00779c1cbe46451ab0888-96.webp 96w, art/generated/art-5cb00779c1cbe46451ab0888-480.webp 480w, art/generated/art-5cb00779c1cbe46451ab0888-960.webp 960w, art/generated/art-5cb00779c1cbe46451ab0888-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖木桌上的两只手、几何原型与笔记本，表现共同创作（AI 概念插画）",
+      "focal": "68% 45%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1608,
+          "sha256": "3d2608afb7ea2303e4fb3632708adbcaeb948b64aea8be9b6183245a53560077",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 19024,
+          "sha256": "d4e2d1b31bbadd946a4b22691308ce57bb594a31ba5d4e41613afa3e73d95cad",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 61242,
+          "sha256": "4966ea6596604f0eac6ebd243df0e0311c9fe89857685c991e9da3da23afb4a1",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 146344,
+          "sha256": "efe84420c0660f7951073960b290e9641cd0bf0b93c9010a2a9308d230b83929",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 交流主题概念图；非本校活动实拍，无真实人物身份",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: photorealistic-natural.\nAsset type: original photo-quality editorial banner for a university creators discussion community, landscape 16:10, approximately 1600 pixels wide. This is a GENERIC CONCEPT PHOTOGRAPH, never a documentary photograph of a real campus or named event.\nScene: a sunlit pale oak collaboration table in a neutral indoor space, close crop of the tabletop only. No buildings or identifying scenery.\nSubject: the quiet moment in an informal student maker conversation. Show only TWO natural adult hands/forearms from different sides: one resting by an open cream notebook, the other lightly pointing toward a small original unbranded wooden geometric prototype on the table. One clean blue pen, a pair of round white ceramic cups near the top edge, simple blank paper idea cards and warm saffron and blue pieces. Keep the scene sparse and meaningful, realistic rather than staged stock-photo cliché. Paper has only extremely faint nonverbal sketch lines, no readable words or math.\nStyle: exceptionally warm, tactile, honest editorial lifestyle photography; no faces, no named identities, no unrealistic objects. Medium top-down oblique camera angle, real skin texture, accurate fingers and proportions, oak grain, linen shirt cuff. Soft large-window illumination from the upper left, gentle shadows and warm highlight roll-off.\nComposition: most of the interaction and objects occupy the upper-right and center-right; the left quarter and lower-left foreground of the oak desk are comparatively quiet with clear space for a headline added in HTML. Keep central prototype and hands readable in a centered mobile crop.\nColor: creamy oak, warm white, restrained saffron ochre, slate blue. Joyful intellectual collaboration without neon.\nConstraints: no words, numbers, letters, logos, watermarks, interfaces, visible faces, school insignia, buildings, actual event references, faux news reportage, deformed hands, extra fingers, clasped or tangled fingers, clutter, business handshake, floating objects, fluorescent light, heavy bokeh blur. Full bleed, no frame.\n",
+        "sourceSha256": "efa5594390d1614eae1a225045e250d1a94154a06cfc4f88eb6c4d71f8464387",
+        "recipeSha256": "5cb00779c1cbe46451ab08888907d3862e513bd73277ac5a6e838d027171719a",
+        "preparedAt": "2026-10-06T15:09:45.065107+00:00"
+      }
+    },
+    "hero-circle": {
+      "src": "art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+      "srcset": "art/generated/art-5cb00779c1cbe46451ab0888-96.webp 96w, art/generated/art-5cb00779c1cbe46451ab0888-480.webp 480w, art/generated/art-5cb00779c1cbe46451ab0888-960.webp 960w, art/generated/art-5cb00779c1cbe46451ab0888-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖木桌上的两只手、几何原型与笔记本，表现共同创作（AI 概念插画）",
+      "focal": "68% 45%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1608,
+          "sha256": "3d2608afb7ea2303e4fb3632708adbcaeb948b64aea8be9b6183245a53560077",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 19024,
+          "sha256": "d4e2d1b31bbadd946a4b22691308ce57bb594a31ba5d4e41613afa3e73d95cad",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 61242,
+          "sha256": "4966ea6596604f0eac6ebd243df0e0311c9fe89857685c991e9da3da23afb4a1",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 146344,
+          "sha256": "efe84420c0660f7951073960b290e9641cd0bf0b93c9010a2a9308d230b83929",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 交流主题概念图；非本校活动实拍，无真实人物身份",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: photorealistic-natural.\nAsset type: original photo-quality editorial banner for a university creators discussion community, landscape 16:10, approximately 1600 pixels wide. This is a GENERIC CONCEPT PHOTOGRAPH, never a documentary photograph of a real campus or named event.\nScene: a sunlit pale oak collaboration table in a neutral indoor space, close crop of the tabletop only. No buildings or identifying scenery.\nSubject: the quiet moment in an informal student maker conversation. Show only TWO natural adult hands/forearms from different sides: one resting by an open cream notebook, the other lightly pointing toward a small original unbranded wooden geometric prototype on the table. One clean blue pen, a pair of round white ceramic cups near the top edge, simple blank paper idea cards and warm saffron and blue pieces. Keep the scene sparse and meaningful, realistic rather than staged stock-photo cliché. Paper has only extremely faint nonverbal sketch lines, no readable words or math.\nStyle: exceptionally warm, tactile, honest editorial lifestyle photography; no faces, no named identities, no unrealistic objects. Medium top-down oblique camera angle, real skin texture, accurate fingers and proportions, oak grain, linen shirt cuff. Soft large-window illumination from the upper left, gentle shadows and warm highlight roll-off.\nComposition: most of the interaction and objects occupy the upper-right and center-right; the left quarter and lower-left foreground of the oak desk are comparatively quiet with clear space for a headline added in HTML. Keep central prototype and hands readable in a centered mobile crop.\nColor: creamy oak, warm white, restrained saffron ochre, slate blue. Joyful intellectual collaboration without neon.\nConstraints: no words, numbers, letters, logos, watermarks, interfaces, visible faces, school insignia, buildings, actual event references, faux news reportage, deformed hands, extra fingers, clasped or tangled fingers, clutter, business handshake, floating objects, fluorescent light, heavy bokeh blur. Full bleed, no frame.\n",
+        "sourceSha256": "efa5594390d1614eae1a225045e250d1a94154a06cfc4f88eb6c4d71f8464387",
+        "recipeSha256": "5cb00779c1cbe46451ab08888907d3862e513bd73277ac5a6e838d027171719a",
+        "preparedAt": "2026-10-06T15:09:45.065107+00:00"
+      }
+    },
+    "board-circle": {
+      "src": "art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+      "srcset": "art/generated/art-5cb00779c1cbe46451ab0888-96.webp 96w, art/generated/art-5cb00779c1cbe46451ab0888-480.webp 480w, art/generated/art-5cb00779c1cbe46451ab0888-960.webp 960w, art/generated/art-5cb00779c1cbe46451ab0888-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暖木桌上的两只手、几何原型与笔记本，表现共同创作（AI 概念插画）",
+      "focal": "68% 45%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 1608,
+          "sha256": "3d2608afb7ea2303e4fb3632708adbcaeb948b64aea8be9b6183245a53560077",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 19024,
+          "sha256": "d4e2d1b31bbadd946a4b22691308ce57bb594a31ba5d4e41613afa3e73d95cad",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 61242,
+          "sha256": "4966ea6596604f0eac6ebd243df0e0311c9fe89857685c991e9da3da23afb4a1",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 146344,
+          "sha256": "efe84420c0660f7951073960b290e9641cd0bf0b93c9010a2a9308d230b83929",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 交流主题概念图；非本校活动实拍，无真实人物身份",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: photorealistic-natural.\nAsset type: original photo-quality editorial banner for a university creators discussion community, landscape 16:10, approximately 1600 pixels wide. This is a GENERIC CONCEPT PHOTOGRAPH, never a documentary photograph of a real campus or named event.\nScene: a sunlit pale oak collaboration table in a neutral indoor space, close crop of the tabletop only. No buildings or identifying scenery.\nSubject: the quiet moment in an informal student maker conversation. Show only TWO natural adult hands/forearms from different sides: one resting by an open cream notebook, the other lightly pointing toward a small original unbranded wooden geometric prototype on the table. One clean blue pen, a pair of round white ceramic cups near the top edge, simple blank paper idea cards and warm saffron and blue pieces. Keep the scene sparse and meaningful, realistic rather than staged stock-photo cliché. Paper has only extremely faint nonverbal sketch lines, no readable words or math.\nStyle: exceptionally warm, tactile, honest editorial lifestyle photography; no faces, no named identities, no unrealistic objects. Medium top-down oblique camera angle, real skin texture, accurate fingers and proportions, oak grain, linen shirt cuff. Soft large-window illumination from the upper left, gentle shadows and warm highlight roll-off.\nComposition: most of the interaction and objects occupy the upper-right and center-right; the left quarter and lower-left foreground of the oak desk are comparatively quiet with clear space for a headline added in HTML. Keep central prototype and hands readable in a centered mobile crop.\nColor: creamy oak, warm white, restrained saffron ochre, slate blue. Joyful intellectual collaboration without neon.\nConstraints: no words, numbers, letters, logos, watermarks, interfaces, visible faces, school insignia, buildings, actual event references, faux news reportage, deformed hands, extra fingers, clasped or tangled fingers, clutter, business handshake, floating objects, fluorescent light, heavy bokeh blur. Full bleed, no frame.\n",
+        "sourceSha256": "efa5594390d1614eae1a225045e250d1a94154a06cfc4f88eb6c4d71f8464387",
+        "recipeSha256": "5cb00779c1cbe46451ab08888907d3862e513bd73277ac5a6e838d027171719a",
+        "preparedAt": "2026-10-06T15:09:45.065107+00:00"
+      }
+    },
+    "hero-open-research": {
+      "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+      "srcset": "art/generated/art-cab199291501da61c1cc0a65-96.webp 96w, art/generated/art-cab199291501da61c1cc0a65-480.webp 480w, art/generated/art-cab199291501da61c1cc0a65-960.webp 960w, art/generated/art-cab199291501da61c1cc0a65-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暗色实验台上的精密光学镜筒与蓝紫色棱镜（AI 概念插画）",
+      "focal": "72% 42%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 866,
+          "sha256": "e47fe98c127678ea6380787ce7f7ceb7d523f5875ef9b831c16b9eb08b04742a",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 8006,
+          "sha256": "85f5ddaabc6ab7d10b020cf799a35a26f52d8b26a49f07d8a43ec7356af38fb5",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 21834,
+          "sha256": "54200e5574a1501c4da59fed8fb20fa26679458035f798d65c27dc784066a715",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 45380,
+          "sha256": "d3fd51e3c5f7365cdf78f3715f6e0b773c35acfe2daf2394fe8271e20358d84f",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 科研光学概念静物；不是实际科研成果照片或可验证实验装置",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium photo-real editorial hero image for a university research-frontiers topic, landscape 16:10 approximately 1600 pixels wide.\nPrimary request: a precise and visually magnetic still-life of unbranded optical research hardware, composed as a serious science editorial photograph rather than science fiction.\nScene/backdrop: quiet midnight charcoal studio darkness, subtly visible dark optical breadboard surface only near the lower-right.\nSubject: a finely machined satin-silver microscope objective/optical lens barrel held by a compact precision adjustment mount, looking toward a pristine small clear optical prism on a black metal post. One extremely delicate restrained blue-violet line of illumination connects the apparatus and refracts into the prism, with a very small highlight. A second soft-focus circular glass lens farther behind adds depth, but no busy lab clutter. Keep geometry coherent, believable mount screws and fine knurled adjustment ring, clear optical glass and precise polished edges.\nStyle: photography-grade luxury industrial still-life, rich true material detail, elegant restraint, carefully composed, dark and tactile. This is a generic research concept object, not a named experiment or validated optical setup.\nComposition: apparatus concentrated in the center-right and upper-right; leave the left 40% and lower-left foreground near-black and calm for future white Chinese text. Wide cinematic framing, subject big and readable, enough clear margins and useful centered-right portrait crop.\nLighting/color: silver-metal specular highlights, ice blue and a trace of soft violet in glass, a narrow cool studio key, rich dark shadows. No warm fire colors.\nAvoid: any words, labels, numbers, symbols, logos, watermark, UI, glowing icons, particle clouds, lens flares, exaggerated laser beams, impossible rainbow shafts, fake equations, floating parts, robot hands, people, science-fiction screens, oversized toy microscope, actual campus background. No copied product design. Full bleed, no border.\n",
+        "sourceSha256": "7b0e19f34b2c9bedc6428e0ce59dbd6c6bb7eb23eb1500d2b976a67e690796ee",
+        "recipeSha256": "cab199291501da61c1cc0a65bdfe8642a2fa28893eb7dd08ee733f800b58d0c4",
+        "preparedAt": "2026-10-06T15:09:45.430272+00:00"
+      }
+    },
+    "hero-open-algo": {
+      "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+      "srcset": "art/generated/art-cab199291501da61c1cc0a65-96.webp 96w, art/generated/art-cab199291501da61c1cc0a65-480.webp 480w, art/generated/art-cab199291501da61c1cc0a65-960.webp 960w, art/generated/art-cab199291501da61c1cc0a65-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暗色实验台上的精密光学镜筒与蓝紫色棱镜（AI 概念插画）",
+      "focal": "72% 42%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 866,
+          "sha256": "e47fe98c127678ea6380787ce7f7ceb7d523f5875ef9b831c16b9eb08b04742a",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 8006,
+          "sha256": "85f5ddaabc6ab7d10b020cf799a35a26f52d8b26a49f07d8a43ec7356af38fb5",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 21834,
+          "sha256": "54200e5574a1501c4da59fed8fb20fa26679458035f798d65c27dc784066a715",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 45380,
+          "sha256": "d3fd51e3c5f7365cdf78f3715f6e0b773c35acfe2daf2394fe8271e20358d84f",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 科研光学概念静物；不是实际科研成果照片或可验证实验装置",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium photo-real editorial hero image for a university research-frontiers topic, landscape 16:10 approximately 1600 pixels wide.\nPrimary request: a precise and visually magnetic still-life of unbranded optical research hardware, composed as a serious science editorial photograph rather than science fiction.\nScene/backdrop: quiet midnight charcoal studio darkness, subtly visible dark optical breadboard surface only near the lower-right.\nSubject: a finely machined satin-silver microscope objective/optical lens barrel held by a compact precision adjustment mount, looking toward a pristine small clear optical prism on a black metal post. One extremely delicate restrained blue-violet line of illumination connects the apparatus and refracts into the prism, with a very small highlight. A second soft-focus circular glass lens farther behind adds depth, but no busy lab clutter. Keep geometry coherent, believable mount screws and fine knurled adjustment ring, clear optical glass and precise polished edges.\nStyle: photography-grade luxury industrial still-life, rich true material detail, elegant restraint, carefully composed, dark and tactile. This is a generic research concept object, not a named experiment or validated optical setup.\nComposition: apparatus concentrated in the center-right and upper-right; leave the left 40% and lower-left foreground near-black and calm for future white Chinese text. Wide cinematic framing, subject big and readable, enough clear margins and useful centered-right portrait crop.\nLighting/color: silver-metal specular highlights, ice blue and a trace of soft violet in glass, a narrow cool studio key, rich dark shadows. No warm fire colors.\nAvoid: any words, labels, numbers, symbols, logos, watermark, UI, glowing icons, particle clouds, lens flares, exaggerated laser beams, impossible rainbow shafts, fake equations, floating parts, robot hands, people, science-fiction screens, oversized toy microscope, actual campus background. No copied product design. Full bleed, no border.\n",
+        "sourceSha256": "7b0e19f34b2c9bedc6428e0ce59dbd6c6bb7eb23eb1500d2b976a67e690796ee",
+        "recipeSha256": "cab199291501da61c1cc0a65bdfe8642a2fa28893eb7dd08ee733f800b58d0c4",
+        "preparedAt": "2026-10-06T15:09:45.430272+00:00"
+      }
+    },
+    "project-research": {
+      "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+      "srcset": "art/generated/art-cab199291501da61c1cc0a65-96.webp 96w, art/generated/art-cab199291501da61c1cc0a65-480.webp 480w, art/generated/art-cab199291501da61c1cc0a65-960.webp 960w, art/generated/art-cab199291501da61c1cc0a65-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暗色实验台上的精密光学镜筒与蓝紫色棱镜（AI 概念插画）",
+      "focal": "72% 42%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 866,
+          "sha256": "e47fe98c127678ea6380787ce7f7ceb7d523f5875ef9b831c16b9eb08b04742a",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 8006,
+          "sha256": "85f5ddaabc6ab7d10b020cf799a35a26f52d8b26a49f07d8a43ec7356af38fb5",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 21834,
+          "sha256": "54200e5574a1501c4da59fed8fb20fa26679458035f798d65c27dc784066a715",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 45380,
+          "sha256": "d3fd51e3c5f7365cdf78f3715f6e0b773c35acfe2daf2394fe8271e20358d84f",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 科研光学概念静物；不是实际科研成果照片或可验证实验装置",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium photo-real editorial hero image for a university research-frontiers topic, landscape 16:10 approximately 1600 pixels wide.\nPrimary request: a precise and visually magnetic still-life of unbranded optical research hardware, composed as a serious science editorial photograph rather than science fiction.\nScene/backdrop: quiet midnight charcoal studio darkness, subtly visible dark optical breadboard surface only near the lower-right.\nSubject: a finely machined satin-silver microscope objective/optical lens barrel held by a compact precision adjustment mount, looking toward a pristine small clear optical prism on a black metal post. One extremely delicate restrained blue-violet line of illumination connects the apparatus and refracts into the prism, with a very small highlight. A second soft-focus circular glass lens farther behind adds depth, but no busy lab clutter. Keep geometry coherent, believable mount screws and fine knurled adjustment ring, clear optical glass and precise polished edges.\nStyle: photography-grade luxury industrial still-life, rich true material detail, elegant restraint, carefully composed, dark and tactile. This is a generic research concept object, not a named experiment or validated optical setup.\nComposition: apparatus concentrated in the center-right and upper-right; leave the left 40% and lower-left foreground near-black and calm for future white Chinese text. Wide cinematic framing, subject big and readable, enough clear margins and useful centered-right portrait crop.\nLighting/color: silver-metal specular highlights, ice blue and a trace of soft violet in glass, a narrow cool studio key, rich dark shadows. No warm fire colors.\nAvoid: any words, labels, numbers, symbols, logos, watermark, UI, glowing icons, particle clouds, lens flares, exaggerated laser beams, impossible rainbow shafts, fake equations, floating parts, robot hands, people, science-fiction screens, oversized toy microscope, actual campus background. No copied product design. Full bleed, no border.\n",
+        "sourceSha256": "7b0e19f34b2c9bedc6428e0ce59dbd6c6bb7eb23eb1500d2b976a67e690796ee",
+        "recipeSha256": "cab199291501da61c1cc0a65bdfe8642a2fa28893eb7dd08ee733f800b58d0c4",
+        "preparedAt": "2026-10-06T15:09:45.430272+00:00"
+      }
+    },
+    "project-algo": {
+      "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+      "srcset": "art/generated/art-cab199291501da61c1cc0a65-96.webp 96w, art/generated/art-cab199291501da61c1cc0a65-480.webp 480w, art/generated/art-cab199291501da61c1cc0a65-960.webp 960w, art/generated/art-cab199291501da61c1cc0a65-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暗色实验台上的精密光学镜筒与蓝紫色棱镜（AI 概念插画）",
+      "focal": "72% 42%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 866,
+          "sha256": "e47fe98c127678ea6380787ce7f7ceb7d523f5875ef9b831c16b9eb08b04742a",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 8006,
+          "sha256": "85f5ddaabc6ab7d10b020cf799a35a26f52d8b26a49f07d8a43ec7356af38fb5",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 21834,
+          "sha256": "54200e5574a1501c4da59fed8fb20fa26679458035f798d65c27dc784066a715",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 45380,
+          "sha256": "d3fd51e3c5f7365cdf78f3715f6e0b773c35acfe2daf2394fe8271e20358d84f",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 科研光学概念静物；不是实际科研成果照片或可验证实验装置",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium photo-real editorial hero image for a university research-frontiers topic, landscape 16:10 approximately 1600 pixels wide.\nPrimary request: a precise and visually magnetic still-life of unbranded optical research hardware, composed as a serious science editorial photograph rather than science fiction.\nScene/backdrop: quiet midnight charcoal studio darkness, subtly visible dark optical breadboard surface only near the lower-right.\nSubject: a finely machined satin-silver microscope objective/optical lens barrel held by a compact precision adjustment mount, looking toward a pristine small clear optical prism on a black metal post. One extremely delicate restrained blue-violet line of illumination connects the apparatus and refracts into the prism, with a very small highlight. A second soft-focus circular glass lens farther behind adds depth, but no busy lab clutter. Keep geometry coherent, believable mount screws and fine knurled adjustment ring, clear optical glass and precise polished edges.\nStyle: photography-grade luxury industrial still-life, rich true material detail, elegant restraint, carefully composed, dark and tactile. This is a generic research concept object, not a named experiment or validated optical setup.\nComposition: apparatus concentrated in the center-right and upper-right; leave the left 40% and lower-left foreground near-black and calm for future white Chinese text. Wide cinematic framing, subject big and readable, enough clear margins and useful centered-right portrait crop.\nLighting/color: silver-metal specular highlights, ice blue and a trace of soft violet in glass, a narrow cool studio key, rich dark shadows. No warm fire colors.\nAvoid: any words, labels, numbers, symbols, logos, watermark, UI, glowing icons, particle clouds, lens flares, exaggerated laser beams, impossible rainbow shafts, fake equations, floating parts, robot hands, people, science-fiction screens, oversized toy microscope, actual campus background. No copied product design. Full bleed, no border.\n",
+        "sourceSha256": "7b0e19f34b2c9bedc6428e0ce59dbd6c6bb7eb23eb1500d2b976a67e690796ee",
+        "recipeSha256": "cab199291501da61c1cc0a65bdfe8642a2fa28893eb7dd08ee733f800b58d0c4",
+        "preparedAt": "2026-10-06T15:09:45.430272+00:00"
+      }
+    },
+    "mat-physics": {
+      "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+      "srcset": "art/generated/art-cab199291501da61c1cc0a65-96.webp 96w, art/generated/art-cab199291501da61c1cc0a65-480.webp 480w, art/generated/art-cab199291501da61c1cc0a65-960.webp 960w, art/generated/art-cab199291501da61c1cc0a65-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暗色实验台上的精密光学镜筒与蓝紫色棱镜（AI 概念插画）",
+      "focal": "72% 42%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 866,
+          "sha256": "e47fe98c127678ea6380787ce7f7ceb7d523f5875ef9b831c16b9eb08b04742a",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 8006,
+          "sha256": "85f5ddaabc6ab7d10b020cf799a35a26f52d8b26a49f07d8a43ec7356af38fb5",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 21834,
+          "sha256": "54200e5574a1501c4da59fed8fb20fa26679458035f798d65c27dc784066a715",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 45380,
+          "sha256": "d3fd51e3c5f7365cdf78f3715f6e0b773c35acfe2daf2394fe8271e20358d84f",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 科研光学概念静物；不是实际科研成果照片或可验证实验装置",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium photo-real editorial hero image for a university research-frontiers topic, landscape 16:10 approximately 1600 pixels wide.\nPrimary request: a precise and visually magnetic still-life of unbranded optical research hardware, composed as a serious science editorial photograph rather than science fiction.\nScene/backdrop: quiet midnight charcoal studio darkness, subtly visible dark optical breadboard surface only near the lower-right.\nSubject: a finely machined satin-silver microscope objective/optical lens barrel held by a compact precision adjustment mount, looking toward a pristine small clear optical prism on a black metal post. One extremely delicate restrained blue-violet line of illumination connects the apparatus and refracts into the prism, with a very small highlight. A second soft-focus circular glass lens farther behind adds depth, but no busy lab clutter. Keep geometry coherent, believable mount screws and fine knurled adjustment ring, clear optical glass and precise polished edges.\nStyle: photography-grade luxury industrial still-life, rich true material detail, elegant restraint, carefully composed, dark and tactile. This is a generic research concept object, not a named experiment or validated optical setup.\nComposition: apparatus concentrated in the center-right and upper-right; leave the left 40% and lower-left foreground near-black and calm for future white Chinese text. Wide cinematic framing, subject big and readable, enough clear margins and useful centered-right portrait crop.\nLighting/color: silver-metal specular highlights, ice blue and a trace of soft violet in glass, a narrow cool studio key, rich dark shadows. No warm fire colors.\nAvoid: any words, labels, numbers, symbols, logos, watermark, UI, glowing icons, particle clouds, lens flares, exaggerated laser beams, impossible rainbow shafts, fake equations, floating parts, robot hands, people, science-fiction screens, oversized toy microscope, actual campus background. No copied product design. Full bleed, no border.\n",
+        "sourceSha256": "7b0e19f34b2c9bedc6428e0ce59dbd6c6bb7eb23eb1500d2b976a67e690796ee",
+        "recipeSha256": "cab199291501da61c1cc0a65bdfe8642a2fa28893eb7dd08ee733f800b58d0c4",
+        "preparedAt": "2026-10-06T15:09:45.430272+00:00"
+      }
+    },
+    "mat-chem": {
+      "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+      "srcset": "art/generated/art-cab199291501da61c1cc0a65-96.webp 96w, art/generated/art-cab199291501da61c1cc0a65-480.webp 480w, art/generated/art-cab199291501da61c1cc0a65-960.webp 960w, art/generated/art-cab199291501da61c1cc0a65-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "暗色实验台上的精密光学镜筒与蓝紫色棱镜（AI 概念插画）",
+      "focal": "72% 42%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 866,
+          "sha256": "e47fe98c127678ea6380787ce7f7ceb7d523f5875ef9b831c16b9eb08b04742a",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 8006,
+          "sha256": "85f5ddaabc6ab7d10b020cf799a35a26f52d8b26a49f07d8a43ec7356af38fb5",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 21834,
+          "sha256": "54200e5574a1501c4da59fed8fb20fa26679458035f798d65c27dc784066a715",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-cab199291501da61c1cc0a65-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 45380,
+          "sha256": "d3fd51e3c5f7365cdf78f3715f6e0b773c35acfe2daf2394fe8271e20358d84f",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Original artwork generated with built-in image_gen, 2026-10-06",
+          "url": ""
+        },
+        "rights": "原创 AI 科研光学概念静物；不是实际科研成果照片或可验证实验装置",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium photo-real editorial hero image for a university research-frontiers topic, landscape 16:10 approximately 1600 pixels wide.\nPrimary request: a precise and visually magnetic still-life of unbranded optical research hardware, composed as a serious science editorial photograph rather than science fiction.\nScene/backdrop: quiet midnight charcoal studio darkness, subtly visible dark optical breadboard surface only near the lower-right.\nSubject: a finely machined satin-silver microscope objective/optical lens barrel held by a compact precision adjustment mount, looking toward a pristine small clear optical prism on a black metal post. One extremely delicate restrained blue-violet line of illumination connects the apparatus and refracts into the prism, with a very small highlight. A second soft-focus circular glass lens farther behind adds depth, but no busy lab clutter. Keep geometry coherent, believable mount screws and fine knurled adjustment ring, clear optical glass and precise polished edges.\nStyle: photography-grade luxury industrial still-life, rich true material detail, elegant restraint, carefully composed, dark and tactile. This is a generic research concept object, not a named experiment or validated optical setup.\nComposition: apparatus concentrated in the center-right and upper-right; leave the left 40% and lower-left foreground near-black and calm for future white Chinese text. Wide cinematic framing, subject big and readable, enough clear margins and useful centered-right portrait crop.\nLighting/color: silver-metal specular highlights, ice blue and a trace of soft violet in glass, a narrow cool studio key, rich dark shadows. No warm fire colors.\nAvoid: any words, labels, numbers, symbols, logos, watermark, UI, glowing icons, particle clouds, lens flares, exaggerated laser beams, impossible rainbow shafts, fake equations, floating parts, robot hands, people, science-fiction screens, oversized toy microscope, actual campus background. No copied product design. Full bleed, no border.\n",
+        "sourceSha256": "7b0e19f34b2c9bedc6428e0ce59dbd6c6bb7eb23eb1500d2b976a67e690796ee",
+        "recipeSha256": "cab199291501da61c1cc0a65bdfe8642a2fa28893eb7dd08ee733f800b58d0c4",
+        "preparedAt": "2026-10-06T15:09:45.430272+00:00"
+      }
+    },
+    "hero-open-mech": {
+      "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+      "srcset": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp 96w, art/generated/art-1f7290a2054dbab4ffd20589-480.webp 480w, art/generated/art-1f7290a2054dbab4ffd20589-960.webp 960w, art/generated/art-1f7290a2054dbab4ffd20589-1536.webp 1536w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1536,
+      "h": 1024,
+      "alt": "蓝色电路板与银色机械装配组件（AI 概念插画）",
+      "focal": "65% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp",
+          "w": 96,
+          "h": 64,
+          "bytes": 1278,
+          "sha256": "699e7a3b5aabfe80e02f6b2db40d1c994c5a5fab6cc47e765619ffbd7055ef1f",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-480.webp",
+          "w": 480,
+          "h": 320,
+          "bytes": 12618,
+          "sha256": "7e1fb7a948732f039d0b7dcac6d0935fad23b6dbffcbf44208bcb7a876c413dd",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-960.webp",
+          "w": 960,
+          "h": 640,
+          "bytes": 33788,
+          "sha256": "490fac47f274a4c04d772695bddac47b4573476861efe4794bbf56cff8b50656",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+          "w": 1536,
+          "h": 1024,
+          "bytes": 66196,
+          "sha256": "4bfbbb13f0aa5163f819ddab8b1b39803943aab6bbf86cfbd421a1dbb78cbb9a",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen engineering artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI-generated engineering concept illustration; not an actual campus project photo or a technical assembly drawing",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept. Create one original premium product photography style 3D illustration for a Chinese university open-source engineering community website. Landscape 3:2 composition at high quality. A beautifully engineered compact student robotics assembly, precisely machined silver aluminium mounting frame, one deep blue printed circuit board with tiny real-looking gold connectors, a cylindrical brushed steel motor, two small silver gears, one warm orange cable and a translucent blue polycarbonate plate arranged as an exploded assembly. The objects relate mechanically and are thoughtfully spaced, hovering subtly above a pale off-white studio surface with soft grounded shadows. Close, tactile, restrained industrial editorial composition with main assembly in the middle-right, generous clean negative space at the left and around edges. Soft enormous studio lights, impeccable realistic metal highlights, clear silhouette, premium museum object feeling. Palette mainly silver and warm white, one rich blue and small orange accents. No text anywhere, no letters, no numbers, no logos, no Apple products, no branded hardware, no people, no neon, no busy environment. This is a conceptual illustration not a technical assembly diagram. Important: calm precise compact physical objects, not a sci-fi abstract shape. Output a single full-bleed landscape image.",
+        "sourceSha256": "c87cdbccb7f77635db51ff8448a1d4cb6c12a11ecd8e713de1c72f9798a4de5e",
+        "recipeSha256": "1f7290a2054dbab4ffd2058928615fecc3e51f97015cfe7ca710bf29248af78a",
+        "preparedAt": "2026-10-06T15:09:45.769985+00:00"
+      }
+    },
+    "hero-open-embedded": {
+      "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+      "srcset": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp 96w, art/generated/art-1f7290a2054dbab4ffd20589-480.webp 480w, art/generated/art-1f7290a2054dbab4ffd20589-960.webp 960w, art/generated/art-1f7290a2054dbab4ffd20589-1536.webp 1536w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1536,
+      "h": 1024,
+      "alt": "蓝色电路板与银色机械装配组件（AI 概念插画）",
+      "focal": "65% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp",
+          "w": 96,
+          "h": 64,
+          "bytes": 1278,
+          "sha256": "699e7a3b5aabfe80e02f6b2db40d1c994c5a5fab6cc47e765619ffbd7055ef1f",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-480.webp",
+          "w": 480,
+          "h": 320,
+          "bytes": 12618,
+          "sha256": "7e1fb7a948732f039d0b7dcac6d0935fad23b6dbffcbf44208bcb7a876c413dd",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-960.webp",
+          "w": 960,
+          "h": 640,
+          "bytes": 33788,
+          "sha256": "490fac47f274a4c04d772695bddac47b4573476861efe4794bbf56cff8b50656",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+          "w": 1536,
+          "h": 1024,
+          "bytes": 66196,
+          "sha256": "4bfbbb13f0aa5163f819ddab8b1b39803943aab6bbf86cfbd421a1dbb78cbb9a",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen engineering artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI-generated engineering concept illustration; not an actual campus project photo or a technical assembly drawing",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept. Create one original premium product photography style 3D illustration for a Chinese university open-source engineering community website. Landscape 3:2 composition at high quality. A beautifully engineered compact student robotics assembly, precisely machined silver aluminium mounting frame, one deep blue printed circuit board with tiny real-looking gold connectors, a cylindrical brushed steel motor, two small silver gears, one warm orange cable and a translucent blue polycarbonate plate arranged as an exploded assembly. The objects relate mechanically and are thoughtfully spaced, hovering subtly above a pale off-white studio surface with soft grounded shadows. Close, tactile, restrained industrial editorial composition with main assembly in the middle-right, generous clean negative space at the left and around edges. Soft enormous studio lights, impeccable realistic metal highlights, clear silhouette, premium museum object feeling. Palette mainly silver and warm white, one rich blue and small orange accents. No text anywhere, no letters, no numbers, no logos, no Apple products, no branded hardware, no people, no neon, no busy environment. This is a conceptual illustration not a technical assembly diagram. Important: calm precise compact physical objects, not a sci-fi abstract shape. Output a single full-bleed landscape image.",
+        "sourceSha256": "c87cdbccb7f77635db51ff8448a1d4cb6c12a11ecd8e713de1c72f9798a4de5e",
+        "recipeSha256": "1f7290a2054dbab4ffd2058928615fecc3e51f97015cfe7ca710bf29248af78a",
+        "preparedAt": "2026-10-06T15:09:45.769985+00:00"
+      }
+    },
+    "hero-chances": {
+      "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+      "srcset": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp 96w, art/generated/art-1f7290a2054dbab4ffd20589-480.webp 480w, art/generated/art-1f7290a2054dbab4ffd20589-960.webp 960w, art/generated/art-1f7290a2054dbab4ffd20589-1536.webp 1536w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1536,
+      "h": 1024,
+      "alt": "蓝色电路板与银色机械装配组件（AI 概念插画）",
+      "focal": "65% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp",
+          "w": 96,
+          "h": 64,
+          "bytes": 1278,
+          "sha256": "699e7a3b5aabfe80e02f6b2db40d1c994c5a5fab6cc47e765619ffbd7055ef1f",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-480.webp",
+          "w": 480,
+          "h": 320,
+          "bytes": 12618,
+          "sha256": "7e1fb7a948732f039d0b7dcac6d0935fad23b6dbffcbf44208bcb7a876c413dd",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-960.webp",
+          "w": 960,
+          "h": 640,
+          "bytes": 33788,
+          "sha256": "490fac47f274a4c04d772695bddac47b4573476861efe4794bbf56cff8b50656",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+          "w": 1536,
+          "h": 1024,
+          "bytes": 66196,
+          "sha256": "4bfbbb13f0aa5163f819ddab8b1b39803943aab6bbf86cfbd421a1dbb78cbb9a",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen engineering artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI-generated engineering concept illustration; not an actual campus project photo or a technical assembly drawing",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept. Create one original premium product photography style 3D illustration for a Chinese university open-source engineering community website. Landscape 3:2 composition at high quality. A beautifully engineered compact student robotics assembly, precisely machined silver aluminium mounting frame, one deep blue printed circuit board with tiny real-looking gold connectors, a cylindrical brushed steel motor, two small silver gears, one warm orange cable and a translucent blue polycarbonate plate arranged as an exploded assembly. The objects relate mechanically and are thoughtfully spaced, hovering subtly above a pale off-white studio surface with soft grounded shadows. Close, tactile, restrained industrial editorial composition with main assembly in the middle-right, generous clean negative space at the left and around edges. Soft enormous studio lights, impeccable realistic metal highlights, clear silhouette, premium museum object feeling. Palette mainly silver and warm white, one rich blue and small orange accents. No text anywhere, no letters, no numbers, no logos, no Apple products, no branded hardware, no people, no neon, no busy environment. This is a conceptual illustration not a technical assembly diagram. Important: calm precise compact physical objects, not a sci-fi abstract shape. Output a single full-bleed landscape image.",
+        "sourceSha256": "c87cdbccb7f77635db51ff8448a1d4cb6c12a11ecd8e713de1c72f9798a4de5e",
+        "recipeSha256": "1f7290a2054dbab4ffd2058928615fecc3e51f97015cfe7ca710bf29248af78a",
+        "preparedAt": "2026-10-06T15:09:45.769985+00:00"
+      }
+    },
+    "project-mech": {
+      "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+      "srcset": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp 96w, art/generated/art-1f7290a2054dbab4ffd20589-480.webp 480w, art/generated/art-1f7290a2054dbab4ffd20589-960.webp 960w, art/generated/art-1f7290a2054dbab4ffd20589-1536.webp 1536w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1536,
+      "h": 1024,
+      "alt": "蓝色电路板与银色机械装配组件（AI 概念插画）",
+      "focal": "65% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp",
+          "w": 96,
+          "h": 64,
+          "bytes": 1278,
+          "sha256": "699e7a3b5aabfe80e02f6b2db40d1c994c5a5fab6cc47e765619ffbd7055ef1f",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-480.webp",
+          "w": 480,
+          "h": 320,
+          "bytes": 12618,
+          "sha256": "7e1fb7a948732f039d0b7dcac6d0935fad23b6dbffcbf44208bcb7a876c413dd",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-960.webp",
+          "w": 960,
+          "h": 640,
+          "bytes": 33788,
+          "sha256": "490fac47f274a4c04d772695bddac47b4573476861efe4794bbf56cff8b50656",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+          "w": 1536,
+          "h": 1024,
+          "bytes": 66196,
+          "sha256": "4bfbbb13f0aa5163f819ddab8b1b39803943aab6bbf86cfbd421a1dbb78cbb9a",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen engineering artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI-generated engineering concept illustration; not an actual campus project photo or a technical assembly drawing",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept. Create one original premium product photography style 3D illustration for a Chinese university open-source engineering community website. Landscape 3:2 composition at high quality. A beautifully engineered compact student robotics assembly, precisely machined silver aluminium mounting frame, one deep blue printed circuit board with tiny real-looking gold connectors, a cylindrical brushed steel motor, two small silver gears, one warm orange cable and a translucent blue polycarbonate plate arranged as an exploded assembly. The objects relate mechanically and are thoughtfully spaced, hovering subtly above a pale off-white studio surface with soft grounded shadows. Close, tactile, restrained industrial editorial composition with main assembly in the middle-right, generous clean negative space at the left and around edges. Soft enormous studio lights, impeccable realistic metal highlights, clear silhouette, premium museum object feeling. Palette mainly silver and warm white, one rich blue and small orange accents. No text anywhere, no letters, no numbers, no logos, no Apple products, no branded hardware, no people, no neon, no busy environment. This is a conceptual illustration not a technical assembly diagram. Important: calm precise compact physical objects, not a sci-fi abstract shape. Output a single full-bleed landscape image.",
+        "sourceSha256": "c87cdbccb7f77635db51ff8448a1d4cb6c12a11ecd8e713de1c72f9798a4de5e",
+        "recipeSha256": "1f7290a2054dbab4ffd2058928615fecc3e51f97015cfe7ca710bf29248af78a",
+        "preparedAt": "2026-10-06T15:09:45.769985+00:00"
+      }
+    },
+    "project-embedded": {
+      "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+      "srcset": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp 96w, art/generated/art-1f7290a2054dbab4ffd20589-480.webp 480w, art/generated/art-1f7290a2054dbab4ffd20589-960.webp 960w, art/generated/art-1f7290a2054dbab4ffd20589-1536.webp 1536w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1536,
+      "h": 1024,
+      "alt": "蓝色电路板与银色机械装配组件（AI 概念插画）",
+      "focal": "65% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp",
+          "w": 96,
+          "h": 64,
+          "bytes": 1278,
+          "sha256": "699e7a3b5aabfe80e02f6b2db40d1c994c5a5fab6cc47e765619ffbd7055ef1f",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-480.webp",
+          "w": 480,
+          "h": 320,
+          "bytes": 12618,
+          "sha256": "7e1fb7a948732f039d0b7dcac6d0935fad23b6dbffcbf44208bcb7a876c413dd",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-960.webp",
+          "w": 960,
+          "h": 640,
+          "bytes": 33788,
+          "sha256": "490fac47f274a4c04d772695bddac47b4573476861efe4794bbf56cff8b50656",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+          "w": 1536,
+          "h": 1024,
+          "bytes": 66196,
+          "sha256": "4bfbbb13f0aa5163f819ddab8b1b39803943aab6bbf86cfbd421a1dbb78cbb9a",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen engineering artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI-generated engineering concept illustration; not an actual campus project photo or a technical assembly drawing",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept. Create one original premium product photography style 3D illustration for a Chinese university open-source engineering community website. Landscape 3:2 composition at high quality. A beautifully engineered compact student robotics assembly, precisely machined silver aluminium mounting frame, one deep blue printed circuit board with tiny real-looking gold connectors, a cylindrical brushed steel motor, two small silver gears, one warm orange cable and a translucent blue polycarbonate plate arranged as an exploded assembly. The objects relate mechanically and are thoughtfully spaced, hovering subtly above a pale off-white studio surface with soft grounded shadows. Close, tactile, restrained industrial editorial composition with main assembly in the middle-right, generous clean negative space at the left and around edges. Soft enormous studio lights, impeccable realistic metal highlights, clear silhouette, premium museum object feeling. Palette mainly silver and warm white, one rich blue and small orange accents. No text anywhere, no letters, no numbers, no logos, no Apple products, no branded hardware, no people, no neon, no busy environment. This is a conceptual illustration not a technical assembly diagram. Important: calm precise compact physical objects, not a sci-fi abstract shape. Output a single full-bleed landscape image.",
+        "sourceSha256": "c87cdbccb7f77635db51ff8448a1d4cb6c12a11ecd8e713de1c72f9798a4de5e",
+        "recipeSha256": "1f7290a2054dbab4ffd2058928615fecc3e51f97015cfe7ca710bf29248af78a",
+        "preparedAt": "2026-10-06T15:09:45.769985+00:00"
+      }
+    },
+    "mat-mech": {
+      "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+      "srcset": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp 96w, art/generated/art-1f7290a2054dbab4ffd20589-480.webp 480w, art/generated/art-1f7290a2054dbab4ffd20589-960.webp 960w, art/generated/art-1f7290a2054dbab4ffd20589-1536.webp 1536w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1536,
+      "h": 1024,
+      "alt": "蓝色电路板与银色机械装配组件（AI 概念插画）",
+      "focal": "65% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-96.webp",
+          "w": 96,
+          "h": 64,
+          "bytes": 1278,
+          "sha256": "699e7a3b5aabfe80e02f6b2db40d1c994c5a5fab6cc47e765619ffbd7055ef1f",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-480.webp",
+          "w": 480,
+          "h": 320,
+          "bytes": 12618,
+          "sha256": "7e1fb7a948732f039d0b7dcac6d0935fad23b6dbffcbf44208bcb7a876c413dd",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-960.webp",
+          "w": 960,
+          "h": 640,
+          "bytes": 33788,
+          "sha256": "490fac47f274a4c04d772695bddac47b4573476861efe4794bbf56cff8b50656",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+          "w": 1536,
+          "h": 1024,
+          "bytes": 66196,
+          "sha256": "4bfbbb13f0aa5163f819ddab8b1b39803943aab6bbf86cfbd421a1dbb78cbb9a",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen engineering artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI-generated engineering concept illustration; not an actual campus project photo or a technical assembly drawing",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept. Create one original premium product photography style 3D illustration for a Chinese university open-source engineering community website. Landscape 3:2 composition at high quality. A beautifully engineered compact student robotics assembly, precisely machined silver aluminium mounting frame, one deep blue printed circuit board with tiny real-looking gold connectors, a cylindrical brushed steel motor, two small silver gears, one warm orange cable and a translucent blue polycarbonate plate arranged as an exploded assembly. The objects relate mechanically and are thoughtfully spaced, hovering subtly above a pale off-white studio surface with soft grounded shadows. Close, tactile, restrained industrial editorial composition with main assembly in the middle-right, generous clean negative space at the left and around edges. Soft enormous studio lights, impeccable realistic metal highlights, clear silhouette, premium museum object feeling. Palette mainly silver and warm white, one rich blue and small orange accents. No text anywhere, no letters, no numbers, no logos, no Apple products, no branded hardware, no people, no neon, no busy environment. This is a conceptual illustration not a technical assembly diagram. Important: calm precise compact physical objects, not a sci-fi abstract shape. Output a single full-bleed landscape image.",
+        "sourceSha256": "c87cdbccb7f77635db51ff8448a1d4cb6c12a11ecd8e713de1c72f9798a4de5e",
+        "recipeSha256": "1f7290a2054dbab4ffd2058928615fecc3e51f97015cfe7ca710bf29248af78a",
+        "preparedAt": "2026-10-06T15:09:45.769985+00:00"
+      }
+    },
+    "hero-maker": {
+      "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+      "srcset": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp 96w, art/generated/art-3f89fe4b4fb49244757bea22-480.webp 480w, art/generated/art-3f89fe4b4fb49244757bea22-960.webp 960w, art/generated/art-3f89fe4b4fb49244757bea22-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "机械手与蓝色光学棱镜的创作主题（AI 概念插画）",
+      "focal": "68% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 826,
+          "sha256": "0e9c669c2f3cf46f88a755e2a29eef90990cc9161ac41941645c7618d27450c3",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 7554,
+          "sha256": "3c4c46357978d9be281388bd99e4533adacaa4fa368931924cd42ad455d75c96",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 20814,
+          "sha256": "16a9ffd391afc88d5140cacc0eb68992bdbe55b0634cab33417557a7de0dd3af",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 44854,
+          "sha256": "d66020b03f7fe22444c0be1a6443a50cc1fcefd990677506b81a00d09d0d582c",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen maker artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI concept illustration; not a real repository product or campus photograph",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium university maker-community homepage hero banner, landscape 16:10 (or 3:2), suitable for an 860 by 550 card and center/right mobile crop.\nPrimary request: create an exceptionally refined, restrained industrial design image: a sculptural precision silver robotic hand delicately holding a small icy-blue optical glass prism, suggesting students turning ideas into working tools.\nScene/backdrop: seamless almost black obsidian fading very gently into midnight ink blue. No room, no campus, no horizon.\nSubject: one coherent robotic hand and a small section of its mechanical wrist, elegant real-feeling anatomy and joints, precision machining and tactile brushed aluminum. The hand rises diagonally from the lower right, fingertips and glass centered slightly right of center, concentrated within the upper-right two-thirds; it must read beautifully at phone size.\nStyle/medium: photoreal premium studio CGI with the restraint and material quality of a luxury industrial design editorial. A visually arresting but quiet silhouette, extremely intentional composition.\nLighting/mood: a single cool-white key light, delicate icy-blue reflection from the optical glass, thin rim highlights, deep sculptural shadows, strong but elegant contrast. No glowing circuits.\nComposition/framing: wide landscape banner, the LOWER LEFT 35 percent must remain beautifully clean, very dark negative space for white Chinese headline and a button to be added later by code. Do not generate those words or any UI. Keep subject legible when cropped vertically toward the center-right.\nMaterials/textures: finely brushed silver, satin titanium, tiny authentic seams, optical glass with believable internal refraction. No surface grime.\nConstraints: wholly original concept object, not any existing product or GitHub project; no logos, no text, no watermark, no screen, no typography. No extra hands, no impossible merged fingers, no chaotic mechanical clutter, no generic neon cyberpunk, no particle clouds, no lens flare, no colorful gradients, no realistic university buildings.\n",
+        "sourceSha256": "bf42f9d97191f026cc7bb7202f9fba08d942f41c4394c82bfae7665190e06962",
+        "recipeSha256": "3f89fe4b4fb49244757bea22f909dffa795b483a1d4ce3ce678d4c603c0eb7e6",
+        "preparedAt": "2026-10-06T15:09:46.105183+00:00"
+      }
+    },
+    "hero-open-software": {
+      "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+      "srcset": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp 96w, art/generated/art-3f89fe4b4fb49244757bea22-480.webp 480w, art/generated/art-3f89fe4b4fb49244757bea22-960.webp 960w, art/generated/art-3f89fe4b4fb49244757bea22-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "机械手与蓝色光学棱镜的创作主题（AI 概念插画）",
+      "focal": "68% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 826,
+          "sha256": "0e9c669c2f3cf46f88a755e2a29eef90990cc9161ac41941645c7618d27450c3",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 7554,
+          "sha256": "3c4c46357978d9be281388bd99e4533adacaa4fa368931924cd42ad455d75c96",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 20814,
+          "sha256": "16a9ffd391afc88d5140cacc0eb68992bdbe55b0634cab33417557a7de0dd3af",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 44854,
+          "sha256": "d66020b03f7fe22444c0be1a6443a50cc1fcefd990677506b81a00d09d0d582c",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen maker artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI concept illustration; not a real repository product or campus photograph",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium university maker-community homepage hero banner, landscape 16:10 (or 3:2), suitable for an 860 by 550 card and center/right mobile crop.\nPrimary request: create an exceptionally refined, restrained industrial design image: a sculptural precision silver robotic hand delicately holding a small icy-blue optical glass prism, suggesting students turning ideas into working tools.\nScene/backdrop: seamless almost black obsidian fading very gently into midnight ink blue. No room, no campus, no horizon.\nSubject: one coherent robotic hand and a small section of its mechanical wrist, elegant real-feeling anatomy and joints, precision machining and tactile brushed aluminum. The hand rises diagonally from the lower right, fingertips and glass centered slightly right of center, concentrated within the upper-right two-thirds; it must read beautifully at phone size.\nStyle/medium: photoreal premium studio CGI with the restraint and material quality of a luxury industrial design editorial. A visually arresting but quiet silhouette, extremely intentional composition.\nLighting/mood: a single cool-white key light, delicate icy-blue reflection from the optical glass, thin rim highlights, deep sculptural shadows, strong but elegant contrast. No glowing circuits.\nComposition/framing: wide landscape banner, the LOWER LEFT 35 percent must remain beautifully clean, very dark negative space for white Chinese headline and a button to be added later by code. Do not generate those words or any UI. Keep subject legible when cropped vertically toward the center-right.\nMaterials/textures: finely brushed silver, satin titanium, tiny authentic seams, optical glass with believable internal refraction. No surface grime.\nConstraints: wholly original concept object, not any existing product or GitHub project; no logos, no text, no watermark, no screen, no typography. No extra hands, no impossible merged fingers, no chaotic mechanical clutter, no generic neon cyberpunk, no particle clouds, no lens flare, no colorful gradients, no realistic university buildings.\n",
+        "sourceSha256": "bf42f9d97191f026cc7bb7202f9fba08d942f41c4394c82bfae7665190e06962",
+        "recipeSha256": "3f89fe4b4fb49244757bea22f909dffa795b483a1d4ce3ce678d4c603c0eb7e6",
+        "preparedAt": "2026-10-06T15:09:46.105183+00:00"
+      }
+    },
+    "project-software": {
+      "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+      "srcset": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp 96w, art/generated/art-3f89fe4b4fb49244757bea22-480.webp 480w, art/generated/art-3f89fe4b4fb49244757bea22-960.webp 960w, art/generated/art-3f89fe4b4fb49244757bea22-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "机械手与蓝色光学棱镜的创作主题（AI 概念插画）",
+      "focal": "68% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 826,
+          "sha256": "0e9c669c2f3cf46f88a755e2a29eef90990cc9161ac41941645c7618d27450c3",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 7554,
+          "sha256": "3c4c46357978d9be281388bd99e4533adacaa4fa368931924cd42ad455d75c96",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 20814,
+          "sha256": "16a9ffd391afc88d5140cacc0eb68992bdbe55b0634cab33417557a7de0dd3af",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 44854,
+          "sha256": "d66020b03f7fe22444c0be1a6443a50cc1fcefd990677506b81a00d09d0d582c",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen maker artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI concept illustration; not a real repository product or campus photograph",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium university maker-community homepage hero banner, landscape 16:10 (or 3:2), suitable for an 860 by 550 card and center/right mobile crop.\nPrimary request: create an exceptionally refined, restrained industrial design image: a sculptural precision silver robotic hand delicately holding a small icy-blue optical glass prism, suggesting students turning ideas into working tools.\nScene/backdrop: seamless almost black obsidian fading very gently into midnight ink blue. No room, no campus, no horizon.\nSubject: one coherent robotic hand and a small section of its mechanical wrist, elegant real-feeling anatomy and joints, precision machining and tactile brushed aluminum. The hand rises diagonally from the lower right, fingertips and glass centered slightly right of center, concentrated within the upper-right two-thirds; it must read beautifully at phone size.\nStyle/medium: photoreal premium studio CGI with the restraint and material quality of a luxury industrial design editorial. A visually arresting but quiet silhouette, extremely intentional composition.\nLighting/mood: a single cool-white key light, delicate icy-blue reflection from the optical glass, thin rim highlights, deep sculptural shadows, strong but elegant contrast. No glowing circuits.\nComposition/framing: wide landscape banner, the LOWER LEFT 35 percent must remain beautifully clean, very dark negative space for white Chinese headline and a button to be added later by code. Do not generate those words or any UI. Keep subject legible when cropped vertically toward the center-right.\nMaterials/textures: finely brushed silver, satin titanium, tiny authentic seams, optical glass with believable internal refraction. No surface grime.\nConstraints: wholly original concept object, not any existing product or GitHub project; no logos, no text, no watermark, no screen, no typography. No extra hands, no impossible merged fingers, no chaotic mechanical clutter, no generic neon cyberpunk, no particle clouds, no lens flare, no colorful gradients, no realistic university buildings.\n",
+        "sourceSha256": "bf42f9d97191f026cc7bb7202f9fba08d942f41c4394c82bfae7665190e06962",
+        "recipeSha256": "3f89fe4b4fb49244757bea22f909dffa795b483a1d4ce3ce678d4c603c0eb7e6",
+        "preparedAt": "2026-10-06T15:09:46.105183+00:00"
+      }
+    },
+    "mat-code": {
+      "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+      "srcset": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp 96w, art/generated/art-3f89fe4b4fb49244757bea22-480.webp 480w, art/generated/art-3f89fe4b4fb49244757bea22-960.webp 960w, art/generated/art-3f89fe4b4fb49244757bea22-1586.webp 1586w",
+      "sizes": "(max-width: 600px) 100vw, (max-width: 1100px) 80vw, 1100px",
+      "w": 1586,
+      "h": 992,
+      "alt": "机械手与蓝色光学棱镜的创作主题（AI 概念插画）",
+      "focal": "68% 50%",
+      "review": "approved",
+      "variants": [
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-96.webp",
+          "w": 96,
+          "h": 60,
+          "bytes": 826,
+          "sha256": "0e9c669c2f3cf46f88a755e2a29eef90990cc9161ac41941645c7618d27450c3",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-480.webp",
+          "w": 480,
+          "h": 300,
+          "bytes": 7554,
+          "sha256": "3c4c46357978d9be281388bd99e4533adacaa4fa368931924cd42ad455d75c96",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-960.webp",
+          "w": 960,
+          "h": 600,
+          "bytes": 20814,
+          "sha256": "16a9ffd391afc88d5140cacc0eb68992bdbe55b0634cab33417557a7de0dd3af",
+          "quality": 82
+        },
+        {
+          "src": "art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+          "w": 1586,
+          "h": 992,
+          "bytes": 44854,
+          "sha256": "d66020b03f7fe22444c0be1a6443a50cc1fcefd990677506b81a00d09d0d582c",
+          "quality": 82
+        }
+      ],
+      "meta": {
+        "type": "concept",
+        "source": {
+          "title": "Existing original built-in image_gen maker artwork, 2026-10-06",
+          "url": ""
+        },
+        "rights": "Original AI concept illustration; not a real repository product or campus photograph",
+        "reviewer": "Codex visual review; not an Opus approval",
+        "prompt": "Use case: stylized-concept.\nAsset type: original premium university maker-community homepage hero banner, landscape 16:10 (or 3:2), suitable for an 860 by 550 card and center/right mobile crop.\nPrimary request: create an exceptionally refined, restrained industrial design image: a sculptural precision silver robotic hand delicately holding a small icy-blue optical glass prism, suggesting students turning ideas into working tools.\nScene/backdrop: seamless almost black obsidian fading very gently into midnight ink blue. No room, no campus, no horizon.\nSubject: one coherent robotic hand and a small section of its mechanical wrist, elegant real-feeling anatomy and joints, precision machining and tactile brushed aluminum. The hand rises diagonally from the lower right, fingertips and glass centered slightly right of center, concentrated within the upper-right two-thirds; it must read beautifully at phone size.\nStyle/medium: photoreal premium studio CGI with the restraint and material quality of a luxury industrial design editorial. A visually arresting but quiet silhouette, extremely intentional composition.\nLighting/mood: a single cool-white key light, delicate icy-blue reflection from the optical glass, thin rim highlights, deep sculptural shadows, strong but elegant contrast. No glowing circuits.\nComposition/framing: wide landscape banner, the LOWER LEFT 35 percent must remain beautifully clean, very dark negative space for white Chinese headline and a button to be added later by code. Do not generate those words or any UI. Keep subject legible when cropped vertically toward the center-right.\nMaterials/textures: finely brushed silver, satin titanium, tiny authentic seams, optical glass with believable internal refraction. No surface grime.\nConstraints: wholly original concept object, not any existing product or GitHub project; no logos, no text, no watermark, no screen, no typography. No extra hands, no impossible merged fingers, no chaotic mechanical clutter, no generic neon cyberpunk, no particle clouds, no lens flare, no colorful gradients, no realistic university buildings.\n",
+        "sourceSha256": "bf42f9d97191f026cc7bb7202f9fba08d942f41c4394c82bfae7665190e06962",
+        "recipeSha256": "3f89fe4b4fb49244757bea22f909dffa795b483a1d4ce3ce678d4c603c0eb7e6",
+        "preparedAt": "2026-10-06T15:09:46.105183+00:00"
+      }
+    }
+  }
 }

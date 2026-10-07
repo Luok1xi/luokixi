@@ -1,0 +1,17 @@
+{
+  "note": "教师资料机器人（campus/hub/faculty.py）读取的学院师资页。只列学院官网的公开页面；prefix 限定机器人在这个目录里翻页，不会走到站外或新闻栏目。核对日期：2026-10-07。",
+  "intervalHours": 168,
+  "colleges": [
+    { "college": "能源与矿业学院", "start": "https://nyxy.cumtb.edu.cn/szdw/szgk1/jslb.htm", "prefix": "/szdw/" },
+    { "college": "应急管理与安全工程学院", "start": "https://aqxy.cumtb.edu.cn/szdw/szgk.htm", "prefix": "/szdw/" },
+    { "college": "地球科学与测绘工程学院", "start": "https://dcxy.cumtb.edu.cn/szdw.htm", "prefix": "/szdw/" },
+    { "college": "化学与环境工程学院", "start": "https://scee.cumtb.edu.cn/szll/ys.htm", "prefix": "/szll/" },
+    { "college": "机械与电气工程学院", "start": "https://jdxy.cumtb.edu.cn/szdw.htm", "prefix": "/szdw/" },
+    { "college": "人工智能学院", "start": "https://ai.cumtb.edu.cn/szll/xsdtr.htm", "prefix": "/szll/" },
+    { "college": "管理学院", "start": "https://glxy.cumtb.edu.cn/szdw.htm", "prefix": "/szdw/" },
+    { "college": "力学与土木工程学院", "start": "https://ljxy.cumtb.edu.cn/szdw.htm", "prefix": "/szdw/" },
+    { "college": "理学院", "start": "https://lxy.cumtb.edu.cn/szdw/jsml.htm", "prefix": "/szdw/" },
+    { "college": "文法学院", "start": "https://wfxy.cumtb.edu.cn/xygk/szdw/szgk.htm", "prefix": "/xygk/szdw/" },
+    { "college": "马克思主义学院", "start": "https://smarx.cumtb.edu.cn/szdw.htm", "prefix": "/szdw/" }
+  ]
+}

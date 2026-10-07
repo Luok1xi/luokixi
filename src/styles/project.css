@@ -692,3 +692,14 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- 本站下载（Opus）：镜像文件列表 ---------- */
+.pd-download { border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+.pd-dl { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.pd-dl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--bg-alt); }
+.pd-dl li > div { display: grid; gap: 2px; min-width: 0; }
+.pd-dl b { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.pd-dl span { color: var(--fg-2); font-size: 12px; }
+.pd-dl code { color: var(--fg-3); font-size: 11px; }
+.pd-dl small { color: var(--warn); font-size: 11px; }
+.pd-dl-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 13px; }

@@ -1,6 +1,7 @@
 // 生成式封面：项目没有配图时，按分类生成一张深色“产品图”。
 // 同一个 slug 每次生成的构图都一样（固定种子）。图形只用 SVG，静态绘制一次，不做逐帧动画。
 import { CATEGORIES } from './schema.js';
+import { artSlot, artImageHTML } from './art.js';
 
 const hash = (s) => [...s].reduce((h, c) => (Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0), 2166136261);
 const rng = (seed) => () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296);
@@ -82,8 +83,34 @@ export function coverSVG(project) {
 }
 
 export function coverHTML(project) {
-  if (project.cover) return `<div class="cover"><img src="${project.cover}" alt="" loading="lazy"></div>`;
-  return `<div class="cover">${coverSVG(project)}</div>`;
+  return `<div class="cover">${coverMediaHTML(project)}</div>`;
+}
+
+const escapeAttr = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeCover = (s) => typeof s === 'string' && (/^https:\/\/[^\s"<>]+$/.test(s) || /^(?:art|files)\/[\w/-]+\.(?:webp|png|jpg|avif)$/.test(s));
+// Capture also covers lazy images added by subsequent feed pages. A broken
+// remote or generated cover leaves the original vector visibly in place.
+if (typeof document !== 'undefined') {
+  document.addEventListener('load', (e) => {
+    if (e.target?.matches?.('img.art-cover-image')) e.target.parentElement.classList.add('cover-loaded');
+  }, true);
+  document.addEventListener('error', (e) => {
+    if (!e.target?.matches?.('img.art-cover-image')) return;
+    const frame = e.target.parentElement;
+    frame.classList.remove('cover-loaded');
+    const label = frame.querySelector('.art-caption');
+    if (label) label.textContent = '分类示意 · 暂无可用封面';
+    e.target.remove();
+  }, true);
+}
+function frameCover(project, image, concept) {
+  return `<span class="art-cover${concept ? ' is-concept' : ''}"${project.coverCredit ? ` title="${escapeAttr(project.coverCredit)}"` : ''}><span class="art-cover-fallback" aria-hidden="true">${coverSVG(project)}</span>${image}<small class="art-caption">${concept ? '分类概念图 · 非项目实拍' : '分类示意 · 封面加载中'}</small></span>`;
+}
+export function coverMediaHTML(project) {
+  if (safeCover(project.cover)) return frameCover(project, `<img class="art-img art-cover-image" src="${escapeAttr(project.cover)}" alt="${escapeAttr(project.title)} 项目封面" loading="lazy" decoding="async" referrerpolicy="no-referrer">`, false);
+  const a = artSlot(`project-${project.category ?? 'software'}`);
+  if (!a) return coverSVG(project);
+  return frameCover(project, artImageHTML(a, {className:'art-cover-image', sizes:'(max-width:760px) 90vw, 600px'}), true);
 }
 
 // 分类线稿放进 App Store 式的方形图标里（.v3-icon），颜色跟随文字

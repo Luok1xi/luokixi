@@ -35,12 +35,17 @@ def fetch_public(target, limit=2*1024*1024, headers=None):
             conn.request('GET',p.path+('?' + p.query if p.query else '') or '/',headers={'User-Agent':UA,**(headers or {})})
             response = conn.getresponse()
             if response.status in (301,302,303,307,308):
-                target = urljoin(target,response.getheader('Location',''))
+                redirected = urljoin(target,response.getheader('Location',''))
+                if urlsplit(redirected).netloc != p.netloc or urlsplit(redirected).scheme != p.scheme:
+                    headers = {k:v for k,v in (headers or {}).items() if k.lower() not in ('authorization','cookie','proxy-authorization')}
+                target = redirected
                 continue
             if response.status==304:
                 return b'',dict(response.getheaders()),target,304
             if response.status!=200:
-                raise Problem(f'来源返回 HTTP {response.status}。',502)
+                error = Problem(f'来源返回 HTTP {response.status}。',502)
+                error.http_status, error.headers = response.status, dict(response.getheaders())
+                raise error
             length = int(response.getheader('Content-Length','0'))
             if length>limit:
                 raise Problem('来源内容超出读取上限。')
@@ -100,6 +105,10 @@ def parse_source(raw, kind, origin):
 
 def refresh_source(identifier):
     source = Source.objects.get(pk=identifier)
+    if source.kind == 'faculty':
+        # 教师资料机器人：读学院官网师资页，更新教师目录（faculty.py），不生成待审条目
+        from .faculty import crawl_source
+        return crawl_source(source)
     source.last_attempt = timezone.now()
     source.save(update_fields=['last_attempt'])
     try:

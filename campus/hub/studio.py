@@ -84,7 +84,7 @@ def post(request, route, body):
         rounds = body.get('rounds', 6 if mode == 'work' else 3)
         if mode not in {'discuss', 'work'} or type(rounds) is not int or not 1 <= rounds <= cfg['max_rounds']:
             raise Problem('模式或轮数无效；一次最多 6 轮。')
-        if not isinstance(seats, list) or not seats or len(seats) > 3 or any(s not in PERSONAS for s in seats) or len(set(seats)) != len(seats):
+        if not isinstance(seats, list) or not seats or len(seats) > len(PERSONAS) or any(s not in PERSONAS for s in seats) or len(set(seats)) != len(seats):
             raise Problem('请从工作室成员中选择发言席位。')
         if mode == 'work' and ('codex' not in seats or rounds < seats.index('codex') + 1):
             raise Problem('写代码模式需要包含 Codex 工程席的一轮发言。')

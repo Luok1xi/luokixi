@@ -1,34 +1,83 @@
-// 美术图的“插槽”：页面里写 <div data-art="today-exam">，Codex 交付、Opus 审过并登记进
-// public/art/manifest.json（review: "approved"）之后，这里把图放进去并淡入；没登记时什么都不做，
-// 页面继续显示自己由数据生成的画面。格式见 docs/ART_DIRECTION.md 第七节。
-let manifest;
+// Reviewed catalogue is bundled: no manifest request on the first-frame path.
+import catalogue from '../../public/art/manifest.json' with { type: 'json' };
+import '../styles/art-assets.css';
 
-export function artManifest() {
-  manifest ??= fetch('art/manifest.json', { cache: 'no-cache' })
-    .then((r) => (r.ok ? r.json() : null))
-    .then((d) => d?.slots ?? {})
-    .catch(() => ({}));
-  return manifest;
+const attr = (s) => String(s ?? '').replace(/[&"<>']/g, c => ({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;',"'":'&#39;'}[c]));
+export const safeArtPath = (value) => typeof value === 'string'
+  && /^(?:\.\/)?art\/[\w/-]+\.(?:webp|avif|png|jpe?g|svg)$/.test(value)
+  && !value.split('/').includes('..');
+export function artSlot(name) {
+  const a = catalogue.slots?.[name];
+  return a?.review === 'approved' && safeArtPath(a.src) ? a : null;
+}
+export async function artManifest() { return catalogue.slots ?? {}; }
+
+function candidates(a) {
+  return (a.variants ?? []).filter(v => safeArtPath(v.src) && Number.isInteger(v.w) && v.w > 0)
+    .map(v => `${v.src} ${v.w}w`).join(', ');
+}
+export function artImageHTML(a, { className = '', sizes = '(max-width: 760px) 90vw, 960px', eager = false, dark = false, decorative = false } = {}) {
+  const src = dark ? a.srcDark : a.src;
+  if (!safeArtPath(src)) return '';
+  const srcset = dark ? '' : candidates(a);
+  const focal = /^\d+(?:\.\d+)?% \d+(?:\.\d+)?%$/.test(a.focal ?? '') ? a.focal : '50% 50%';
+  const dimensions = Number.isInteger(a.w) && a.w > 0 && Number.isInteger(a.h) && a.h > 0 ? ` width="${a.w}" height="${a.h}"` : '';
+  return `<img class="art-img ${attr(className)}" src="${attr(src)}"${srcset ? ` srcset="${attr(srcset)}" sizes="${attr(sizes)}"` : ''} alt="${decorative ? '' : attr(a.alt)}"${dimensions} style="object-position:${focal}" decoding="async" loading="${eager ? 'eager' : 'lazy'}" fetchpriority="${eager ? 'high' : 'low'}">`;
 }
 
-const safe = (u) => typeof u === 'string' && /^(?:art\/|\.\/art\/)[\w./-]+\.(?:webp|avif|png|jpg|svg)$/.test(u);
-const attr = (s) => String(s ?? '').replace(/[&"<>]/g, (c) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[c]);
-
-function img(src, cls, a) {
-  return `<img class="art-img ${cls}" src="${attr(src)}" alt="${attr(a.alt)}" decoding="async" loading="lazy"${a.w ? ` width="${Number(a.w)}" height="${Number(a.h)}"` : ''}${a.focal ? ` style="object-position:${attr(a.focal)}"` : ''}>`;
+const mounting = new WeakMap();
+function install(el, a) {
+  if (mounting.has(el) || el.classList.contains('has-art')) return mounting.get(el);
+  const small = el.classList.contains('mt-rail-icon');
+  const hero = el.closest('.hc-slide');
+  const eager = Boolean(hero && (hero.classList.contains('is-active') || hero === hero.parentElement?.firstElementChild));
+  const options = { eager, decorative:small, sizes: small ? '32px' : hero ? '(max-width: 760px) 77vw, (max-width: 1264px) 68vw, 860px' : '(max-width: 760px) 90vw, 960px' };
+  const layer = document.createElement('span');
+  layer.className = 'art-layer';
+  layer.innerHTML = safeArtPath(a.srcDark)
+    ? artImageHTML(a, {...options, className:'is-light'}) + artImageHTML(a, {...options, className:'is-dark', dark:true})
+    : artImageHTML(a, options);
+  el.prepend(layer);
+  const images = [...layer.querySelectorAll('img')];
+  const dark = document.documentElement.dataset.theme === 'dark' || (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme:dark)').matches);
+  const first = dark && images.length > 1 ? images[1] : images[0];
+  const work = new Promise(resolve => {
+    let settled = false, finishing = false;
+    const fail = () => {
+      if (settled) return;
+      settled = true;
+      layer.remove(); el.classList.remove('has-art'); queueMicrotask(() => mounting.delete(el));
+      el.dataset.artState = 'unavailable'; resolve(false);
+    };
+    const finish = async () => {
+      if (settled || finishing) return;
+      finishing = true;
+      if (!first.naturalWidth) return fail();
+      try { await first.decode(); } catch { if (!first.naturalWidth) return fail(); }
+      if (settled) return;
+      settled = true;
+      if (!el.isConnected) { layer.remove(); queueMicrotask(() => mounting.delete(el)); return resolve(false); }
+      el.classList.add('has-art'); el.dataset.artState = 'ready';
+      el.dataset.artKind = a.meta?.type ?? 'concept';
+      if (el.dataset.artKind === 'concept') {
+        el.title = `${a.alt} · AI 概念插画`;
+        if (!small) {
+          const caption = document.createElement('small'); caption.className = 'art-caption';
+          caption.textContent = 'AI 概念插画'; layer.append(caption);
+        }
+      }
+      resolve(true);
+    };
+    first.addEventListener('load', finish, {once:true});
+    first.addEventListener('error', fail, {once:true});
+    if (first.complete) finish();
+  });
+  mounting.set(el, work);
+  return work;
 }
-
-export async function mountArt(scope = document) {
-  const slots = await artManifest();
-  for (const el of scope.querySelectorAll('[data-art]:not(.has-art)')) {
-    const a = slots[el.dataset.art];
-    if (!a || a.review !== 'approved' || !safe(a.src)) continue;
-    // 只交了一张的按“通用”处理；深浅各一张时由样式表按当前外观二选一（也跟随右上角的手动切换）
-    const html = safe(a.srcDark) ? img(a.src, 'is-light', a) + img(a.srcDark, 'is-dark', a) : img(a.src, '', a);
-    el.insertAdjacentHTML('afterbegin', `<span class="art-layer">${html}</span>`);
-    const first = el.querySelector('.art-img');
-    const done = () => el.classList.add('has-art');
-    if (first.complete) done();
-    else first.addEventListener('load', done, { once: true });
-  }
+export function mountArt(scope = document) {
+  if (!scope?.querySelectorAll) return Promise.resolve([]);
+  const nodes = [...scope.querySelectorAll('[data-art]:not(.has-art)')];
+  if (scope.matches?.('[data-art]:not(.has-art)')) nodes.unshift(scope);
+  return Promise.all(nodes.map(el => { const a = artSlot(el.dataset.art); return a ? install(el, a) : false; }));
 }

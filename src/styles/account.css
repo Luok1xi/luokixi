@@ -440,3 +440,96 @@
 
 /* Prevent horizontal nav from imposing its intrinsic width on the grid. */
 .me-side,.me-main{min-width:0}.me-nav{max-width:100%}@media(max-width:860px){.me{grid-template-columns:minmax(0,1fr)}.me-nav{flex-wrap:wrap;overflow:visible;gap:6px}.me-nav a{font-size:13px;padding:10px 12px}.me{gap:30px}}
+
+/* ---------- 个人中心：成长、生涯规划、奖项（Opus，iOS 设置式的成组列表） ---------- */
+.me-line { margin-top: 4px; color: var(--fg-2); font-size: 13px; }
+.me-ext { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 8px; font-size: 13px; }
+.me-sync { display: grid; gap: 2px; margin-top: 8px; }
+.me-sync button { justify-self: start; padding: 5px 12px; border-radius: var(--r-pill); background: var(--fill-2); color: var(--fg-3); font-size: 12px; cursor: not-allowed; }
+.me-sync small { color: var(--fg-3); font-size: 11px; }
+
+.me-level { margin-bottom: 8px; background: var(--bg-elev); box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.06); }
+.me-level-badge { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(150deg, #ffd60a, #ff9f0a); color: #5c3800; font-family: var(--font-num); font-size: 14px; font-weight: 800; }
+.me-level-bar { height: 6px; margin: 0 18px 12px; border-radius: 3px; background: var(--fill-2); overflow: hidden; }
+.me-level-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); transform-origin: left; transition: transform 700ms var(--spring-smooth); }
+.me-level-rule { padding: 0 18px 14px; }
+
+.me-goals, .me-awards { margin-bottom: 8px; background: var(--bg-elev); box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.06); }
+.me-goal-n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--link); font-size: 13px; font-weight: 700; }
+.me-goal .ap-row-text span a { color: var(--link); }
+.me-goal-add { grid-template-columns: minmax(0, 1fr) auto; }
+.me-goal-add input, .me-tags input { min-width: 0; height: 38px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--fill); color: var(--fg); font: inherit; font-size: 15px; }
+.me-x { color: #e30000; font-size: 13px; }
+.me-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.me-tags .tag button { margin-left: 4px; color: var(--fg-3); }
+.me-tags input { width: 220px; }
+.me-award-medal { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(150deg, #e5e5ea, #c7c7cc); color: #3a3a3c; font-weight: 800; }
+.me-award-medal[data-level="省级 / 赛区"] { background: linear-gradient(150deg, #a8d8ff, #4fa3ff); color: #fff; }
+.me-award-medal[data-level="国家级"] { background: linear-gradient(150deg, #ffe08a, #ffb300); color: #5c3800; }
+.me-award-medal[data-level="国际"] { background: linear-gradient(150deg, #ffb3c1, #ff375f); color: #fff; }
+.me-award-form { margin-top: 16px; }
+
+/* ---------- 维护机器人面板（维护者） ---------- */
+.me-maint { margin-bottom: 8px; background: var(--bg-elev); box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.06); }
+.me-maint .ap-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+.me-maint .ap-row-text span { white-space: normal; }
+.me-news { background: var(--bg-elev); }
+.me-news-row { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 18px; }
+.me-news-row img, .me-news-noimg { width: 120px; height: 80px; border-radius: 10px; object-fit: cover; background: var(--fill-2); }
+.me-news-noimg { display: grid; place-items: center; color: var(--fg-3); font-size: 12px; }
+.me-news-text { display: grid; gap: 3px; min-width: 0; }
+.me-news-text b { font-size: 15px; }
+.me-news-text span { color: var(--fg-2); font-size: 12px; }
+.me-news-text p { overflow: hidden; color: var(--fg-2); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.me-news-actions { display: grid; gap: 6px; }
+.me-notice-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.me-notice-review { padding: clamp(14px, 3vw, 28px); margin-bottom: 24px; scroll-margin-top: 100px; }
+.me-notice-review > .me-h-row .me-h3 { margin: 0; }
+.me-notice-review .me-news-row { grid-template-columns: minmax(0, 1fr); }
+.me-notice-review .me-news-actions { display: flex; flex-wrap: wrap; }
+.me-notice-review .me-news-text p { display: block; overflow: visible; }
+.me-project-review { padding: 16px; margin-top: 14px; overflow-wrap: anywhere; }
+.me-project-review summary { cursor: pointer; font-weight: 600; }
+.me-project-review p { margin-block: 12px; }
+.me-project-review button { margin: 4px 8px 4px 0; }
+.me-project-review select, .me-project-review textarea { max-width: 100%; font: inherit; }
+.me-notice .me-row-main { overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .me-news-row { grid-template-columns: 1fr; }
+  .me-news-row img, .me-news-noimg { width: 100%; height: 140px; }
+  .me-news-actions { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---------- 手机同步（电脑端只读展示） ---------- */
+.me-sync { margin-bottom: 12px; }
+.me-sync-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; cursor: default; }
+details.me-sync > summary { list-style: none; cursor: pointer; margin-bottom: 0; }
+details.me-sync > summary::-webkit-details-marker { display: none; }
+details.me-sync[open] > summary { margin-bottom: 10px; }
+.me-sync-title { display: grid; gap: 2px; margin-right: auto; }
+.me-sync-title b { font-size: 17px; }
+.me-sync-title span { color: var(--fg-2); font-size: 12px; }
+.me-sync-hint { color: var(--link); font-size: 13px; }
+details.me-sync[open] .me-sync-hint { display: none; }
+.me-sync-scroll { overflow-x: auto; }
+.me-sync-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.me-sync-table th { padding: 6px 10px; border-bottom: 1px solid var(--line); color: var(--fg-2); font-weight: 600; text-align: left; white-space: nowrap; }
+.me-sync-table td { padding: 8px 10px; border-bottom: 1px solid var(--line-soft); }
+.me-sync-kv { margin-bottom: 10px; }
+
+/* ---------- 通知（Opus · 2026-10-07）：iOS 通知中心式的简洁列表，按天分组 ---------- */
+.me-note-day { margin: 18px 0 8px; color: var(--ios-label-2, var(--fg-2)); font-size: 13px; font-weight: 600; }
+.me-notes { display: grid; margin: 0; padding: 0; list-style: none; border-radius: 16px; background: var(--bg-elev); box-shadow: 0 0 0 0.5px var(--ios-sep, var(--line-soft)); overflow: hidden; }
+.me-note { position: relative; display: grid; grid-template-columns: 10px minmax(0, 1fr); align-items: start; gap: 10px; padding: 12px 16px; }
+.me-note + .me-note::before { content: ""; position: absolute; top: 0; right: 0; left: 36px; border-top: 0.5px solid var(--ios-sep, var(--line-soft)); }
+.me-note-dot { width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; }
+.me-note.is-unread .me-note-dot { background: var(--accent); }
+.me-note-main p { font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.me-note-main span { display: block; margin-top: 2px; color: var(--ios-label-2, var(--fg-2)); font-size: 12px; }
+.me-note-main a { color: var(--accent); }
+.me-bk-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-bottom: 8px; padding: 12px 16px; border-radius: 16px; background: color-mix(in srgb, #c86dd7 9%, var(--bg-elev)); color: var(--fg); text-decoration: none; box-shadow: 0 0 0 0.5px var(--ios-sep, var(--line-soft)); }
+.me-bk-card:hover { text-decoration: none; }
+.me-bk-card b { display: block; font-size: 15px; }
+.me-bk-card small { color: var(--ios-label-2, var(--fg-2)); font-size: 12px; }
+.me-bk-chev { color: var(--ios-label-2, var(--fg-2)); font-size: 22px; }
+

@@ -468,3 +468,118 @@
 @media (max-width: 760px) {
   .as-reviews { grid-auto-columns: 86%; }
 }
+
+/* ---------- 首页：轮播下面的页头 + 一列功能区块（apple.css 的成组列表） ---------- */
+
+body[data-page="home"] .td-body { max-width: calc(980px + var(--gutter) * 2); }
+body[data-page="home"] .v3-head { padding: 32px 0 4px; }
+body[data-page="home"] .v3-head .v3-title { font-size: clamp(32px, 4vw, 40px); font-weight: 700; letter-spacing: -0.01em; }
+
+#td-panel { min-height: 320px; padding-bottom: 72px; }
+#td-panel.is-busy { opacity: 0.55; transition: opacity 160ms; }
+
+.td-mods { display: grid; gap: 32px; padding-top: 20px; }
+
+.td-mod-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 4px 10px;
+}
+
+.td-mod-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.td-mod-head .ap-more { font-size: 15px; }
+.td-mod-head button.ap-more { font: inherit; font-size: 15px; }
+.td-mod-note { margin: 8px 4px 0; }
+
+/* 快捷操作：一个大搜索框 + 一排常用入口 */
+.td-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: var(--bg-elev);
+  box-shadow: 2px 4px 12px rgba(0, 0, 0, 0.06), inset 0 0 0 1px var(--line-soft);
+  color: var(--fg-2);
+  font-size: 17px;
+  text-align: left;
+  transition: box-shadow 200ms var(--ease-out);
+}
+
+.td-search:hover { box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.1), inset 0 0 0 1px var(--line); }
+.td-search svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.td-search span { flex: 1; }
+
+.td-quick-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.td-quick-item {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 14px 6px 12px;
+  border-radius: 16px;
+  background: var(--bg-elev);
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 500;
+  transition: transform 400ms var(--spring-bouncy);
+}
+
+.td-quick-item:hover { text-decoration: none; }
+.td-quick-item:active { transform: scale(0.94); }
+.td-quick-item .ap-symbol { width: 40px; height: 40px; border-radius: 11px; }
+
+@media (max-width: 600px) {
+  .td-quick-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* 今天：考试天数 */
+.td-days { color: var(--fg-2); font-size: 13px; white-space: nowrap; }
+.td-days b { margin-right: 2px; color: var(--fg); font-size: 28px; font-weight: 600; }
+
+/* 最新资料：格式标签 + 名称 + 预览 / 放入资料袋 */
+.td-fmt {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 44px;
+  border-radius: 5px 10px 5px 5px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  color: #e8453c;
+  font-family: var(--font-num);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.td-fmt[data-format="link"] { color: var(--accent); }
+.td-fmt[data-format="zip"] { color: #ff9500; }
+.td-mat-actions { display: flex; align-items: center; gap: 14px; }
+.td-mat-actions .ap-more { font-size: 14px; }
+
+@media (max-width: 600px) {
+  .td-mat { grid-template-columns: auto minmax(0, 1fr); }
+  .td-mat-actions { grid-column: 2; justify-content: space-between; }
+}
+
+/* 开源推荐：作者头像 + 名称 + 一句话 + Star */
+.td-proj .as-icon { width: 44px; height: 44px; border-radius: 11px; }
+.td-proj .as-icon svg { width: 22px; height: 22px; }
+.td-proj-meta { color: var(--fg-2); font-size: 13px; white-space: nowrap; }
+
+.td-reviews { display: grid; gap: 12px; }
+.td-reviews .ap-review { color: var(--fg); transition: transform 400ms var(--spring-smooth); }
+.td-reviews .ap-review:hover { text-decoration: none; transform: scale(1.008); }
+
+/* 其他标签页：窄栏阅读 */
+.td-plain { padding-top: 8px; }
+.td-plain .v3-sec { border-top: 0; }

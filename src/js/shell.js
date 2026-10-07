@@ -5,6 +5,10 @@ import '../styles/base.css';
 import '../styles/components.css';
 import '../styles/redesign.css';
 import '../styles/navigation.css';
+import '../styles/apple.css';
+import '../styles/store.css';
+import '../styles/motion.css';
+import { initFx } from './fx.js';
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -22,7 +26,7 @@ const BOARD = {
   home: 'home',
   map: 'campus', reservations: 'campus',
   materials: 'materials', cet4: 'materials', cet6: 'materials', school: 'materials', knowledge: 'materials',
-  circle: 'circle', reputation: 'circle', community: 'circle',
+  circle: 'circle', reputation: 'circle', community: 'circle', rules: 'circle',
   projects: 'open', discover: 'open', project: 'open', contribute: 'open',
   studio: 'me', me: 'me', profile: 'me', auth: 'me',
 };
@@ -31,15 +35,34 @@ const BOARD = {
 const RANK = { home: 0, campus: 1, materials: 2, circle: 3, open: 4, me: 5 };
 const pageOf = (url) => (url.pathname.split('/').pop().replace(/\.html$/, '') || 'index').replace(/^index$/, 'home');
 
+// 同一板块里的层级：详情页比列表深一层（像 App Store 点开一张卡片）；同层的分段（校圈的动态 / 教师 / 课程）按左右排
+function depthOf(url) {
+  const p = pageOf(url), q = url.searchParams;
+  if (p === 'project' || p === 'profile') return 1;
+  if (p === 'reputation') return ['teacher', 'course', 'offering'].some((k) => q.has(k)) ? 1 : 0;
+  return 0;
+}
+function laneOf(url) {
+  if (pageOf(url) !== 'reputation') return 0;
+  return url.searchParams.get('view') === 'courses' || url.searchParams.has('course') || url.searchParams.has('offering') ? 2 : 1;
+}
+function directionOf(fromURL, toURL) {
+  const from = RANK[BOARD[pageOf(fromURL)]], to = RANK[BOARD[pageOf(toURL)]];
+  if (from == null || to == null) return 'same';
+  if (from !== to) return to > from ? 'forward' : 'back';
+  const fd = depthOf(fromURL), td = depthOf(toURL);
+  if (fd !== td) return td > fd ? 'in' : 'out';
+  const fl = laneOf(fromURL), tl = laneOf(toURL);
+  return fl === tl ? 'same' : tl > fl ? 'forward' : 'back';
+}
+
 // 换页之前记下方向，下一页在第一帧之前读（head.html）。pageswap 只在真的换页时触发，点了又被拦下的链接不会留下脏数据；
 // 不支持 pageswap 的浏览器在点击时记一次，带时间戳，过期作废。
 function rememberDirection(href) {
   let url;
   try { url = new URL(href, location.href); } catch { return; }
   if (url.origin !== location.origin) return;
-  const from = RANK[BOARD[document.body.dataset.page]];
-  const to = RANK[BOARD[pageOf(url)]];
-  const dir = from == null || to == null || from === to ? 'same' : to > from ? 'forward' : 'back';
+  const dir = directionOf(new URL(location.href), url);
   try { sessionStorage.setItem('lk-vt', JSON.stringify({ dir, at: Date.now() })); } catch { /* 隐私模式 */ }
 }
 
@@ -50,6 +73,9 @@ function initPageTransitions() {
   const reset = () => { clearTimeout(navTimer); clearTimeout(navGuard); document.documentElement.classList.remove('is-navigating'); progress.hidden = true; };
   addEventListener('pageshow', reset); addEventListener('pagehide', reset);
   addEventListener('pageswap', (e) => {
+    // A rapid navigation or a destination without opt-in can cancel the old page's transition.
+    e.viewTransition?.ready.catch(() => {});
+    e.viewTransition?.finished.catch(() => {});
     if (e.viewTransition && e.activation?.entry?.url) rememberDirection(e.activation.entry.url);
   });
   document.addEventListener('click', (e) => {
@@ -130,11 +156,14 @@ async function initAccount() {
   if (!bell) return;
   bell.hidden = false;
   try {
-    const n = await hubApi.notifications();
+    // 维护者：北矿娘主动发来的消息也算进铃铛；有她的新消息时，点铃铛直接去她的窗口
+    const [n, bk] = await Promise.all([hubApi.notifications(), s.user.moderator ? hubApi.beikuangUnread().catch(() => ({ unread: 0 })) : { unread: 0 }]);
+    const total = n.unread + bk.unread;
     const count = bell.querySelector('[data-bell-count]');
-    count.hidden = !n.unread;
-    count.textContent = n.unread > 99 ? '99+' : n.unread;
-    bell.setAttribute('aria-label', n.unread ? `消息，${n.unread} 条未读` : '消息');
+    count.hidden = !total;
+    count.textContent = total > 99 ? '99+' : total;
+    if (bk.unread) bell.href = 'me.html#beikuang';
+    bell.setAttribute('aria-label', bk.unread ? `北矿娘有 ${bk.unread} 条新消息` : n.unread ? `消息，${n.unread} 条未读` : '消息');
   } catch { /* 读不到消息时只显示铃铛 */ }
 }
 
@@ -202,7 +231,10 @@ export function observeLive(scope = document) {
 // 全站搜索：按需加载，不拖慢首屏
 function initSearch() {
   const open = () => import('./search.js').then((m) => m.openSearch());
-  document.querySelectorAll('[data-search]').forEach((b) => b.addEventListener('click', open));
+  // 用事件委托：页面后来渲染出来的搜索框（比如首页的快捷搜索）也能打开全站搜索
+  document.addEventListener('click', (e) => {
+    if (e.target.closest?.('[data-search]')) open();
+  });
   addEventListener('keydown', (e) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
     if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
@@ -219,5 +251,6 @@ export function initShell() {
   initNav();
   initTheme();
   initSearch();
+  initFx();
   document.querySelectorAll('[data-year]').forEach((el) => (el.textContent = new Date().getFullYear()));
 }

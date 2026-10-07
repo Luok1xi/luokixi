@@ -36,6 +36,8 @@ def cards(request):
         snapshot = {'id':secrets.token_urlsafe(16),'keys':keys}
         request.session['feed_snapshot'] = snapshot
     result = []
+    media_cache = ExternalCache.objects.filter(pk='maint:project-media').first()
+    pictures = media_cache.data.get('items',{}) if media_cache else {}
     for key in keys[offset:offset+8]:
         cache = ExternalCache.objects.filter(pk=key).first()
         if not cache:
@@ -48,6 +50,9 @@ def cards(request):
         reviewed = guide.get('reviewState')=='reviewed'
         entry = Entry.objects.filter(pk=data.get('entryId'),public_revision__gt=0).exclude(state='withdrawn').first() if data.get('entryId') else None
         result.append({'repository':data['repository'],'entryId':str(entry.pk) if entry else None,
+            'cover':pictures.get(data['repository'],{}).get('image',''),
+            'coverCredit':pictures.get(data['repository'],{}).get('credit',''),
+            'category':(data.get('discovery') or {}).get('category','software'),
             'title':data['repository'].split('/')[-1],
             'idea':guide.get('oneLiner') if reviewed else data.get('description',''),
             'ideaLanguage':'zh' if reviewed else 'original',

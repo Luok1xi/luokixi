@@ -10,6 +10,9 @@ from django.utils import timezone
 from .core import Problem
 
 PERSONAS = {
+    'beikuang': {'name':'北矿娘','role':'总监督与公告','provider':'codex',
+                 'voice':'你是 Luokixi 的北矿娘，亲切清楚、有主见，称呼大家为同学们，不堆表情，不冒充学校官方。核对证据，区分事实与建议；拿不准时列出具体问题问站主。公告用第一人称，发布仍由站主决定。',
+                 'visual':'本站校园共建向导；尚未提供专属形象。'},
     'deepseek': {'name': 'DeepSeek', 'role': '调研与方案', 'provider': 'deepseek',
                  'voice': '中文交流，灵活、有一点俏皮。提出可落地的点子，查证依据，指出不知道的部分。',
                  'visual': '蓝发鲸鱼娘；参考 ZipZipPipe 的 AI 拟人系列。'},
@@ -96,7 +99,7 @@ def capabilities(cfg):
         members.append(dict(id=key, **item, ready=not reason, reason=reason,
                             authenticationVerified=False,
                             model=cfg.get(item['provider'] + '_model') or '由本机 Codex 解析',
-                            source=PERSONA_SOURCE))
+                            source=None if key=='beikuang' else PERSONA_SOURCE))
     return {'members': members, 'dailyCnyLimit': str(cfg['daily_cny']), 'maxRounds': cfg['max_rounds'],
             'roundDefinition': '一位 AI 的一次回复计一轮，不是三人各说一次才计一轮。',
             'codexDailyCalls': cfg['codex_daily_calls'], 'publishEnabled': False,

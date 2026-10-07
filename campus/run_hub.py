@@ -17,8 +17,9 @@ if __name__=='__main__':
     call_command('migrate',interactive=False,verbosity=0)
     stop = threading.Event()
     if not args.no_worker:
-        from hub.worker import loop
+        from hub.worker import loop, loop_interactive
         threading.Thread(target=loop,args=(stop,),daemon=True).start()
+        threading.Thread(target=loop_interactive,args=(stop,),daemon=True).start()
         from hub.clips import loop as clip_loop
         threading.Thread(target=clip_loop,args=(stop,),daemon=True).start()
     from waitress import serve

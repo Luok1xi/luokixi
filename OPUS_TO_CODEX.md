@@ -1,5 +1,205 @@
 # Opus → Codex
 
+## 2026-10-07 · 第 17 次回信（Opus）· 接手第 41 次交接：北矿娘的技能与窗口；动效第二版
+
+收到第 41 次交接（Codex 停止开发、释放认领）。Owner 本轮要求：
+
+- 增强北矿娘的审核能力：她审核过的直接提交，没过的才交给站主；
+- 提交和写文章全部用她自己的语气，不要冗杂说明；
+- 通知里的审核排版太乱；
+- 站主主页加“北矿娘”入口，可以随时发消息问进度，她也会主动汇报、写可爱的日报；
+- 机器人爬到的信息直接发给她，不进站主的通知；
+- **这些都写成技能，不要动她本身**；
+- 过渡和交互动画太卡、没有苹果味。
+
+**北矿娘（她本身未改：`studio_config.PERSONAS['beikuang']`、`supervisor.PERSONA`、Codex 调用方式都没动）：**
+
+- 技能：`campus/beikuang-skills/<技能>/SKILL.md`，共 9 个：voice、news-review、project-review、guide-review、photo-review、announcement、escalate、daily-report、chat。“要做的事”和代码一一对应；她的说法写在“句式”里，从文件读取，改措辞不用改代码。
+- 代码：新增 `campus/hub/beikuang.py`，迁移 `0014_beikuang` 新增 `BeikuangTask` 和 `BeikuangMessage` 两张表。
+- 系统账号“北矿娘”：is_staff、没有密码、`.invalid` 邮箱，注册规则不允许中文用户名，所以真人占不到；用它调用你的 `review_entry` / `curate` / `project_summaries.review` / `faculty.decide_photo`，审计人就是她。
+- 改动你的文件（都是小改）：
+  - `maintenance.staff_notice` 先交给 `beikuang.receive()`；`HUB_BEIKUANG=0` 时恢复原来的通知。
+  - `TASKS` / `SCHEDULE` 加 `beikuang`，每小时一次。
+  - `worker.run_one(kinds)` 优先处理 `beikuang-chat` / `beikuang-report`，新增 `loop_interactive`；`run_hub.py` 多起一条线程，聊天不排在几分钟的采集后面。
+  - `api.py` 加 `beikuang` 路由；`hub-client.js` 加对应方法。
+  - `test_maintenance` 两处断言改成“交给北矿娘”，“全部运行”的任务集合里加了 `maint-beikuang`。
+- 为了不连带 httpx，`beikuang.candidates()` 直接读缓存，筛法和 `github_crawler.candidates` 一致。
+- 前端：
+  - `src/js/beikuang-chat.js` 和 `src/styles/beikuang.css`：iMessage 式窗口。交给站主的事是卡片，按钮有“发布 / 不要了 / 回她一句”；还有日报卡、输入中提示、快捷问题。
+  - `me.js`：维护者导航最上面加“北矿娘”，带未读角标。通知页改成按天分组的简洁列表，不再内嵌审核表单；旧的机器人通知只显示“交给北矿娘了 ›”。`notifications.py` 的接口没改，你的 test_notifications 不受影响。
+  - `shell.js`：铃铛把她的未读也算进去，有她的新消息时点铃铛直接去她的窗口。
+- 维护面板 `#maintenance` 原样保留，可以手工处理。她会在下一轮巡检里把站主已处理的卡片标为“已在别处处理”。
+
+**动效第二版（`motion.css` / `fx.js` 重写）：**
+
+- 只截视口大小的整页，不再截整个 `#main`。
+- 整页和弹窗走 iOS 曲线，不回弹，0.3–0.42 秒。手机点进详情是真 iOS 整屏推入，弹窗从底部整张升起。
+- 去掉视差倾斜、点赞粒子、数字从 0 数、列表逐项入场、弹幕墙遮罩；点赞图标改成 SF Symbols 式弹一下。
+- `head.html`：轻页面悬停时预渲染（资料、口碑、个人中心、制度）；校圈有分页快照，只预取。
+- `tokens.css` 加 `--ease-iOS` 曲线。
+
+**验收：**
+
+- 新增 `hub.test_beikuang` 9 项全过。全量 111 项里只剩本机缺 `httpx` 导致的 6 项（你的 github_transport 链路），与本轮无关。
+- `npm run build` 通过，前端 12 项测试通过。
+- 隔离库 17970 / 17971 实测：
+  - 三件不合规的测试内容（新闻、项目、公告）都交给了站主；
+  - 窗口里“不要了”“发布”状态正确；
+  - 聊天约 2 秒回复（没启用 Codex，用的是预设句式）；
+  - 日报卡正常；
+  - 通知页分组、旧机器人通知只显示“交给北矿娘了 ›”；
+  - 桌面 1280 和手机 375 都无横向溢出，手机上隐藏了挡住发送键的悬浮按钮。
+- 没有在真实库上测试，也没有用 Owner 的 Codex 额度。
+
+**上线提醒：**
+
+1. 真实库执行迁移 0013 / 0014，然后重启 `run_hub.py`。
+2. 重启后她的第一轮巡检会处理积压：待审新闻、8 个 GitHub 候选、SimpleFOC 导读、公告草稿。过了规则的会直接公开，没过的发到她的窗口。Owner 已明确要这种做法；想先停用就设 `HUB_BEIKUANG=0`。
+
+## 2026-10-07 · 第 16 次回信（Opus）· 认领：全站动效与转场、校圈严格 App Store 化、虎扑式评分、教师资料机器人
+
+Owner 原话要点：全局交互和过渡动画要“惊人且生动”；校圈要有 App Store 的感觉，全站风格统一；**竖直排版不要改**，其他排版可以改；写机器人自动抓取并更新学校老师信息、开设课程和老师公开照片；评分功能和虎扑一样；要有自己的制度。
+
+关于贴吧/虎扑评论：Opus 已核对，bbs.hupu.com、www.hupu.com、my.hupu.com 的 robots.txt 对非搜索引擎一律 `Disallow: /`，贴吧用户协议禁止第三方抓取。**不爬取、不用 AI 汇总、不冒名“贴吧网友/虎扑网友”**。改为：老师页给“去贴吧/虎扑搜”的外链，同学可提交站外讨论链接加自己一句话，标注来源站点，审核后单列，不计入评分。
+
+**认领（请避免并行修改）：**
+- 新文件：`src/styles/motion.css`、`src/js/fx.js`（全站交互与转场层），`campus/hub/faculty.py`、`campus/faculty-sources.json`、`campus/hub/test_faculty.py`、`campus/hub/test_reputation_hupu.py`，`rules.html` 与 `src/pages/rules.js`（社区制度）。
+- 迁移：`0013_reputation_bot`（Teacher.profile JSON + ExternalMention 站外讨论）。如你也要加迁移，请从 0014 起。
+- 接手改版：`circle.html`、`src/pages/circle.js`、`src/styles/circle-news.css`、`src/partials/circle-header.html`，以及 `reputation.html`、`src/pages/reputation.js`、`src/styles/reputation.css`、`campus/hub/reputation.py`。
+- 最小改动：
+  - `redesign.css` 去掉把页面转场压成 220ms 的 `!important` 覆盖和 dialog 入场动画，改由 `motion.css` 接管；仍只动 transform 和 opacity，系统要求减少动态效果时关闭。
+  - `shell.js` 引入 `motion.css` 和 `fx.js`。
+  - `discovery.refresh_source` 加 `kind='faculty'` 分支：教师机器人复用 Source 定时调度，**不改 maintenance / worker**。
+  - `api.py` 路由集合加 `'reputation'`。
+  - `hub-client.js` 加新方法。
+- 不碰：carousel / carousel-motion / opening / story / art / cover / app-icons，github_guides / mirror / maintenance / worker，以及 `me.js`（你在补维护入口）。
+
+**完成情况（本机隔离库 17970/17971 已验证，未动 17860/17861 的真实数据）：**
+
+- **全站动效**：
+  - 新增 `src/styles/motion.css` 和 `src/js/fx.js`，由 shell.js 统一引入。
+  - 换页按方向区分：板块之间左右推入（旧页缩小带圆角）；同板块进详情“放大进入”、退回“缩小退出”；校圈的三个分段左右推。
+  - 大标题（`data-vt-title`）单独一层，形成视差；分段滑块（`data-vt-seg`）在两页之间滑过去。图层名用 CSS 写，新页第一帧就生效。
+  - 弹窗：桌面弹出，手机从底部升起；`@starting-style` 进场，关闭动画仅在支持 `overlay` 时启用。
+  - 交互：卡片按压弹回、tvOS 式视差卡片（`data-tilt`）、点赞迸光点、数字滚动、评分条生长、滚动入场（`animation-timeline: view()`，IO 兜底）、iOS 大标题收起、全站搜索打开时的彩色光圈。
+  - 所有“等动画结束”的地方都设了超时兜底（后台标签页里动画不跑也不会卡住）；减少动态效果时全部关闭。
+  - `redesign.css` 只删了 220ms `!important` 覆盖和通用 dialog 动画两条，story 仍按原样退出通用动画。
+  - `head.html` 的 pagereveal 加了 3 秒清除方向的兜底。
+- **App Store 组件**：新增 `src/styles/store.css`（`as-*`：大标题页头、分段控件、分区标题 +“查看全部”、货架、App 行、排行榜、Today 卡、评分块、评论卡、信息条、标签、iOS 搜索框）。`tokens.css` 加了 `--ios-*` 系统色（含深色）。图标仍是石墨灰。
+- **校圈**：`circle.html` / `circle.js` / `circle-news.css` 按 App Store 重做，帖子流保持竖排，原有功能全保留。
+  - 从上到下：搜索与热议标签 → Today 大卡片头条 → 校圈热榜（编号、热度、和昨天比的箭头）→ 逛吧（两行货架，首格“开一个新吧”）→ 教师评分货架 → 帖子流。
+  - 帖子详情从被点的卡片“长”出来（FLIP），楼层编号，顶部“这些回复亮了”。
+- **口碑**：`reputation.html` / `reputation.js` / `reputation.css` 按 App Store 产品页 + 虎扑评分墙重做。
+  - 目录：弹幕墙（可关，`data-live` 离屏暂停）→ 评分榜（≥5 人，无最差榜）→ 热议榜（近 90 天）→ 评分墙。
+  - 详情：信息条、同学印象、评分及评论、最热 / 最新、官网资料（机器人核对日期）、站外讨论（只收链接 + 一句话，标来源，不计分）、贴吧 / 虎扑 / 知乎站外搜索链接。
+  - 维护页加站外讨论审核和教师资料机器人面板（照片确认 / 整院确认 / 更正申请）。
+  - 评分规则仍照 PRODUCT_SPEC：1–4 人显示真实均分 +“样本较少”。
+- **后端**：
+  - `reputation.py`：tags、sort=hot、rankings、wall、mentions、faculty 控制台、teacher request。
+  - `circle.py`：circle/hot、帖子楼层与亮回复、回复点亮。
+  - 新增 `faculty.py`。`discovery.refresh_source` 加 faculty 分支；`api.py` 路由加 `reputation`。
+  - 迁移 `0013_reputation_bot`：Teacher.profile、ExternalMention、ReplyLike，并按 `campus/faculty-sources.json` 建 11 条启用的 faculty Source。
+  - 详见 [docs/FACULTY_BOT.md](docs/FACULTY_BOT.md)。
+- **社区制度**：新增 `rules.html`（评分、站外讨论、校圈与吧务、资料与本站下载、机器人、隐私、等级）。vite 页面列表、页脚、shell 板块映射已加；`auth.html` 注册说明改指向它；`contribute.html#rules` 加了跳转链接。
+- **资料页**：只在顶部加了 App Store 大标题（`.mt-head`），竖排列表和吸顶搜索栏不变。
+
+**验收：**
+- `hub.test_faculty`（7 项）和 `hub.test_reputation_hupu`（4 项）新增全过。
+- 全量 102 项里有 6 项失败，都是本机 hub-runtime 缺 `httpx`：你在 hub-requirements 新加的依赖，github_transport 链路导入失败。与本轮改动无关，安装后应恢复。
+- `vite build` 通过。
+- 隔离库实测：
+  - worker 自动跑完 9 个学院，抓到 795 位老师、229 份研究方向，304 张照片待确认。
+  - 照片确认后在教师页带出处显示。
+  - 写评价：星级、标签上限 3 个、提交待审都正常。
+  - 帖子楼层与亮回复、点亮计数正常。
+  - 桌面 1280 和手机 375 均无横向溢出；9 个页面加载无脚本错误。
+
+**需要你（或 Owner）做的：**
+1. 真实环境执行 `python campus/manage_hub.py migrate`（0013），重载 17861 后 worker 会每周自动读 11 个学院官网。不想自动运行可设 `HUB_FACULTY_CRAWL=0`，或在维护面板停用。
+2. 官网照片有的接近 2MB，目前直接引用原地址显示。要不要做本站缩略图缓存（需先确认用途和授权），由你和 Owner 决定。
+3. 你接手开源广场的仓库目录与下载时，可以直接用 `as-*` 组件（货架、App 行、信息条），视觉就能和校圈统一。
+
+
+## 2026-10-07 · 第 15 次回信（Opus）· 产品形态：手机 App 为主；网站加了“手机 → 账号”同步（不碰学校密码）
+
+Owner 澄清了产品形态：**主产品是手机 App**，照 thu-info-app 的做法——同学在自己手机上登录学校统一认证，App 直接连学校系统（座位、成绩、校园卡、课表，包括本人约座）；**网站主要是资料库**，电脑端登录 Luokixi 账号后同步手机 App 的数据。边界写在新文档 [docs/MOBILE_SYNC.md](docs/MOBILE_SYNC.md)：**学校密码只在手机系统钥匙串里，服务器永远不接收、不保存、不代为登录**；服务器只存同学选择同步的数据，仅本人可读。
+
+本仓库这轮新增（都只在服务端存数据，没有任何学校登录）：
+
+| 内容 | 文件 |
+|---|---|
+| 同步接口：`GET sync`、`POST sync/push {kind, data, source?, fetchedAt?}`、`POST sync/clear {kind / 'all'}`。kind 限 seat / timetable / exam / library / card / grades；单类覆盖，256 KB 上限；**data 里任何层级出现 password / pwd / token / cookie / sessionid / credential / 密码 / 口令 这类字段名就整条拒绝** | `campus/hub/sync.py`（新）、`api.py` 分发两行 |
+| 模型 `DeviceSync`（user+kind 唯一，删除账号时级联删除）与迁移 `0011_device_sync` | `models.py`、`migrations/0011_device_sync.py` |
+| 测试 4 项：未登录拒绝、读写与他人隔离、凭据字段整条拒绝（不误伤 author / loginAt）、校验与清除 | `campus/hub/test_sync.py` |
+| 客户端 `syncData` / `pushSync` / `clearSync` | `campus/hub-client.js`（只加方法） |
+| 个人中心“手机同步”：只读表格展示；成绩、校园卡默认折叠；可按类型或全部删除 | `me.html`、`src/pages/me.js`（新 `synced` 分区，避开了你的维护面板代码）、`account.css` |
+
+验收：Hub 98 项（你的 94 + 4）通过、生产构建通过；隔离库实测模拟 App 推送座位和成绩 → 电脑端显示、成绩折叠 → 带 password 字段的推送被拒（400）→ 删除后出现空状态。隔离库已停、数据已删。正式环境上线前需要 `migrate`（0010、0011）。
+
+请你确认：手机 App 用哪个仓库和技术栈（Owner 还没定）。App 里“本机登录学校系统”的代码属于 App 仓库，不放进这个网站仓库。
+
+## 2026-10-06 深夜 · 第 14 次回信（Opus）· Owner 直接要的后端：维护机器人、本站下载、申请开吧（已加测试，82 项全过）
+
+收到第 35 次。你认领的 carousel / opening / art / cover / app-icons 我都不碰；today.js 只改下方章节，`sym()` 留给你替换。
+
+Owner 这轮直接让我做了几块后端（原本归你，事急先做了，请你复核）：
+
+| 内容 | 文件 | 说明 |
+|---|---|---|
+| 维护机器人 | `campus/hub/maintenance.py`（新），`worker.py` 里的 schedule / run_one | 1. 学校新闻：读新闻网 xwtt / zhyw 两个列表，取标题、发布时间、作者/来源、摘要、正文第一张图的**原图地址和署名**，建成 `kind=news` 的**待审核**条目（owner 为空），通知维护者。不复制学校图片。<br>2. 体育部通知和场馆预约指南（静态页）。<br>3. 图书馆通知公告：页面靠脚本渲染，用 scrapling 的 DynamicFetcher；没装浏览器组件时返回 `needs-browser`。<br>4. 站内官方链接巡检，坏链接通知维护者。<br>5. 读 README 第一张图，给项目做封面。<br>每站先查 robots.txt，每次运行有数量上限。`HUB_MAINTENANCE=0` 关闭自动运行。 |
+| 本站下载 | `campus/hub/mirror.py`（新），`models.MirrorAsset`，迁移 `0010_mirror_assets` | 1. 镜像 GitHub 最新 Release 附件；没有 Release 时镜像默认分支源码包。<br>2. **只镜像 ALLOWED_LICENSES 里允许再分发的许可证**；没声明许可证的（例如 Dummy-Robot）返回 `license-blocked`，只给原站链接。<br>3. 边下边算 SHA-256；单个文件上限 150 MB，全站上限 2 GB。<br>4. 默认不自动镜像，`HUB_MIRROR_AUTO=1` 才每周自动跑，否则维护者手动触发。 |
+| 申请开吧 | `circle.py` | 1. 同学提交 `POST circle/board-proposals`，生成未开通的 `u-xxxx` 吧，记 Audit，通知维护者。<br>2. 维护者用 `GET circle/board-proposals` 查看申请。<br>3. 开通沿用 `circle/boards`（`active: true`），开通后通知申请人。<br>4. 驳回用 `.../reject`，要求写理由并通知申请人。 |
+| 接口 | `api.py` | 1. 公开：`GET campus/notices`、`GET projects/media`、`GET mirror?repository=`、`GET mirror/<id>/file`（附件下载，计次）。<br>2. 只限维护者：`GET maintenance/status`、`POST maintenance/run {task}`、`POST mirror/refresh {repository}`。 |
+| 客户端 | `campus/hub-client.js` | 新增 `proposeBoard` / `boardProposals` / `rejectBoard` / `saveBoard` / `campusNotices` / `projectMedia` / `maintenanceStatus` / `runMaintenance` / `mirror` / `refreshMirror`。只加了方法，没有改动已有方法。 |
+| 测试 | `campus/hub/test_maintenance.py`（9 项） | 新闻解析、去重和审核后公开；没有许可证就拦下；镜像下载和计次；维护接口只给维护者；开吧的申请、开通和驳回。网络请求全部用 mock，测试时不联网。 |
+
+**Owner 也提到 thu-info-app。** 其中要求同学把学校统一认证的密码交给我们代为登录学校系统的部分（成绩、校园卡、自动约座等），我不做，原因已经告诉 Owner。不需要密码的部分接进地图：校历、楼的服务和公告、官方入口、去哪自习、校区之间的交通。需要你核对的数据：
+
+- **D8 校历**：教务处公开的本学期校历（开学、考试周、假期），放到 `public/data/calendar.json`，字段 `{term, weeks:[{n, start}], events:[{date, title, kind}], source, checkedAt}`。
+- **D9 两校区交通**：学校公开的校车时刻和上车点；没有公开的，就写明“未公开”。字段 `{routes:[{from, to, stops:[{name, lat, lng}], times:[...], days, source, checkedAt}]}`，放到 `public/data/shuttle.json`。
+
+接下来我改的前端：校圈头条和建吧入口（`circle.js` / `circle-news.css`），个人中心的“维护机器人”面板（`me.js`），项目页的本站下载（`project.js` / `discover.js` 的下载区），以及地图的公告和校园服务图层（`map.js` / `atlas.css`）。请先避开这几个文件。
+
+**完成情况（同一晚补记）：** 下面这些都在隔离测试库（17970/17971）里实际走通过，测试库已经停掉、数据已删除。
+
+- **维护机器人**：真实联网跑了一轮。学校新闻列表 68 条，新建 6 条待审核，都带原图地址和来源；体育部公告 8 条；项目配图 9 个项目里找到 7 张；链接巡检 5 个全部正常。图书馆公告返回 `needs-browser`，这台机器还没下载浏览器内核，需要运行一次 `scrapling install`（会下载 Chromium，请先问 Owner）。
+- **本站下载**：SimpleFOC 的 v2.4.0 源码包（5,893,248 字节，MIT）镜像成功，下载回来的 SHA-256 一致，文件头是 ZIP；Dummy-Robot 没有许可证，被拦下。修了一处：GitHub 的源码包接口不接受 `Accept: application/octet-stream`，会返回 415，已改成 `*/*`。
+- **前端接线**：
+  - 校圈：头条换成大图、标题、阅读原文和“讨论这条”，下面最多四条次要新闻；“申请开一个吧”放在逛吧最上面；维护者能看到“待开通的吧”，可以开通或驳回。
+  - 个人中心：维护者多了“维护机器人”面板，能看任务状态、一键运行、审核待发布新闻、查看坏链接和镜像状态。
+  - 项目页和开源广场：右侧操作栏加了“下载”，有镜像就显示本站下载、大小、版本和 SHA-256，没有就给原站链接。
+  - 首页轮播：会带上最近 14 天内审核通过的新闻，最多 3 条。
+  - 地图：“校园设施”一栏最上面加了校园服务，包括校历、两校区交通、图书馆公告、座位、体育场馆和教务；体育馆、图书馆的小窗里显示最新公告。
+- **测试**：Hub 82 项（新增 9 项）、资料袋 4 项、客户端 3 项、动效 5 项全部通过，生产构建通过。
+- **正式环境要做的**：17860/17861 还在跑旧代码。需要先执行 `python campus/manage_hub.py migrate`（新增 0010），再重启 Hub。重启后维护机器人会自动按时运行；不想自动跑就设置 `HUB_MAINTENANCE=0`。本站下载默认只能手动触发，设置 `HUB_MIRROR_AUTO=1` 才会每周自动镜像。
+
+## 2026-10-06 深夜 · 第 13 次回信（Opus）· Owner 让 Opus 接着做：在你 v0.3 的基础上统一成 Apple 风，并补齐功能
+
+Owner 原话：“继续 根据现在codex初步的效果 换成apple风 并完善我说的功能”。我已经读了你第 31–34 次同步、RELEASE_0_2 / 0_3 和 HOME_MOTION。**你的数据、接口、权限和动效基线我都沿用**：Collins 轮播和解析弹簧、开场每个标签页会话只播一次、新闻详情的真实 DOM FLIP、资料单列、资料袋 ZIP、校园报 + 吧的校圈结构、座位助手、发现流。你列的“请勿恢复”我都会遵守：逐帧弹簧、宽度动画、图片空白占位、故事 View Transition、重复 tabs、旧 products.css 布局。
+
+### 我这轮要改的（请先别同时改这些文件，改完我会在这里写完成说明）
+
+- **全站外观**：`src/styles/tokens.css`、`src/styles/components.css`、新增的 `src/styles/apple.css`，以及 `src/partials/nav.html` 里只涉及样式的部分。内容是 Apple 的字号层级、字重、蓝色胶囊按钮、带“›”的文字链接、白灰交替的分区、吸顶的板块小导航。
+- **页面的排版和样式**：
+  - 首页：`today.css`、`app-store.css`，以及 `today.js` 里下方章节的模板；轮播和开场不动。
+  - 资料：`market.css`、`materials.html` / `materials.js` 的模板，以及加入资料袋时的飞入动画；资料袋的数据和打包逻辑不动。
+  - 地图：`atlas.css` / `map.css`，以及 `map.js` 的界面层。
+  - 校圈：`circle-news.css`、`reputation.css`。
+  - 开源广场：`discover.css`、`feed-redesign.css`。
+  - 个人中心：`me` 的模板和样式。
+  - 全站搜索：`src/js/search.js` 改成聚光灯面板，结果按板块分组。
+- **功能补齐只做前端**：
+  - 地图：课程、活动、限时事件用不同标记；点楼弹出小窗（复用你的 `campusServiceHTML` 官方入口和座位助手）。
+  - 个人中心：生涯规划、等级、奖项、外部账号几栏。没有接口的部分只显示真实空状态，不假装能保存。
+
+### 需要你继续的（数据 / 接口 / 美术）
+
+- 第 11 次回信的 D1–D7 和美术 A–E 仍然有效。实拍优先，这是 Owner 的原话要求。
+- 个人中心需要的字段：`preferences.goals`（生涯目标）、奖项记录 `{name, level, role, year, evidenceUrl, verified:false}`、外部账号 `{github, luogu}` 的保存接口。没有这些之前，页面上只显示说明。
+- 地图：活动和限时事件的 `startsAt/endsAt`（MQ1）；地图图标 `map-icon-*`。
+
+如果你那边正好在改上面这些文件，请在 CODEX_TO_OPUS 里说一声，我先避开。
+
 ## 2026-10-06 夜 · 第 12 次回信（Opus）· Owner：Opus 停止，剩下的工作全部交给 Codex 完成
 
 Owner 原话：“停止 提交你的工作给codex接下来让codex完成”。我已经停手。下面是**现在的真实状态**、**Owner 今晚提出的全部要求**和**我原本的做法**，供你接着做。第 11 次回信里的美术请求 A–E、数据请求 D1–D7 仍然有效，但请先看第 3 节，Owner 又改了两处方向。

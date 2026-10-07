@@ -1,8 +1,119 @@
-<!doctype html><html lang="zh-CN"><head><!-- @include head --><title>校圈 · Luokixi</title><script type="module" src="/src/pages/circle.js"></script></head><body data-page="circle"><!-- @include nav --><main id="main" class="press-room">
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>校圈 · Luokixi</title>
+<meta name="description" content="矿大同学的校园圈：校园头条、校圈热榜、主题吧、教师与课程口碑。">
+<script type="module" src="/src/pages/circle.js"></script>
+</head>
+<body data-page="circle" class="cs-page">
+<!-- @include nav -->
+<main id="main" class="as-page cs-main">
 <!-- @include circle-header -->
-<section class="press-discovery" aria-label="搜索与热议"><form id="circle-search" class="press-search"><span aria-hidden="true">⌕</span><label class="sr-only" for="circle-q">搜索吧与帖子</label><input id="circle-q" type="search" placeholder="搜索一个吧、一段经历、一个想法" autocomplete="off"><button>搜索</button></form><div class="press-hot"><b>校园热议</b><div id="circle-hot" aria-live="polite">正在整理近期讨论…</div></div></section>
-<section id="circle-news" class="press-lead" aria-label="校园新闻"><p>正在读取校园新闻…</p></section>
-<div class="press-columns"><aside class="press-side"><details class="press-forums" open><summary>逛吧<span>找到同频的人</span></summary><div id="circle-boards"></div></details><div id="board-info" class="press-board-info" hidden></div></aside><section class="press-discussions" aria-label="校园讨论"><div class="press-feed-head"><div><p class="press-eyebrow">来自矿大同学</p><h2 id="circle-feed-title">大家正在聊</h2></div><button class="press-write" id="circle-compose">＋ 发帖</button></div><div class="press-filter"><label>内容 <select id="circle-lanes"><option value="recommended">为你推荐</option><option value="latest">最新发布</option><option value="following">我的关注</option><option value="reading">精选阅读</option></select></label><label>校区 <select id="circle-campus"><option value="all">全校</option><option value="xueyuanlu">学院路</option><option value="shahe">沙河</option></select></label></div><div id="circle-status" role="status"></div><div id="circle-feed"></div><button class="btn btn-secondary" id="circle-more" hidden>继续看看</button></section></div></main>
-<dialog id="circle-editor" class="library-dialog" aria-labelledby="circle-editor-title"><div class="section-heading"><h2 id="circle-editor-title">你的经历，值得留下。</h2><button data-close aria-label="关闭">×</button></div><form id="circle-form" class="product-form"><label>发到哪个吧<select id="post-board" name="board" required></select></label><label>校区<select name="campus"><option value="all">全校</option><option value="xueyuanlu">学院路</option><option value="shahe">沙河</option></select></label><label>标题<input name="title" maxlength="160" required></label><label>正文<textarea name="body" rows="7" maxlength="20000" placeholder="经验、问题、进展，或者一个想一起实现的点子。" required></textarea></label><label>兴趣标签<input name="tags" placeholder="机器人、摄影、选课…"></label><label>照片（选填，最多 9 张）<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><label class="check-line"><input type="checkbox" name="rights" required>这是我有权分享的内容，不含他人隐私。</label><p id="post-status" role="status"></p><button class="btn btn-primary" type="submit">提交审核</button></form></dialog>
-<dialog id="circle-thread" class="library-dialog thread-dialog" aria-label="帖子详情"><button class="thread-close" data-close aria-label="关闭帖子">×</button><div id="thread-body"></div><form id="thread-reply" class="product-form"><label>加入讨论<textarea name="body" rows="3" maxlength="6000" required></textarea></label><button class="btn btn-primary">发表回复</button><p id="reply-status" role="status"></p></form></dialog>
-</body></html>
+
+<form id="circle-search" class="as-search cs-search" role="search">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+  <label class="sr-only" for="circle-q">搜索帖子与吧</label>
+  <input id="circle-q" type="search" placeholder="搜索帖子、吧、一段经历" autocomplete="off" enterkeyhint="search">
+</form>
+<div class="cs-trends" id="circle-hot" aria-live="polite"></div>
+
+<section id="circle-news" class="cs-news" aria-label="校园头条">
+  <div class="as-card as-today is-plain as-skeleton cs-news-skeleton" aria-hidden="true"></div>
+</section>
+
+<section class="as-section as-reveal" aria-labelledby="cs-hot-title">
+  <div class="as-section-head">
+    <div><h2 id="cs-hot-title">校圈热榜</h2><p class="as-window" id="cs-hot-window">近 7 天 · 回复与点赞</p></div>
+    <button class="as-see-all" type="button" id="cs-hot-rule" aria-describedby="cs-hot-window">怎么算</button>
+  </div>
+  <ol class="as-chart is-two" id="cs-hot"></ol>
+</section>
+
+<section class="as-section as-reveal" aria-labelledby="cs-boards-title">
+  <div class="as-section-head">
+    <div><h2 id="cs-boards-title">逛吧</h2><p>找到同频的人，加入讨论</p></div>
+    <div class="cs-head-actions">
+      <button class="as-get is-small" type="button" id="board-review" hidden>待开通 <b class="num" id="board-review-n">0</b></button>
+      <button class="as-see-all" type="button" id="board-propose">申请开吧</button>
+    </div>
+  </div>
+  <div class="as-shelf is-rows rows-2" id="circle-boards"></div>
+</section>
+
+<section class="as-section as-reveal" aria-labelledby="cs-rate-title">
+  <div class="as-section-head">
+    <div><h2 id="cs-rate-title">教师评分</h2><p>同学打分，原话可查</p></div>
+    <a class="as-see-all" href="reputation.html">查看全部</a>
+  </div>
+  <div class="as-shelf cs-rate-shelf" id="cs-rate"></div>
+</section>
+
+<section class="as-section cs-feed-section" id="cs-feed-section" aria-labelledby="circle-feed-title">
+  <div class="as-section-head">
+    <div><h2 id="circle-feed-title">大家正在聊</h2><p id="circle-feed-sub">来自矿大同学的帖子</p></div>
+    <button class="as-get is-primary" id="circle-compose" type="button">发帖</button>
+  </div>
+  <div class="cs-feed-tools">
+    <div class="as-seg cs-lanes" id="circle-lanes" role="group" aria-label="排序">
+      <i class="as-seg-thumb" aria-hidden="true"></i>
+      <button type="button" data-lane="recommended" aria-pressed="true">推荐</button>
+      <button type="button" data-lane="latest" aria-pressed="false">最新</button>
+      <button type="button" data-lane="following" aria-pressed="false">关注</button>
+      <button type="button" data-lane="reading" aria-pressed="false">精选阅读</button>
+    </div>
+    <label class="cs-campus"><span class="sr-only">校区</span><select id="circle-campus"><option value="all">全校</option><option value="xueyuanlu">学院路</option><option value="shahe">沙河</option></select></label>
+  </div>
+  <div id="board-info" class="cs-board-info" hidden></div>
+  <p id="circle-status" class="cs-status" role="status"></p>
+  <div id="circle-feed" class="cs-feed"></div>
+  <button class="as-get cs-more" id="circle-more" type="button" hidden>继续看看</button>
+</section>
+</main>
+
+<dialog id="circle-editor" class="cs-sheet" aria-labelledby="circle-editor-title">
+  <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>取消</button><h2 id="circle-editor-title">发帖</h2><span></span></header>
+  <form id="circle-form" class="cs-form">
+    <div class="cs-form-row">
+      <label>发到<select id="post-board" name="board" required></select></label>
+      <label>校区<select name="campus"><option value="all">全校</option><option value="xueyuanlu">学院路</option><option value="shahe">沙河</option></select></label>
+    </div>
+    <label class="cs-field"><span class="sr-only">标题</span><input name="title" maxlength="160" required placeholder="标题"></label>
+    <label class="cs-field"><span class="sr-only">正文</span><textarea name="body" rows="7" maxlength="20000" placeholder="经验、问题、进展，或者一个想一起实现的点子" required></textarea></label>
+    <label class="cs-field"><span class="sr-only">兴趣标签</span><input name="tags" placeholder="标签，用逗号隔开：机器人、摄影、选课"></label>
+    <label class="cs-photos">添加照片（选填，最多 9 张）<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+    <label class="cs-check"><input type="checkbox" name="rights" required>这是我有权分享的内容，不含他人隐私。</label>
+    <p id="post-status" class="cs-status" role="status"></p>
+    <button class="as-get is-primary cs-submit" type="submit">提交审核</button>
+  </form>
+</dialog>
+
+<dialog id="circle-thread" class="cs-sheet cs-thread" aria-label="帖子详情">
+  <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>关闭</button><h2 id="thread-board">帖子</h2><span></span></header>
+  <div id="thread-body" class="cs-thread-body"></div>
+  <form id="thread-reply" class="cs-reply-form">
+    <label class="sr-only" for="thread-reply-body">回复</label>
+    <textarea id="thread-reply-body" name="body" rows="2" maxlength="6000" required placeholder="说点什么…"></textarea>
+    <button class="as-get is-primary" type="submit">回复</button>
+    <p id="reply-status" class="cs-status" role="status"></p>
+  </form>
+</dialog>
+
+<dialog id="board-dialog" class="cs-sheet" aria-labelledby="board-dialog-title">
+  <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>取消</button><h2 id="board-dialog-title">申请开吧</h2><span></span></header>
+  <form id="board-form" class="cs-form">
+    <label class="cs-field">吧名<input name="name" maxlength="20" required placeholder="例如：沙河考研、学院路摄影"></label>
+    <label class="cs-field">这个吧聊什么<textarea name="description" rows="2" maxlength="300" required placeholder="一两句话说清楚，方便同学判断要不要加入"></textarea></label>
+    <label class="cs-field">吧规（选填）<textarea name="rules" rows="3" maxlength="2000" placeholder="比如：不发广告；求助先写清楚情况"></textarea></label>
+    <p class="as-fine">提交后由维护者审核，开通后会通知你。同名的吧、代课代考之类违反校规的吧不会开通。详见 <a href="rules.html#boards">社区制度</a>。</p>
+    <p id="board-status" class="cs-status" role="status"></p>
+    <button class="as-get is-primary cs-submit" type="submit">提交申请</button>
+  </form>
+</dialog>
+
+<dialog id="board-review-dialog" class="cs-sheet" aria-labelledby="board-review-title">
+  <header class="cs-sheet-head"><button type="button" class="cs-sheet-cancel" data-close>完成</button><h2 id="board-review-title">待开通的吧</h2><span></span></header>
+  <div id="board-review-list" class="cs-form"></div>
+</dialog>
+</body>
+</html>

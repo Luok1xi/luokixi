@@ -1,0 +1,12 @@
+.repo-search { display:flex; flex-wrap:wrap; align-items:end; gap:14px; margin-block:24px; }
+.repo-search label { display:grid; gap:6px; flex:1 1 160px; font-size:14px; }
+.repo-search input,.repo-search select { min-width:0; width:100%; padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--bg-elev); color:var(--fg); font:inherit; font-size:16px; }
+.repo-status { margin-block:16px; color:var(--fg-2); }
+.repo-results { display:grid; gap:16px; }
+.repo-item { padding:clamp(18px,3vw,28px); overflow-wrap:anywhere; }
+.repo-item p,.repo-item details { margin-block:14px; }
+.repo-item h3 { font-size:22px; }
+.repo-heading { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:start; gap:12px; }
+.repo-files { display:flex; flex-wrap:wrap; gap:10px; }
+.repo-files a { white-space:normal; overflow-wrap:anywhere; }
+.repo-item summary { cursor:pointer; }

@@ -1,0 +1,52 @@
+{
+  "project": "Lucide",
+  "revision": "1fae58d0a9c661a338036838caf3399b5507bab6",
+  "license": "ISC; Feather-derived icons under MIT (full license preserved)",
+  "icons": [
+    {
+      "name": "calendar-days",
+      "sha256": "9330eb8d7c4989e97b6361314abbf02953243c602874725c9e58ceca00da3bd7",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/calendar-days.svg"
+    },
+    {
+      "name": "book-open",
+      "sha256": "9b9bed0ff057283d5c5c5a1c71f8d3e927db26a56639603a92fdf7b25961510e",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/book-open.svg"
+    },
+    {
+      "name": "armchair",
+      "sha256": "94040a227db83a21e42834b8839426754b4e1f36530eb90a440abaa3f3ee13eb",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/armchair.svg"
+    },
+    {
+      "name": "upload",
+      "sha256": "42816ee1fa0e9d3b82272a97615c1e562b0e9de64780ebf21963bc1db0ceffd1",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/upload.svg"
+    },
+    {
+      "name": "message-circle",
+      "sha256": "146f39740fe50844394d56ae1f8821937655bcfff3842bf6fe8ffc0bcd324076",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/message-circle.svg"
+    },
+    {
+      "name": "map-pin",
+      "sha256": "16f1042a62f1bda20ebab8bfc1cb79c0be285c980dea6c2c733a17902631405b",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/map-pin.svg"
+    },
+    {
+      "name": "file-text",
+      "sha256": "52ca55846c202335fb870c8aa23e9345630ec10489303756d62e750f7109605c",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/file-text.svg"
+    },
+    {
+      "name": "shopping-bag",
+      "sha256": "24a161961b559234b7a31af904dab18b437507336ba2decff3fe6b7772495896",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/shopping-bag.svg"
+    },
+    {
+      "name": "trophy",
+      "sha256": "c641553befdb899b2eb01075c0962c73b4b0e0d1835d9d407f5d5d4d70f77d03",
+      "source": "https://raw.githubusercontent.com/lucide-icons/lucide/1fae58d0a9c661a338036838caf3399b5507bab6/icons/trophy.svg"
+    }
+  ]
+}

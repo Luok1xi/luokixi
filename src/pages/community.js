@@ -3,7 +3,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { initShell, observeReveal, observeLive, reducedMotion } from '../js/shell.js';
 import { loadCommunity, communitySeries, seriesSum, avatarHTML, cfColor, CF_RANK_CN, fmtNum } from '../js/community.js';
 import { mountCity, renderGrid } from '../js/heatmap.js';
-import { coverSVG } from '../js/cover.js';
+import { coverMediaHTML as coverSVG } from '../js/cover.js';
 import { esc } from '../js/data.js';
 import '../styles/community.css';
 
