@@ -85,6 +85,16 @@ class Star(models.Model):
         constraints = [models.UniqueConstraint(fields=['user', 'entry'], name='hub_star_unique')]
 
 
+class EntryView(models.Model):
+    """浏览量：同一个人（登录账号或浏览器会话）同一天看同一条内容只算一次。只存加盐摘要，不存账号或会话号。"""
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    viewer = models.CharField(max_length=64)
+    day = models.DateField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['entry', 'viewer', 'day'], name='hub_entry_view_unique')]
+
+
 class Watch(models.Model):
     user = models.ForeignKey(Member, on_delete=models.CASCADE)
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE)

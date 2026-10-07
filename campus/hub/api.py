@@ -11,7 +11,7 @@ from django.http.response import HttpResponseBase
 from django.shortcuts import render
 from django.utils import timezone
 from . import accounts, files, github_guides
-from .core import (Problem, EVENTS, accept_reply, broadcast, categories, contribute, entry_data, entry_for,
+from .core import (Problem, EVENTS, accept_reply, broadcast, categories, contribute, entry_data, entry_for, record_view,
                    member_data, notify, public_entries, publish_reply, require, review_entry,
                    save_entry, string_list, submit_entry, text, throttle, url, withdraw_entry)
 from .models import (Audit, Contribution, Entry, ExternalCache, Job, Member, Notification,
@@ -363,6 +363,9 @@ def post(request, route, body):
     if route=='auth/logout':
         logout(request)
         return accounts.session(request)
+    if len(parts)==3 and parts[0]=='entries' and parts[2]=='view':
+        # 浏览量不需要登录；按账号或浏览器会话、按天去重
+        return {'views':record_view(request,entry_for(user,parts[1]))}
     require(user)
     if len(parts)==4 and parts[:2]==['map','places'] and parts[3]=='observe':
         from .places import observe

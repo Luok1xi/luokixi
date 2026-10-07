@@ -63,6 +63,8 @@ def cards(request):
             'repositoryUrl':data['url'],'downloads':data.get('downloads',[]),'readmeUrl':data.get('readmeUrl'),
             'releaseUrl':data.get('releaseUrl'),'license':data.get('license'),'credit':data.get('credit'),
             'githubStars':data.get('stars'),'siteStars':entry.star_set.count() if entry else 0,
+            'views':entry.entryview_set.count() if entry else None,
+            'replyCount':entry.reply_set.filter(state='published').count() if entry else None,
             'starred':bool(entry and request.user.is_authenticated and Star.objects.filter(entry=entry,user=request.user).exists()),
             'media':{'type':'project-card','notice':'项目图文导读；不是实机演示视频。'},
             'evidence':data.get('evidence',[]),'verifiedAt':data.get('verifiedAt'),

@@ -1,14 +1,16 @@
 """Shared validation, permissions and auditable community transitions."""
 import hashlib
+import hmac
 import json
 import re
 from pathlib import Path
 from datetime import timedelta
 from urllib.parse import urlsplit, urlunsplit
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from .models import (Audit, Contribution, Entry, Member, Notification, RateBucket,
+from .models import (Audit, Contribution, Entry, EntryView, Member, Notification, RateBucket,
                      Reply, Revision, Upload, Watch)
 
 KINDS = {'project', 'resource', 'paper', 'reproduction', 'topic', 'contest', 'news', 'announcement', 'collection', 'place'}
@@ -100,6 +102,23 @@ def member_data(member, private=False):
     return data
 
 
+def record_view(request, entry):
+    """记一次浏览并返回总浏览量。只统计已公开的内容；按账号或浏览器会话、按天去重。"""
+    if not entry.public_revision or entry.state == 'withdrawn':
+        return entry.entryview_set.count()
+    user = request.user
+    if user.is_authenticated:
+        who = f'user:{user.pk}'
+    else:
+        if not request.session.session_key:
+            request.session.save()
+        who = f'session:{request.session.session_key}'
+    throttle('view', who, 600)
+    viewer = hmac.new(settings.SECRET_KEY.encode(), who.encode(), hashlib.sha256).hexdigest()
+    EntryView.objects.get_or_create(entry=entry, viewer=viewer, day=timezone.localdate())
+    return entry.entryview_set.count()
+
+
 def entry_data(entry, user, own=False):
     editorial = user.is_authenticated and (entry.owner_id == user.pk or user.is_staff)
     data = {'id': str(entry.pk), 'slug': entry.slug, 'kind': entry.kind,
@@ -107,7 +126,8 @@ def entry_data(entry, user, own=False):
             'owner': member_data(entry.owner) if entry.owner_id else None,
             'updated': entry.updated.isoformat(), 'created': entry.created.isoformat(),
             'canonical': str(entry.canonical_id) if entry.canonical_id else None,
-            'siteStars': entry.star_set.count(), 'starred': False, 'watch': []}
+            'siteStars': entry.star_set.count(), 'starred': False, 'watch': [],
+            'views': entry.entryview_set.count(), 'replyCount': entry.reply_set.filter(state='published').count()}
     if user.is_authenticated:
         star = entry.star_set.filter(user=user).first()
         watch = entry.watch_set.filter(user=user).first()

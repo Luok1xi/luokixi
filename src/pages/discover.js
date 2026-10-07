@@ -7,9 +7,11 @@ import { coverMediaHTML as coverSVG } from '../js/cover.js';
 import { CATEGORIES, ORIGINS } from '../js/schema.js';
 import { createNotebook } from '../js/community-notebook.js';
 import { esc } from '../js/data.js';
+import { mountRack, swapLines, webglAvailable } from '../js/disc-rack.js';
 import '../styles/community.css';
 import '../styles/discover.css';
 import '../styles/feed-redesign.css';
+import '../styles/disc-rack.css';
 
 initShell();
 
@@ -50,7 +52,12 @@ try { notebook = createNotebook(); } catch { /* 浏览器存储不可用 */ }
 let toastTimer;
 function toast(msg, action) {
   const el = $('#dc-toast');
-  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : ''}`;
+  el.innerHTML = `${esc(msg)}${action?.href ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : action?.onClick ? ' <button type="button" class="btn-link" data-toast-act></button>' : ''}`;
+  if (action?.onClick) {
+    const b = el.querySelector('[data-toast-act]');
+    b.textContent = action.label;
+    b.addEventListener('click', () => { el.classList.remove('is-on'); el.hidden = true; action.onClick(); }, { once: true });
+  }
   el.hidden = false;
   el.classList.add('is-on');
   clearTimeout(toastTimer);
@@ -99,7 +106,8 @@ async function fetchMore() {
     }
     const start = st.items.length;
     st.items.push(...batch);
-    renderSlides(batch, start);
+    if (rackMode) await rackAdd(batch, start);
+    else renderSlides(batch, start);
     if (!st.items.length) renderEmpty();
     status();
   } catch (err) {
@@ -191,6 +199,7 @@ function renderSlides(batch, start) {
 }
 
 function renderEmpty(reason) {
+  if (rackMode) leaveRack();
   feed.innerHTML = `<section class="slide slide-empty"><div class="empty-card">
     <p class="empty-title">${reason ? '暂时加载不出来。' : '这一类还没有精选项目。'}</p>
     <p>${esc(reason ?? '维护者核对完的项目会出现在这里。可以先看看别的分类，或者推荐一个你觉得好的项目。')}</p>
@@ -452,6 +461,7 @@ $('#dc-shelf').addEventListener('click', (e) => {
   st.items = [];
   st.cursor = null;
   st.index = 0;
+  if (rackMode && rack) { closeDetail(true); rack.setItems([]); }
   feed.innerHTML = '';
   feed.scrollTop = 0;
   fetchMore();
@@ -460,6 +470,7 @@ $('#dc-shelf').addEventListener('click', (e) => {
 addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]') || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   const k = e.key.toLowerCase();
+  if (rackMode && rack) return rackKeys(e, k);
   const slide = slideEl(st.index);
   const it = st.items[st.index];
   if (['arrowdown', 'j', 'pagedown', ' '].includes(k)) { e.preventDefault(); go(1); }
@@ -471,6 +482,370 @@ addEventListener('keydown', (e) => {
   else if (k === 'g' || k === 'enter') slide.querySelector('[data-act="guide"]') ? openGuide(it) : null;
   else if (k === 'o' && safeURL(it.repositoryUrl)) open(it.repositoryUrl, '_blank', 'noopener');
 });
+
+// ---------- 光碟架：有 WebGL 时代替竖滑流（?view=feed 可以回到竖滑流） ----------
+// 左边简介、下方数据（GitHub ★ / 站内收藏 / 评论 / 浏览），点光碟展开详细介绍和评论。
+// 浏览量和评论数只来自社区服务；静态页面上显示“—”，不编数字。
+
+const rackMode = new URLSearchParams(location.search).get('view') !== 'feed' && webglAvailable();
+const dg = $('#dg');
+const VIEWED_KEY = 'luokixi.discover.viewed';
+let rack = null;
+let rackLoading = null;
+let detailOpen = false;
+const swaps = {};
+const field = (k) => dg.querySelector(`[data-f="${k}"]`);
+
+// 盘面上的项目名：长名字拆成两行
+function discLabel(title) {
+  const t = String(title || '').trim();
+  if ([...t].length <= 8) return [t];
+  const parts = t.split(/\s+/);
+  if (parts.length > 1) {
+    const mid = Math.ceil(parts.length / 2);
+    return [parts.slice(0, mid).join(' '), parts.slice(mid).join(' ')];
+  }
+  const chars = [...t], half = Math.ceil(chars.length / 2);
+  return [chars.slice(0, half).join(''), chars.slice(half).join('')];
+}
+
+function discOf(it) {
+  const cat = CATEGORIES[it.category];
+  return {
+    key: it.repository,
+    hue: cat?.hue ?? hueOf(it.repository),
+    label: discLabel(it.title),
+    repo: it.repository,
+    ring: `${it.title}  ·  ${cat?.name ?? '开源项目'}  ·  ${it.license || '许可待核'}  ·  ★ ${it.githubStars != null ? fmtNum(it.githubStars) : '—'}  ·  LUOKIXI 开源广场`,
+    cover: safeURL(it.cover),
+  };
+}
+
+function guideLabel(it) {
+  if (it.guideState === 'reviewed') return '中文导读 · 已核对';
+  if (it.guideState === 'static') return '人工简介';
+  return 'AI 导读尚未核对';
+}
+
+const counted = (it, k) => (st.online && it.entryId && it[k] != null ? fmtNum(it[k]) : '—');
+
+function rackStats(it) {
+  const local = !st.online || !it.entryId;
+  const saved = isSaved(it);
+  field('gh').textContent = it.githubStars != null ? fmtNum(it.githubStars) : '—';
+  field('saveLabel').textContent = local ? '本机收藏' : '站内收藏';
+  field('site').textContent = local ? (saved ? '已收藏' : '收藏') : fmtNum(it.siteStars ?? 0);
+  field('replies').textContent = counted(it, 'replyCount');
+  field('views').textContent = counted(it, 'views');
+  const off = st.online ? '这个项目还没收录进本站' : '需要连接社区服务';
+  field('replies').title = field('replies').textContent === '—' ? off : '';
+  field('views').title = field('views').textContent === '—' ? off : '';
+  $$('[data-act="save"]', dg).forEach((b) => { b.setAttribute('aria-pressed', String(saved)); b.classList.toggle('is-on', saved); });
+  $$('[data-act="plan"]', dg).forEach((b) => b.classList.toggle('is-on', st.plan.includes(it.repository)));
+  const dv = $('#dg-d-views'), dr = $('#dg-d-replies'), ds = $('#dg-d-site');
+  if (dv) dv.textContent = counted(it, 'views');
+  if (dr) dr.textContent = counted(it, 'replyCount');
+  if (ds) ds.textContent = local ? (saved ? '已收藏到本机' : '—') : fmtNum(it.siteStars ?? 0);
+}
+
+function rackInfo(i, animate = true) {
+  const it = st.items[i];
+  if (!it) return;
+  st.index = i;
+  const tags = [it.shelf ? SHELF[it.shelf] : null, CATEGORIES[it.category]?.name, guideLabel(it), it.tested ? '已实测' : null].filter(Boolean).join(' · ');
+  const values = [tags, it.title, `${it.repository}${it.credit ? ` · ${it.credit}` : ''}`, it.idea || '原项目没有写简介。'];
+  const els = ['tags', 'title', 'repo', 'intro'].map(field);
+  if (animate) swaps.info = swapLines(els, values, swaps.info);
+  else els.forEach((el, k) => (el.textContent = values[k]));
+  rackStats(it);
+  $('#dg-count').textContent = `${i + 1} / ${st.cursor ? `${st.items.length}+` : st.items.length}`;
+  $$('#dg-index button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+  dg.querySelector('.dg-live').textContent = `${it.title}，第 ${i + 1} 个项目`;
+  status();
+  if (i >= st.items.length - 3) fetchMore();
+}
+
+function rackIndex() {
+  $('#dg-index').innerHTML = st.items
+    .map((it, i) => `<li><button type="button" data-goto="${i}" aria-current="${i === st.index}"><span>${esc(it.title)}</span><small>${esc(CATEGORIES[it.category]?.name ?? '')}</small></button></li>`)
+    .join('');
+}
+
+async function rackAdd(batch, start) {
+  if (!batch.length) return;
+  if (!rack) {
+    rackLoading ??= mountRack(dg, batch.map(discOf), { onActive: (i) => rackInfo(i), onOpen: () => openDetail() })
+      .then((r) => {
+        rack = r;
+        dg.hidden = false;
+        $('.dc').classList.add('dg-on');
+        rackInfo(0, false);
+        rackIndex();
+        return r;
+      })
+      .catch(() => {
+        // 三维库加载失败（网络或显卡问题）时，退回原来的竖滑流
+        leaveRack();
+        renderSlides(st.items, 0);
+      });
+    await rackLoading;
+    return;
+  }
+  if (start === 0) { rack.setItems(batch.map(discOf)); rackInfo(0, false); }
+  else rack.append(batch.map(discOf));
+  rackIndex();
+}
+
+function leaveRack() {
+  if (!rackMode) return;
+  rack?.destroy();
+  rack = null;
+  dg.hidden = true;
+  $('.dc').classList.remove('dg-on', 'dg-detail-open');
+}
+
+// ---------- 片单 ----------
+
+function setIndex(open) {
+  const panel = $('#dg-index'), scrim = dg.querySelector('.dg-scrim'), btn = dg.querySelector('.dg-index-btn');
+  btn.setAttribute('aria-expanded', String(open));
+  if (reducedMotion()) { panel.hidden = !open; scrim.hidden = !open; return; }
+  if (open) { panel.hidden = false; scrim.hidden = false; }
+  gsapLite(scrim, open ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], open ? 400 : 250).then(() => { if (!open) scrim.hidden = true; });
+  gsapLite(panel, open ? [{ opacity: 0, transform: 'translateY(-8px) scale(.98)' }, { opacity: 1, transform: 'none' }] : [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-8px) scale(.98)' }], open ? 450 : 220)
+    .then(() => { if (!open) panel.hidden = true; });
+  if (open) panel.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest' });
+}
+// 小弹层用浏览器自带的 Web Animations，曲线和光碟架同一条
+function gsapLite(el, frames, duration) {
+  const a = el.animate(frames, { duration, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'forwards' });
+  return a.finished.catch(() => {});
+}
+
+// ---------- 详细介绍 ----------
+
+function detailHTML(it) {
+  const cat = CATEGORIES[it.category];
+  const ev = new Map((it.evidence ?? []).map((x) => [x.id, x]));
+  const local = !st.online || !it.entryId;
+  const rows = [
+    ['分类', esc(cat?.name ?? '—')],
+    ['许可证', it.license ? esc(it.license) : '许可待核'],
+    ['GitHub ★', it.githubStars != null ? fmtNum(it.githubStars) : '—'],
+    [local ? '本机收藏' : '站内收藏', `<span id="dg-d-site"></span>`],
+    ['浏览', `<span id="dg-d-views"></span>`],
+    ['评论', `<span id="dg-d-replies"></span>`],
+    ['核对于', it.verifiedAt ? timeAgo(it.verifiedAt) : '—'],
+  ];
+  const release = (it.downloads ?? []).filter((d) => d.kind === 'official-release');
+  const source = (it.downloads ?? []).filter((d) => d.kind !== 'official-release');
+  const dl = (d) => (safeURL(d.url) ? `<li><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a>${d.version ? ` · ${esc(d.version)}` : ''}</li>` : '');
+  return `
+    <div class="dg-d-block"><p class="dg-d-kicker">${esc([it.shelf ? SHELF[it.shelf] : null, guideLabel(it)].filter(Boolean).join(' · '))}</p></div>
+    <div class="dg-d-block"><h2 class="dg-d-title" id="dg-d-title">${esc(it.title)}</h2></div>
+    <div class="dg-d-block"><p class="dg-d-repo num">${esc(it.repository)}${it.credit ? ` · ${esc(it.credit)}` : ''}</p></div>
+    <dl class="dg-d-table"><div class="dg-rule"></div>${rows.map(([k, v]) => `<div class="dg-d-block"><dt>${k}</dt><dd class="num">${v}</dd></div><div class="dg-rule"></div>`).join('')}</dl>
+    <div class="dg-d-actions dg-d-block">
+      <button class="btn btn-primary dg-star" type="button" data-act="save" aria-pressed="false"><span class="ico" aria-hidden="true">★</span>${local ? '收藏到本机' : '站内收藏'}</button>
+      <button class="btn btn-outline" type="button" data-act="download">下载</button>
+      ${safeURL(it.repositoryUrl) ? `<a class="btn btn-outline" href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">查看原作 ↗</a>` : ''}
+      ${safeURL(it.readmeUrl) ? `<a class="btn btn-outline" href="${esc(it.readmeUrl)}" target="_blank" rel="noopener">阅读 README ↗</a>` : ''}
+      ${safeURL(it.videoUrl) ? `<a class="btn btn-outline" href="${esc(it.videoUrl)}" target="_blank" rel="noopener">观看演示 ↗</a>` : ''}
+      <button class="btn btn-outline" type="button" data-act="plan">加入搭建清单</button>
+    </div>
+    ${it.idea ? `<section class="dg-d-sec dg-d-block"><h3>简介</h3><p${it.ideaLanguage === 'original' ? ' lang="en"' : ''}>${esc(it.idea)}</p></section>` : ''}
+    ${it.whyRecommended ? `<section class="dg-d-sec dg-d-block"><h3>为什么推荐</h3><p>${esc(it.whyRecommended)}</p></section>` : ''}
+    ${(it.sections ?? []).map((sec) => `<section class="dg-d-sec dg-d-block"><h3>${esc(sec.heading)}</h3><p>${esc(sec.text)}</p>${sec.evidenceIds?.length ? `<p class="cite">依据：${sec.evidenceIds.map((id) => ev.get(id)).filter((x) => x && safeURL(x.url)).map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener" title="${esc(x.text ?? '')}">${esc(x.id)}</a>`).join('、') || '—'}</p>` : ''}</section>`).join('')}
+    ${(it.unknowns ?? []).length ? `<section class="dg-d-sec dg-d-block"><h3>原项目未说明</h3><ul>${it.unknowns.map((u) => `<li>${esc(u)}</li>`).join('')}</ul></section>` : ''}
+    ${release.length ? `<section class="dg-d-sec dg-d-block"><h3>官方发布包</h3><ul>${release.map(dl).join('')}</ul></section>` : ''}
+    ${source.length ? `<section class="dg-d-sec dg-d-block"><h3>源代码</h3><p class="cite">源代码不是安装包，需要按原项目说明构建。</p><ul>${source.map(dl).join('')}</ul></section>` : ''}
+    ${it.tested ? `<section class="dg-d-sec dg-d-block"><h3>实测记录</h3><p>${esc(it.testEvidence ?? '')}</p></section>` : ''}
+    <section class="dg-comments dg-d-block" id="dg-comments" aria-labelledby="dg-c-title">
+      <h3 id="dg-c-title">评论 <span id="dg-c-count"></span></h3>
+      <div id="dg-c-body"><p class="dg-c-empty">正在读取…</p></div>
+    </section>`;
+}
+
+function openDetail({ focus } = {}) {
+  const it = st.items[st.index];
+  if (!it || !rack || detailOpen) return;
+  detailOpen = true;
+  setIndex(false);
+  const detail = $('#dg-detail'), body = $('#dg-d-body');
+  body.innerHTML = detailHTML(it);
+  body.scrollTop = 0;
+  rackStats(it);
+  detail.hidden = false;
+  $('.dc').classList.add('dg-detail-open');
+  rack.setOpen(true);
+  const out = dg.querySelectorAll('.dg-info, .dg-stats, .dg-rail, .dg-nav');
+  if (!reducedMotion()) {
+    out.forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease-in', fill: 'forwards' }));
+    // 细线逐条画出，内容一块一块浮上来（只动 transform 和 opacity）
+    body.querySelectorAll('.dg-rule').forEach((el, k) => el.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+      { duration: 900, delay: 380 + k * 60, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }));
+    body.querySelectorAll('.dg-d-block').forEach((el, k) => el.animate([{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 600, delay: 300 + Math.min(k, 14) * 35, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }));
+    dg.querySelector('.dg-back').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 400, fill: 'backwards' });
+  } else out.forEach((el) => (el.style.opacity = '0'));
+  out.forEach((el) => el.setAttribute('inert', ''));
+  dg.querySelector('.dg-back').focus({ preventScroll: true });
+  recordView(it);
+  loadComments(it).then(() => {
+    if (focus === 'comments') $('#dg-comments')?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
+}
+
+function closeDetail(instant = false) {
+  if (!detailOpen) return;
+  detailOpen = false;
+  const detail = $('#dg-detail');
+  const out = dg.querySelectorAll('.dg-info, .dg-stats, .dg-rail, .dg-nav');
+  out.forEach((el) => el.removeAttribute('inert'));
+  $('.dc').classList.remove('dg-detail-open');
+  const done = () => { detail.hidden = true; out.forEach((el) => { el.getAnimations().forEach((a) => a.cancel()); el.style.opacity = ''; }); };
+  rack?.setOpen(false);
+  if (instant || reducedMotion()) { done(); rack?.focus(); return; }
+  detail.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, easing: 'ease-in' }).finished.then(() => {
+    done();
+    out.forEach((el) => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }));
+  });
+  rack?.focus();
+}
+
+// 浏览量：每个项目在这个浏览器会话里只报一次；服务端再按人按天去重
+function recordView(it) {
+  if (!st.online || !it.entryId) return;
+  const seen = new Set(store.get(VIEWED_KEY, []));
+  if (seen.has(it.entryId)) return;
+  seen.add(it.entryId);
+  store.set(VIEWED_KEY, [...seen], true);
+  hubApi.view(it.entryId).then((r) => {
+    if (r?.views == null) return;
+    it.views = r.views;
+    if (st.items[st.index] === it) rackStats(it);
+  }).catch(() => {});
+}
+
+async function loadComments(it) {
+  const body = $('#dg-c-body'), count = $('#dg-c-count');
+  if (!body) return;
+  if (!st.online) {
+    body.innerHTML = '<p class="dg-c-empty">评论保存在社区服务里；现在是只读的静态页面，暂时看不到也不能发表。</p>';
+    return;
+  }
+  if (!it.entryId) {
+    body.innerHTML = `<p class="dg-c-empty">这个项目来自开源目录，还没有收录进本站，暂时不能评论。${safeURL(it.repositoryUrl) ? ` <a href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">去原项目交流 ↗</a>` : ''}</p>`;
+    return;
+  }
+  let rows = [];
+  try {
+    const r = await hubApi.entry(it.entryId);
+    rows = r.replies ?? [];
+    if (r.views != null) it.views = r.views;
+    if (r.replyCount != null) it.replyCount = r.replyCount;
+    rackStats(it);
+  } catch (e) {
+    body.innerHTML = `<p class="dg-c-empty">评论暂时读不到：${esc(e.message ?? '')}</p>`;
+    return;
+  }
+  if (st.items[st.index] !== it || !$('#dg-c-body')) return;
+  count.textContent = it.replyCount != null ? fmtNum(it.replyCount) : '';
+  const list = rows.length
+    ? `<ol class="dg-c-list">${rows.map((r) => `<li><b>${esc(r.author?.name || '同学')}</b>${r.state !== 'published' ? '<span class="state">审核中，只有你看得到</span>' : ''}<p>${esc(r.body)}</p></li>`).join('')}</ol>`
+    : '<p class="dg-c-empty">还没有公开评论。用过的话，说说你做了什么、卡在了哪里。</p>';
+  const form = st.user
+    ? `<form class="dg-c-form" id="dg-c-form"><label class="sr-only" for="dg-c-text">写评论</label><textarea id="dg-c-text" maxlength="2000" required placeholder="说说你用它做了什么、卡在哪了"></textarea><div class="row"><small>评论经审核后公开。</small><button class="btn btn-primary btn-sm" type="submit">发表</button></div></form>`
+    : `<p class="dg-c-note"><a href="${esc(loginURL())}">登录</a>后可以发表评论。</p>`;
+  body.innerHTML = list + form;
+}
+
+dg.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'dg-c-form') return;
+  e.preventDefault();
+  const it = st.items[st.index], text = $('#dg-c-text'), btn = e.target.querySelector('[type=submit]');
+  if (!it?.entryId || !text.value.trim()) return;
+  btn.disabled = true;
+  try {
+    const r = await hubApi.reply(it.entryId, text.value.trim());
+    toast(r?.state === 'published' ? '评论已发表。' : '已提交，审核通过后公开。');
+    await loadComments(it);
+  } catch (err) {
+    toast(err.message ?? '发表失败，请稍后再试。');
+    btn.disabled = false;
+  }
+});
+
+// 不感兴趣：这张盘沉下去，后面的补上来；可以撤销
+async function rackHide(it) {
+  if (st.online && st.user) {
+    try { await hubApi.feedback(it.repository, 'not-interested'); } catch (e) { return toast(e.message); }
+  } else {
+    st.hidden.add(it.repository);
+    store.set(HIDE_KEY, [...st.hidden]);
+  }
+  const i = st.items.indexOf(it);
+  closeDetail(true);
+  st.items.splice(i, 1);
+  rack.remove(i);
+  rackIndex();
+  toast(st.online && st.user ? '以后不再推荐这个项目。' : '已在本机隐藏这个项目。', {
+    label: '撤销',
+    onClick: async () => {
+      if (st.online && st.user) { try { await hubApi.feedback(it.repository, 'clear'); } catch (e) { return toast(e.message); } }
+      else { st.hidden.delete(it.repository); store.set(HIDE_KEY, [...st.hidden]); }
+      st.items.splice(i, 0, it);
+      rack.setItems(st.items.map(discOf));
+      rackIndex();
+      rack.go(i);
+      rackInfo(i);
+    },
+  });
+  if (!st.items.length) renderEmpty();
+}
+
+dg.addEventListener('click', (e) => {
+  const go = e.target.closest('[data-goto]');
+  if (go) { setIndex(false); rack?.go(Number(go.dataset.goto), { duration: 1.2 }); rack?.focus(); return; }
+  if (e.target.closest('.dg-index-btn')) return setIndex($('#dg-index').hidden);
+  if (e.target.closest('.dg-scrim')) return setIndex(false);
+  const btn = e.target.closest('[data-act]');
+  const it = st.items[st.index];
+  if (!btn || !it) return;
+  const act = btn.dataset.act;
+  if (act === 'open') openDetail();
+  if (act === 'close') closeDetail();
+  if (act === 'comments') detailOpen ? $('#dg-comments')?.scrollIntoView({ behavior: 'smooth' }) : openDetail({ focus: 'comments' });
+  if (act === 'download') openDownload(it);
+  if (act === 'plan') { togglePlan(it, btn); rackStats(it); }
+  if (act === 'hide') rackHide(it);
+  if (act === 'save') {
+    save(it, btn).then(() => {
+      rackStats(it);
+      // 收藏图标像 SF Symbols 那样弹一下
+      if (!reducedMotion()) btn.querySelector('b, .ico')?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+    });
+  }
+});
+
+function rackKeys(e, k) {
+  if (detailOpen) {
+    if (k === 'escape') { e.preventDefault(); closeDetail(); }
+    return;
+  }
+  if (!$('#dg-index').hidden && k === 'escape') return setIndex(false);
+  const it = st.items[st.index];
+  if (document.activeElement !== dg.querySelector('.dg-stage')) {
+    if (['arrowright', 'arrowdown', 'j'].includes(k)) { e.preventDefault(); rack.go(st.index + 1); }
+    else if (['arrowleft', 'arrowup', 'k'].includes(k)) { e.preventDefault(); rack.go(st.index - 1); }
+  }
+  if (!it) return;
+  if (k === 'l') dg.querySelector('.dg-stats [data-act="save"]').click();
+  else if (k === 'x') rackHide(it);
+  else if (k === 'b') dg.querySelector('.dg-rail [data-act="plan"]').click();
+  else if (k === 'g' || (k === 'enter' && document.activeElement === document.body)) openDetail();
+  else if (k === 'o' && safeURL(it.repositoryUrl)) open(it.repositoryUrl, '_blank', 'noopener');
+}
 
 // ---------- 启动 ----------
 
