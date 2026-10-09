@@ -7,6 +7,8 @@ export default function campus() {
       return { server: { proxy: {
         '/api/hub': { target: 'http://127.0.0.1:17861', changeOrigin: false },
         '/hub/': { target: 'http://127.0.0.1:17861', changeOrigin: false },
+        '/manage/': { target: 'http://127.0.0.1:17861', changeOrigin: false },
+        '/manage-assets/': { target: 'http://127.0.0.1:17861', changeOrigin: false },
         '/api': { target: 'http://127.0.0.1:17860', changeOrigin: true },
       } } };
     },

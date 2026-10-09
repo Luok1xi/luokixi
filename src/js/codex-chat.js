@@ -1,6 +1,7 @@
 import './ai-budget.js';
 import { createStudioClient } from '../../campus/studio-client.js';
 import { esc } from './data.js';
+import {taskProgressHTML} from './content-editor.js';
 import { mountCompanionStage } from './companion-stage.js';
 import { stageLines, stageTurn } from '../../campus/stage-catalog.js';
 import '../styles/beikuang.css';
@@ -60,7 +61,7 @@ function render(data){
   const first=!lastData;lastData=data;
   $('[data-codex-stats]').innerHTML=`<span class="bk-stat">心情 <b>${esc(MOODS[data.emotion?.name]||'平静')}</b></span><span class="bk-stat">${data.ready?'已连接':'连接待恢复'}</span><a class="bk-skills" href="studio.html">维护与工具记录 ›</a>`;
   let lastDay='';
-  const html=[...data.runs].reverse().map(run=>{
+  const html=taskProgressHTML(data.contentTasks)+[...data.runs].reverse().map(run=>{
     const stamp=run.created||run.updated;
     const day=stamp?new Date(stamp).toLocaleDateString('zh-CN',{month:'long',day:'numeric'}):'';
     const heading=day&&day!==lastDay?`<p class="bk-day">${esc(day)}</p>`:'';lastDay=day;

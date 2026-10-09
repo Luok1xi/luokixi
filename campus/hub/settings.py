@@ -29,10 +29,12 @@ if PRODUCTION and not PUBLIC_ORIGIN.startswith('https://'):
 if os.environ.get('HUB_TRUST_PROXY') == '1':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ROOT_URLCONF = 'hub.urls'
-INSTALLED_APPS = ['django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions', 'hub']
+INSTALLED_APPS = ['unfold', 'django.contrib.admin', 'django.contrib.auth', 'django.contrib.contenttypes',
+                  'django.contrib.sessions', 'django.contrib.messages', 'django.contrib.staticfiles', 'hub']
 MIDDLEWARE = ['django.middleware.security.SecurityMiddleware', 'django.contrib.sessions.middleware.SessionMiddleware',
               'django.middleware.common.CommonMiddleware', 'django.middleware.csrf.CsrfViewMiddleware',
-              'django.contrib.auth.middleware.AuthenticationMiddleware', 'django.middleware.clickjacking.XFrameOptionsMiddleware']
+              'django.contrib.auth.middleware.AuthenticationMiddleware', 'django.contrib.messages.middleware.MessageMiddleware',
+              'django.middleware.clickjacking.XFrameOptionsMiddleware']
 DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': DATA / 'community.sqlite3',
                          'OPTIONS': {'timeout': 30, 'transaction_mode': 'IMMEDIATE'}}}
 AUTH_USER_MODEL = 'hub.Member'
@@ -47,7 +49,13 @@ TIME_ZONE = 'Asia/Shanghai'
 USE_TZ = True
 LANGUAGE_CODE = 'zh-hans'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True}]
+TEMPLATES = [{'BACKEND': 'django.template.backends.django.DjangoTemplates', 'APP_DIRS': True,
+              'OPTIONS': {'context_processors': ['django.template.context_processors.request',
+                  'django.contrib.auth.context_processors.auth', 'django.contrib.messages.context_processors.messages']}}]
+STATIC_URL = '/manage-assets/'
+STATIC_ROOT = DATA / 'manage-assets'
+UNFOLD = {'SITE_TITLE': 'Luokixi 管理中心', 'SITE_HEADER': '内容管理', 'SITE_URL': '/',
+          'SHOW_HISTORY': True, 'SHOW_VIEW_ON_SITE': True}
 SESSION_COOKIE_NAME = 'luokixi_session'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'

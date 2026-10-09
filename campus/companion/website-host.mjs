@@ -150,7 +150,28 @@ export async function createWebsiteHost({app:providedApp,token,owner,port=17862,
           catch{material.continuity={available:false,reason:'跨窗口记录暂时不可用；不要假称已记得。'};}
         }
         const {history:duplicateHistory,collaboration:duplicateCollaboration,...chatMaterial}=material;
-        const output=body.kind==='work'
+        const output=body.kind==='chat'&&body.contentTask
+          ?await app.chat.exclusive(async()=>{
+            await rpc({op:'content-progress',id:body.contentTask,state:'running',progress:'读取目标内容与当前权限'});
+            try{
+              await work.refresh(true);
+              const execution=await app.agent.withContentTask(body.contentTask,()=>app.agent.run({task:body.text+'\n这是站主在私聊窗口发起的具体内容任务。先 content_search 查目标并读取当前版本，再执行审核或编辑。不要只承诺稍后做，找不到明确目标时提出必要的澄清；失败留下实际错误。',
+                mode:'deep',purpose:'website-maintenance',signal:job.controller.signal,
+                onProgress:p=>{void rpc({op:'content-progress',id:body.contentTask,state:'running',progress:p.text.slice(0,600)}).catch(()=>{});}}));
+              const actionIds=execution.trace.filter(t=>t.ok&&t.receipt?.completed===true&&t.receipt.actionId).map(t=>t.receipt.actionId);
+              const taskState=await rpc({op:'content-progress',id:body.contentTask,state:actionIds.length?'completed':'failed',
+                progress:actionIds.length?'处理完成，已取得发布或审核回执':'执行结束，未取得成功回执',
+                result:{actionIds,trace:execution.trace,gaps:execution.gaps},error:actionIds.length?'':execution.gaps.join('；')||'未成功执行审核或发布。'});
+              const reply=await app.chat.compose({trigger:'studio',message:body.text,material:{...chatMaterial,execution,contentTask:taskState,
+                instruction:'直接回复站主这次指令的实际结果。任务失败时不能说已经完成，不拿早上的旧错误当作刚刚的结果。'},
+                results:[{message:execution.answer,trace:execution.trace,gaps:execution.gaps}],isCurrent:()=>!job.cancelled});
+              // Preserve the same original private conversation, rather than creating a separate work persona.
+              app.service.store.transaction(()=>{app.service.store.addChat('user',body.text,app.service.clock());
+                if(!job.cancelled&&reply.text)app.service.store.addChat('assistant',reply.text,app.service.clock(),reply.messages);});
+              return {...reply,contentTask:taskState,maintenance:{trace:execution.trace,stats:execution.stats,gaps:execution.gaps}};
+            }catch(e){await rpc({op:'content-progress',id:body.contentTask,state:'failed',error:String(e.message).slice(0,1900)}).catch(()=>{});throw e;}
+          })
+          :body.kind==='work'
           ?await app.chat.exclusive(async()=>{
             const {characterCardPrompt}=await import('./src/character-card.mjs');
             const result=await app.models.complete([{role:'system',content:characterCardPrompt+'\n'+material.workPrompt},
@@ -188,7 +209,7 @@ export async function createWebsiteHost({app:providedApp,token,owner,port=17862,
   const server=http.createServer(async(req,res)=>{
     const send=(value,statusCode=200)=>{res.writeHead(statusCode,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(value));};
     const path=new URL(req.url,'http://127.0.0.1').pathname;
-    if(path==='/health'&&req.method==='GET')return send({ok:true,engine:'campus-companion',revision:UPSTREAM,bridgeVersion:27,seat:SEAT});
+    if(path==='/health'&&req.method==='GET')return send({ok:true,engine:'campus-companion',revision:UPSTREAM,bridgeVersion:28,seat:SEAT});
     const incoming=Buffer.from(req.headers.authorization||''),expected=Buffer.from('Bearer '+token);
     if(req.headers.origin||incoming.length!==expected.length||!timingSafeEqual(incoming,expected))return send({error:'连接未授权。'},403);
     try{

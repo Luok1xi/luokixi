@@ -130,7 +130,7 @@ try {
     # Run the imported original companion beside the website, with the same private data on every start.
     $companionHost = Join-Path $PSScriptRoot 'companion\website-host.mjs'
     $companionReady = $false
-    try { $companionHealth = Invoke-RestMethod -Uri 'http://127.0.0.1:17862/health' -TimeoutSec 2; $companionReady = $companionHealth.engine -eq 'campus-companion' -and $companionHealth.bridgeVersion -eq 27 } catch {}
+    try { $companionHealth = Invoke-RestMethod -Uri 'http://127.0.0.1:17862/health' -TimeoutSec 2; $companionReady = $companionHealth.engine -eq 'campus-companion' -and $companionHealth.bridgeVersion -eq 28 } catch {}
     if ($companionHealth -and $companionHealth.engine -eq 'campus-companion' -and -not $companionReady) {
         foreach ($processId in (@(Get-NetTCPConnection -State Listen -LocalPort 17862 -ErrorAction SilentlyContinue) | Select-Object -ExpandProperty OwningProcess -Unique)) {
             $existing = Get-CimInstance Win32_Process -Filter "ProcessId=$processId"

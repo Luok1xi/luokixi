@@ -400,7 +400,7 @@ function render() {
   const d = st.view === 'draft' ? viewData() : chinesePresentation(viewData(), st.gh?.guide);
   const focusedReply = document.activeElement?.closest('.pd-reply')?.id;
   document.title = `${d.title ?? '内容'} · Luokixi`;
-  main.innerHTML = `<div class="wrap">
+  main.innerHTML = `<div class="wrap" data-content-key="entry/${esc(e().id)}">
     ${headHTML(d)}
     <div class="pd-grid">
       <div class="pd-main">

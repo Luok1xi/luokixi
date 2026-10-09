@@ -318,7 +318,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             self.valid_origin()
             u=urlsplit(self.path);path=u.path; query={k:v[0] for k,v in parse_qs(u.query).items()}
-            if path.startswith(('/api/hub/','/hub/')):
+            if path.startswith(('/api/hub/','/hub/','/manage/','/manage-assets/')):
                 return self.proxy_hub()
             if path=='/api/community' or path.startswith('/api/community/'):
                 return self.send_json(community.handle('GET',path,query,None,connection))
@@ -441,7 +441,7 @@ class Handler(BaseHTTPRequestHandler):
         except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):pass
     def do_POST(self):
         try:
-            if urlsplit(self.path).path.startswith('/api/hub/'):
+            if urlsplit(self.path).path.startswith(('/api/hub/','/manage/')):
                 self.valid_origin()
                 return self.proxy_hub()
             self.valid_origin(True); body=self.read_json();path=urlsplit(self.path).path

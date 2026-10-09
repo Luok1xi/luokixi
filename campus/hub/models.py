@@ -527,3 +527,38 @@ class BeikuangMessage(models.Model):
     state = models.CharField(max_length=12, default='sent')
     read = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+
+
+class EditorialOverride(models.Model):
+    """Human/AI edits survive refreshing harvested and bundled source data."""
+    key = models.CharField(max_length=240, primary_key=True)
+    data = models.JSONField(default=dict)
+    revision = models.PositiveIntegerField(default=0)
+    editor = models.ForeignKey(Member, null=True, on_delete=models.SET_NULL)
+    updated = models.DateTimeField(auto_now=True)
+
+
+class EditorialRevision(models.Model):
+    override = models.ForeignKey(EditorialOverride, on_delete=models.CASCADE, related_name='history')
+    number = models.PositiveIntegerField()
+    data = models.JSONField(default=dict)
+    editor = models.ForeignKey(Member, null=True, on_delete=models.SET_NULL)
+    reason = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['override', 'number'], name='hub_editorial_revision_unique')]
+
+
+class ContentTask(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(Member, on_delete=models.CASCADE)
+    seat = models.CharField(max_length=16)
+    origin = models.CharField(max_length=240, unique=True)
+    goal = models.TextField()
+    state = models.CharField(max_length=16, default='queued')
+    progress = models.CharField(max_length=600, blank=True)
+    result = models.JSONField(default=dict)
+    error = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)

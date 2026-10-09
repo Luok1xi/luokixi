@@ -108,7 +108,7 @@ function postCard(p) {
   const d = p.data || {};
   const c = d.circle || {};
   const photos = (p.photos || []).slice(0, 3);
-  return `<article class="cs-post fx-press" data-post="${esc(p.id)}">
+  return `<article class="cs-post fx-press" data-post="${esc(p.id)}" data-content-key="entry/${esc(p.id)}">
     <header class="cs-post-head">
       <span class="cs-avatar" aria-hidden="true">${face(p.owner)}</span>
       <span class="cs-post-who"><b>${esc(p.owner?.name || '同学')}</b><span>${esc(boardName(c.board))} · ${esc(CAMPUS[c.campus] || '全校')}</span></span>

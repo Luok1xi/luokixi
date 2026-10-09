@@ -1,0 +1,5 @@
+{% extends "admin/index.html" %}
+{% block content %}
+<div class="mb-6 p-4 border rounded"><a href="{% url 'management:content' %}">全部内容、首页精选、项目介绍与待审校圈 →</a><p>保存后公开。修改保留操作者、版本和原始来源。普通投稿继续审核。</p></div>
+{{ block.super }}
+{% endblock %}

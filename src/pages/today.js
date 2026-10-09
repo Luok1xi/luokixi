@@ -1,6 +1,7 @@
 import { attachSearchSuggestions } from '../js/search-suggestions.js';
 import { loadLearningCatalogue } from '../js/learning-catalog.js';
 import {newsMediaLayout,bindNewsImage} from '../js/news-media.js';
+import {applyEditorial} from '../js/editorial-data.js';
 // 首页“今日矿大”：第一屏是横向大轮播（Apple TV / App Store 首页），下面按 App Store 的货架排热帖、开源、竞赛和口碑。
 // 只用真实数据：学校新闻和宣讲会要等来源登记和编辑核对（data/featured.json），没有就不编；
 // 社区服务没连上、读取失败、确实没有内容，三种情况分别说明。
@@ -32,7 +33,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const panel = $('#td-panel');
 const heroEl = $('#td-hero');
 const safeURL = (u) => (typeof u === 'string' && /^https?:\/\//.test(u) ? u : null);
-const json = (path) => fetch(path, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+const json = (path) => fetch(path, { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then(d=>applyEditorial(path.split('/').pop().replace('.json',''),d)).catch(() => null);
 const ok = (d) => d && !d.error;
 
 const st = { tab: 'picks', online: false, user: null };
@@ -158,7 +159,8 @@ function slide({ id, eyebrow, title, dek, bg, art, media, primary, story }) {
   if (story) STORIES.set(id, story);
   const picture=newsMediaLayout(media||{});
   const ext = /^https?:/.test(primary.href) ? ' target="_blank" rel="noopener"' : '';
-  return `<article class="hc-slide" aria-roledescription="slide" data-id="${esc(id)}">
+  const contentKey=id.startsWith('f-hub-')?'entry/'+id.slice(6):id.startsWith('f-')?'featured/'+id.slice(2):'';
+  return `<article class="hc-slide" aria-roledescription="slide" data-id="${esc(id)}"${contentKey?` data-content-key="${esc(contentKey)}"`:''}>
     <div class="hc-card" ${story ? `data-story="${esc(id)}"` : ''} style="--hc-bg:${bg}">
       <div class="hc-media"${art ? ` data-art="${esc(art)}"` : ''}${media?` data-fit="${picture.fit}" data-position="${picture.position}"`:''}>${media ? `<img class="art-img" src="${esc(media.src)}" alt="${esc(media.alt ?? '')}"${picture.width&&picture.height?` width="${picture.width}" height="${picture.height}"`:''} style="object-position:${picture.position}" loading="${media.priority ? 'eager' : 'lazy'}" fetchpriority="${media.priority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer">` : ''}</div>
       <div class="hc-copy">

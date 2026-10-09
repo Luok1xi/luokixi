@@ -5,8 +5,8 @@ import {dateKey} from './src/time.mjs';
 export class WebsiteWork{
   constructor(service,rpc,seat='beikuang'){this.service=service;this.rpc=rpc;this.seat=seat;this.policy=seat==='codex'?workPolicy.replace('闺蜜 Codex','闺蜜北矿娘'):workPolicy;this.refreshed=-Infinity;}
   save(fn){this.service.store.transaction(()=>{const s=this.service.store.read();s.websiteWork??={decisions:[],intentions:[]};fn(s.websiteWork);this.service.store.save(s);});}
-  async refresh(){
-    const now=this.service.clock();if(now-this.refreshed<2)return;this.refreshed=now;
+  async refresh(force=false){
+    const now=this.service.clock();if(!force&&now-this.refreshed<2)return;this.refreshed=now;
     try{
       const observation=await this.rpc({op:'work-state'});
       const signature=createHash('sha256').update(JSON.stringify({day:observation.day,today:observation.today,jobs:observation.jobs,collaboration:observation.collaboration})).digest('hex');

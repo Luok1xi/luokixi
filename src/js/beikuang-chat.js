@@ -4,6 +4,7 @@ import './ai-budget.js';
 // 她本身（人设、语气、Codex）不在这里改；新能力写在 campus/beikuang-skills/ 的技能里。
 import { hubApi } from './hub.js';
 import { esc } from './data.js';
+import {taskProgressHTML} from './content-editor.js';
 import { pop } from './fx.js';
 import { mountCompanionStage } from './companion-stage.js';
 import '../styles/beikuang.css';
@@ -209,6 +210,7 @@ function render(first) {
       <p>想说什么就说吧。</p></div>`;
   }
   schedulePart();
+  html += taskProgressHTML(view.contentTasks);
   const current = [...view.messages].reverse().find(m=>m.role==='beikuang'&&m.kind==='chat'&&m.generated!=='template');
   const parts = current ? messageParts(current).slice(0, partCounts.get(current.id)) : [];
   const line = [...parts].reverse().find(p=>p.type==='text');

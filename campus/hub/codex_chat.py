@@ -35,9 +35,12 @@ def view(owner,cfg):
     from .studio import run_data, collaboration_context
     runs=list(room.runs.order_by('-created').prefetch_related('messages')[:40]) if room else []
     waiting=bool(runs and runs[0].state=='queued' and StudioRun.objects.filter(state='running').exclude(pk=runs[0].pk).exists())
+    from .models import ContentTask
+    from .content_management import task_data
     return {'name':'Codex','room':str(room.pk) if room else None,'ready':available,'reason':reason,
             'workerAvailable':worker_live,'runs':[run_data(run) for run in runs],
             'waitingForWork':waiting,
+            'contentTasks': [task_data(t) for t in ContentTask.objects.filter(owner=owner, seat='codex').order_by('-created')[:8]],
             'collaboration':collaboration_context(owner),
             'emotion':runtime.get('emotion'), 'runtime':runtime,
             'consoleUrl':'http://127.0.0.1:17840' if connection('codex') else None,
@@ -62,6 +65,8 @@ def send(owner,cfg,body):
     if room.runs.filter(state__in=('queued','running')).exists():
         raise Problem('Codex 正在回复上一条消息；可先停止该回复。',409)
     run=StudioRun.objects.create(room=room,request_key=request_key,prompt=prompt,mode='chat',seats=['codex'],rounds=1)
+    from .content_management import ensure_task
+    ensure_task(owner, 'codex', 'studio:'+str(run.pk)+':0', prompt)
     return run_data(run)
 
 

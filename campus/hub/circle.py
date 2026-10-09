@@ -517,6 +517,10 @@ def post(request, route, body):
         data.setdefault('summary', data.get('body', '')[:300] or data['title'])
         data.setdefault('license', '原作者保留权利；站外内容仅链接')
         entry = save_entry(user, {'kind': 'topic', 'data': data})
+        if user.is_superuser:
+            from .core import submit_entry, review_entry
+            entry = submit_entry(user, entry, entry.revision)
+            entry = review_entry(user, entry, {'revision': entry.revision, 'decision': 'approve', 'note': '站主直接发布'})
         return entry_data(entry, user, True)
     if route == 'circle/preferences':
         p, _ = CirclePreference.objects.get_or_create(user=user)

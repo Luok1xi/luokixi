@@ -11,8 +11,8 @@ from .robot_inventory import ROBOTS, snapshot
 from .studio_workspace import digest
 
 
-READ = {'inventory', 'content_list', 'project_read', 'code_read', 'code_status', 'action_status', 'job_status', 'skills', 'tools', 'studio_status'}
-MUTATIONS = {'run_robot', 'review_content', 'edit_content', 'withdraw_content', 'restore_content',
+READ = {'content_search', 'content_read', 'content_history', 'content_task', 'inventory', 'content_list', 'project_read', 'code_read', 'code_status', 'action_status', 'job_status', 'skills', 'tools', 'studio_status'}
+MUTATIONS = {'content_publish', 'content_review', 'run_robot', 'review_content', 'edit_content', 'withdraw_content', 'restore_content',
              'curate_project', 'code_candidate', 'code_test', 'code_apply', 'code_rollback', 'skill_review', 'skill_install', 'tool_install', 'tool_run', 'discuss', 'studio_module_save'}
 
 
@@ -54,7 +54,10 @@ def content(args, seat):
             raise Problem('内容版本或状态已变化，请先重新读取。', 409)
         note = text(args.get('reason', ''), 1500, True)
         if operation == 'edit_content':
-            entry = save_entry(who, {'revision': entry.revision, 'data': args.get('data')}, entry)
+            from .content_management import publish
+            return publish(who, {'key': 'entry/'+str(entry.pk), 'revision': entry.revision,
+                'patch': args.get('data'), 'reason': note,
+                'locationChecked': args.get('locationChecked'), 'supervisorQuestionsResolved': args.get('supervisorQuestionsResolved')})
         elif operation == 'review_content':
             if args.get('decision') not in ('approve', 'reject'): raise Problem('审核决定无效。')
             if entry.state in ('draft', 'rejected'): entry = submit_entry(who, entry, entry.revision)
@@ -78,7 +81,7 @@ def content(args, seat):
             from .models import Contribution
             Contribution.objects.filter(entry=entry).update(active=entry.state == 'published', reason=note)
         entry.refresh_from_db()
-        return entry_view(entry)
+        return dict(entry_view(entry), completed=True)
 
 
 def run_robot(args, owner, seat, request_id):
@@ -97,17 +100,21 @@ def run_robot(args, owner, seat, request_id):
     return {'id': str(job.pk), 'kind': kind, 'state': job.state, 'completed': False}
 
 
-def execute(owner, seat, operation, args, request_id=None):
+def execute(owner, seat, operation, args, request_id=None, task_id=None):
     if operation not in READ | MUTATIONS or not isinstance(args, dict): raise Problem('维护工具参数无效。')
     if seat not in ('beikuang', 'codex'): raise Problem('维护角色无效。', 403)
     if operation in MUTATIONS and not policy()['enabled']: raise Problem('自主维护已暂停。', 403)
     if operation in READ: return dispatch(owner, seat, operation, args, '')
+    if task_id:
+        from .models import ContentTask
+        if not ContentTask.objects.filter(pk=task_id, owner=owner, seat=seat, state__in=('queued','running')).exists():
+            raise Problem('内容任务没有绑定到此执行角色或已经结束。', 409)
     request_id = str(uuid.UUID(request_id))
     payload_hash = digest({'seat': seat, 'operation': operation, 'args': args})
     key = 'robot-action:'+request_id
     with transaction.atomic():
         receipt, made = ExternalCache.objects.get_or_create(key=key, defaults={'data': {
-            'hash': payload_hash, 'seat': seat, 'operation': operation, 'state': 'running'}})
+            'hash': payload_hash, 'seat': seat, 'operation': operation, 'task': str(task_id) if task_id else None, 'state': 'running'}})
         if not made:
             if receipt.data.get('hash') != payload_hash: raise Problem('同一操作编号不能用于不同内容。', 409)
             if receipt.data['state'] == 'done': return dict(receipt.data['result'], duplicate=True)
@@ -130,6 +137,19 @@ def execute(owner, seat, operation, args, request_id=None):
 
 
 def dispatch(owner, seat, operation, args, request_id):
+    if operation.startswith('content_') and operation != 'content_list':
+        from . import content_management as cm
+        who = actor(seat)
+        if operation == 'content_search': return cm.search(who, args.get('query', ''), args.get('state', ''), args.get('kind', ''))
+        if operation == 'content_read': return cm.read(who, args.get('key', ''))
+        if operation == 'content_history': return cm.history(who, args.get('key', ''))
+        if operation == 'content_publish': return cm.publish(who, args)
+        if operation == 'content_review': return cm.review(who, args)
+        if operation == 'content_task':
+            from .models import ContentTask
+            task = ContentTask.objects.filter(pk=args.get('id'), owner=owner, seat=seat).first()
+            if not task: raise Problem('任务不存在。', 404)
+            return cm.task_data(task)
     if operation == 'studio_status':
         from .studio_workflow import task, modules
         from .models import StudioRun
@@ -147,6 +167,9 @@ def dispatch(owner, seat, operation, args, request_id):
         if args.get('state'): entries = entries.filter(state=args['state'])
         if args.get('kind'): entries = entries.filter(kind=args['kind'])
         if args.get('id'): entries = entries.filter(pk=args['id'])
+        if args.get('query'):
+            from django.db.models import Q
+            entries = entries.filter(Q(draft__title__icontains=args['query'])|Q(search_text__icontains=args['query']))
         return {'total': entries.count(), 'items': [entry_view(e) for e in entries[:10]]}
     if operation == 'action_status':
         row = ExternalCache.objects.filter(pk='robot-action:'+str(uuid.UUID(args['id']))).first()

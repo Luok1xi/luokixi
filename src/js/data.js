@@ -1,5 +1,6 @@
 // 数据读取与统计。数据格式见 docs/DATA.md。
 import { withLocalResources } from '../../campus/catalogue-overlay.js';
+import {applyEditorial} from './editorial-data.js';
 const cache = new Map();
 
 export function load(name) {
@@ -9,7 +10,7 @@ export function load(name) {
       fetch(`data/${name}.json`, { cache: 'no-cache' }).then((r) => {
         if (!r.ok) throw new Error(`data/${name}.json ${r.status}`);
         return r.json();
-      }).then(withLocalResources),
+      }).then(withLocalResources).then(d=>applyEditorial(name,d)),
     );
   }
   return cache.get(name);

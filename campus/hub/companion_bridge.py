@@ -134,9 +134,16 @@ def respond(context, key, report=False):
     if not cfg.get('enabled') or owner != cfg.get('owner_id'):
         raise Problem('此窗口没有原版小煤渣的站主权限。', 403)
     ident = hashlib.sha256(key.encode()).hexdigest()
+    from .content_management import ensure_task, update_task
+    task = ensure_task(Member.objects.get(pk=owner), 'beikuang', key, context.get('owner', '')) if not report else None
+    if task:
+        from .models import ContentTask
+        origins=['chat:'+m['id'] for m in context.get('sourceMessages',[]) if 'id' in m]
+        ContentTask.objects.filter(owner_id=owner,origin__in=origins,state='queued').exclude(pk=task.pk).update(
+            state='merged',progress='并入任务 '+str(task.pk),result={'parentTask':str(task.pk)})
     current = context.get('_isCurrent', lambda: True)
     call('jobs', {'id': ident, 'owner': owner, 'kind': 'report' if report else 'chat',
-                  'text': context.get('owner', ''),
+                  'text': context.get('owner', ''), 'contentTask': str(task.pk) if task else None,
                   'material': {k: context[k] for k in ('tools', 'today', 'waiting', 'auditLessons') if context.get(k)},
                   'report': {k: v for k, v in context.items() if not k.startswith('_')} if report else None})
     deadline = time.monotonic() + 660
@@ -145,7 +152,11 @@ def respond(context, key, report=False):
             call('cancel', {'id': ident})
             raise Superseded()
         result = call('jobs/' + ident)
+        if result['state'] == 'interrupted':
+            if task: update_task(task.owner,'beikuang',{'id':str(task.pk),'state':'failed','error':'执行进程重启中断；回执仍保留，请核验任务状态，未重复写入。'})
+            raise Problem('执行进程已重启；任务与回执已保留，没有重复提交。',503)
         if result['state'] == 'failed':
+            if task: update_task(task.owner, 'beikuang', {'id': str(task.pk), 'state': 'failed', 'error': result.get('error') or '执行未完成'})
             raise Problem(result.get('error') or '原版小煤渣未完成回复。', 502)
         if result['state'] == 'done':
             value = result['result']
@@ -155,6 +166,7 @@ def respond(context, key, report=False):
             return value.get('text', ''), 'deepseek-flash'
         time.sleep(.35)
     call('cancel', {'id': ident})
+    if task: update_task(task.owner, 'beikuang', {'id': str(task.pk), 'state': 'failed', 'error': '回复超时；保留操作回执，请查询任务后再继续。'})
     raise Problem('原版小煤渣处理超时，任务已取消。', 504)
 
 
@@ -189,7 +201,10 @@ def studio_respond(run, sequence, material, stopped=lambda: False, seat='beikuan
         material = dict(material, maintenance={'enabled':False}, workPrompt='',
             recovery='上次调用中断且结果无法取回。只根据当前提供的已有发言、任务和凭据继续核验与交接。不要重做操作，不声称旧操作已成功；缺少凭据时明确留下未解决项。')
     kind='chat' if run.mode=='chat' else 'work' if can_code else 'studio'
-    call('jobs', {'id':ident,'owner':run.room.owner_id,'kind':kind,'text':run.prompt if kind=='chat' else '', 'material':material}, seat=seat)
+    from .content_management import ensure_task
+    content_task = ensure_task(run.room.owner, seat, 'studio:'+str(run.pk)+':'+str(sequence), run.prompt) if kind == 'chat' else None
+    call('jobs', {'id':ident,'owner':run.room.owner_id,'kind':kind,'text':run.prompt if kind=='chat' else '',
+        'contentTask': str(content_task.pk) if content_task else None, 'material':material}, seat=seat)
     deadline = time.monotonic()+720
     while time.monotonic()<deadline:
         if stopped():
@@ -202,8 +217,14 @@ def studio_respond(run, sequence, material, stopped=lambda: False, seat='beikuan
                 raise Problem('原版执行器重载中，正在重新连接同一任务。',503) from None
             raise
         if result['state']=='interrupted':
+            if content_task:
+                from .content_management import update_task
+                update_task(run.room.owner,seat,{'id':str(content_task.pk),'state':'failed','error':'执行进程中断，保留已有操作回执；没有自动重复提交。'})
             raise Problem('原版运行进程中断，正在等待续接核验。',503)
         if result['state']=='failed':
+            if content_task:
+                from .content_management import update_task
+                update_task(run.room.owner,seat,{'id':str(content_task.pk),'state':'failed','error':result.get('error') or '未完成执行'})
             raise Problem(result.get('error') or '原版北矿娘未完成工作室发言。',502)
         if result['state']=='done':
             output = result['result']
@@ -323,7 +344,10 @@ def endpoint(request):
                 result = execute(owner, body['name'], body.get('arguments', {}))
         elif op == 'maintenance':
             from .robot_actions import execute
-            result = execute(owner, seat, body.get('operation'), body.get('arguments', {}), body.get('id'))
+            result = execute(owner, seat, body.get('operation'), body.get('arguments', {}), body.get('id'), body.get('contentTask'))
+        elif op == 'content-progress':
+            from .content_management import update_task
+            result = update_task(owner, seat, body)
         elif op == 'work-state':
             result = work_state()
         elif op == 'continuity':

@@ -68,6 +68,9 @@ def endpoint(request, route=''):
             result = get(request,route.strip('/'))
         if isinstance(result,HttpResponseBase):
             return result
+        if request.method == 'GET' and route.startswith(('github/', 'repositories', 'feed', 'search/external', 'projects/media')):
+            from .content_management import apply_public
+            result = apply_public(result)
         response = JsonResponse(result,json_dumps_params={'ensure_ascii':False})
         response['Cache-Control'] = 'private, no-store'
         return response
@@ -84,6 +87,9 @@ def endpoint(request, route=''):
 
 
 def get(request, route):
+    if route == 'management' or route.startswith('management/'):
+        from . import content_management
+        return content_management.get(request, route)
     if route.startswith('illustration/'):
         from .editorial_art import get as illustration
         return illustration(route.removeprefix('illustration/'))
@@ -322,6 +328,9 @@ def get(request, route):
 
 
 def post(request, route, body):
+    if route.startswith('management/'):
+        from . import content_management
+        return content_management.post(request, route, body)
     if route == 'question-papers' or route.startswith('question-papers/'):
         from . import question_api
         return question_api.post(request, route, body)
@@ -434,6 +443,13 @@ def post(request, route, body):
         action = parts[2]
         entry = entry_for(user,parts[1],edit=action in {'save','submit','withdraw','release','tasks'})
         if action=='save':
+            if user.is_superuser:
+                from .content_management import publish
+                publish(user, {'key':'entry/'+str(entry.pk), 'revision':body.get('revision'), 'patch':body.get('data'),
+                    'reason':'站主原页面保存并发布', 'locationChecked':body.get('locationChecked'),
+                    'supervisorQuestionsResolved':body.get('supervisorQuestionsResolved')})
+                entry.refresh_from_db()
+                return entry_data(entry,user,True)
             return entry_data(save_entry(user,body,entry),user,True)
         if action=='submit':
             return entry_data(submit_entry(user,entry,body.get('revision')),user,True)

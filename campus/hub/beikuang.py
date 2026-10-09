@@ -998,7 +998,8 @@ def allow_model(request):
     except (Problem, ValueError):
         return False
     user = request.user
-    verified = user.email_verified or (user.is_superuser and cfg.get('local_owner_bootstrap') is True)
+    from .core import can_participate
+    verified = can_participate(user)
     return bool(cfg.get('enabled') and local and not settings.PRODUCTION and user.pk == cfg.get('owner_id') and verified)
 
 
@@ -1043,6 +1044,8 @@ def overview(request):
     delivery = delivery_status(user)
     from .companion_bridge import runtime_state
     runtime = runtime_state(user)
+    from .models import ContentTask
+    from .content_management import task_data as content_task_data
     return {'name': persona['name'], 'role': persona['role'], 'aliases': persona.get('aliases', []), 'avatar': persona.get('avatar'),
             'emotion': runtime.get('emotion') or emotion_state(user), 'self': runtime.get('self'),
             'runtimeError': runtime.get('error', ''), 'identity': persona['visual'], 'enabled': enabled(),
@@ -1054,6 +1057,7 @@ def overview(request):
             'delivery': delivery,
             'typing': delivery['state'] in ('queued', 'running'),
             'messages': [message_data(m) for m in messages], 'tasks': tasks,
+            'contentTasks': [content_task_data(t) for t in ContentTask.objects.filter(owner=user, seat='beikuang').order_by('-created')[:8]],
             'unread': BeikuangMessage.objects.filter(owner=user, role='beikuang', read=False).exclude(state='archived').count()}
 
 
@@ -1093,6 +1097,8 @@ def post(request, route, body):
         words = text(body.get('body', ''), 2000, True)
         msg = BeikuangMessage.objects.create(owner=user, role='owner', kind='chat', body=words, state='waiting', read=True,
                                              data={'allowModel': allow_model(request)})
+        from .content_management import ensure_task
+        ensure_task(user, 'beikuang', 'chat:'+str(msg.pk), words)
         Job.objects.create(key=f'beikuang-chat:{msg.pk}', kind='beikuang-chat', payload={'message': str(msg.pk)}, due=timezone.now())
         return message_data(msg)
     if route == 'beikuang/read':

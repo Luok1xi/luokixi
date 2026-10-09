@@ -12,6 +12,7 @@ import { initFx } from './fx.js';
 import { installSiteReader } from './site-reader.js';
 import { installAccelerator } from './download-accelerator.js';
 installAccelerator();
+void import('./content-editor.js').then(m=>m.installContentEditor()).catch(()=>{});
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 

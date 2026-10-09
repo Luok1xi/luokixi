@@ -1,0 +1,7 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<form method="get" class="flex gap-4 mb-6"><input name="q" value="{{ query }}" placeholder="搜索标题、项目、新闻"><select name="state"><option value="">全部状态</option><option value="pending" {% if state == 'pending' %}selected{% endif %}>待审核</option><option value="published" {% if state == 'published' %}selected{% endif %}>已公开</option></select><button type="submit">搜索</button></form>
+<table class="w-full"><thead><tr><th>标题</th><th>类型</th><th>状态</th><th>版本</th><th>操作</th></tr></thead><tbody>
+{% for item in items %}<tr><td class="p-3">{{ item.data.title|default:item.key }}</td><td>{{ item.kind }}</td><td>{{ item.state }}</td><td>{{ item.revision }}</td><td><a href="/index.html?edit={{ item.key|urlencode }}">编辑、配图与历史</a>{% if item.id %} · <a href="{% url 'management:hub_entry_change' item.id %}">审核与完整表单</a>{% endif %}</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}
