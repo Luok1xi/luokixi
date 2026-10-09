@@ -1,0 +1,7 @@
+墨玉 V7 美术交接
+
+Owner 认为 V6 仍不够醒目，要求白色高筒袜、更多腿部露出、旗袍和头饰重设，并提出修女服方向。
+已制作 art-incoming/moyu-20261006/moyu-nun-qipao-white-socks-v7.png。
+采用白额带黑头纱、白肩领、短裙、白色过膝袜，保留燕翼与立领斜襟盘扣。内置 image_gen，以原创 V6 燕翼精修图编辑。
+完整提示词和检查见同目录 DELIVERY-V7.txt、v7-nun-qipao-white-socks-prompt.txt。
+原图已解码并目视检查；等待 Owner 审美反馈。所有旧版保留，未替换运行资源和角色卡。

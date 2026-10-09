@@ -1,3 +1,4 @@
+import { attachSearchSuggestions } from './search-suggestions.js';
 import { hubApi } from '../../campus/hub-client.js';
 import { esc } from './data.js';
 import '../styles/repository.css';
@@ -11,6 +12,18 @@ export function mountRepository(root) {
     <p class="repo-status" role="status"></p><div class="repo-results"></div><button class="btn btn-outline btn-sm" type="button" data-repo-more hidden>查看更多</button>`;
   const form=root.querySelector('form'),results=root.querySelector('.repo-results'),status=root.querySelector('.repo-status'),more=root.querySelector('[data-repo-more]');
   let controller, offset=0, generation=0;
+  const known = new Map();
+  attachSearchSuggestions(form.elements.q, {
+    getItems: async q => {
+      const data = await hubApi.repositories({q,category:form.elements.category.value,download:form.elements.download.value});
+      for (const item of data.items) known.set(item.repository,item);
+      return [...known.values()];
+    },
+    getTitle: item => item.repository,
+    getText: item => item.description,
+    getKeywords: item => (item.classification?.labels || []).map(c => c.name).join(' '),
+    getMeta: item => item.description,
+  });
   const bytes=n=>n>=1048576?`${(n/1048576).toFixed(1)} MB`:`${(n/1024).toFixed(1)} KB`;
   async function load(append=false) {
     controller?.abort();controller=new AbortController();const current=++generation;
@@ -20,6 +33,7 @@ export function mountRepository(root) {
       const data=await hubApi.repositories({...Object.fromEntries(new FormData(form)),offset},{signal:controller.signal});
       if (current!==generation) return;
       if (form.elements.category.options.length===1) for(const c of data.categories) form.elements.category.add(new Option(c.name,c.id));
+      for (const item of data.items) known.set(item.repository,item);
       const html=data.items.map(p=>`<article class="card repo-item"><div class="repo-heading"><h3>${p.pageUrl?`<a href="${esc(p.pageUrl)}">${esc(p.repository)}</a>`:esc(p.repository)}</h3><span class="tag">${p.downloadState==='local'?'本站可下载':'原站入口'}</span></div>
         <p>${esc(p.description)}</p><p class="muted">${p.classification.labels.map(c=>esc(c.name)).join(' · ') || '待分类'} · ${esc(p.license || '许可待核')}${p.stale?' · 来源更新暂未成功':''}</p>
         <div class="repo-files">${p.localFiles.map(f=>`<a class="btn btn-outline btn-sm" href="${esc(f.url)}" download>${esc(f.name)} · ${bytes(f.size)}${f.kind==='source-archive'?' · 源码':''}</a>`).join('')}</div>

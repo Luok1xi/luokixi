@@ -1,11 +1,12 @@
 """One-project-at-a-time discovery with explicit preferences and source-linked checklists."""
 import secrets
 from django.core import signing
-from .core import Problem, require, string_list, text
-from .models import Entry, ExternalCache, FeedFeedback, Star, Watch, Workspace
+from .core import Problem, public_entries, require, string_list, text
+from .models import ExternalCache, FeedFeedback, Star, Watch, Workspace
 
 
 def cards(request):
+    ignored = set(FeedFeedback.objects.filter(user=request.user,action='not-interested').values_list('repository',flat=True)) if request.user.is_authenticated else set()
     cursor = request.GET.get('cursor','')
     shelf = request.GET.get('shelf','all')
     if shelf not in ('all','practical','creative','potential'):
@@ -21,9 +22,11 @@ def cards(request):
             raise Problem('这轮浏览已结束，请刷新发现页。',409)
     else:
         candidates = []
-        ignored = set(FeedFeedback.objects.filter(user=request.user,action='not-interested').values_list('repository',flat=True)) if request.user.is_authenticated else set()
+        public_ids = {str(pk) for pk in public_entries().filter(kind='project').values_list('pk',flat=True)}
         for cache in ExternalCache.objects.filter(key__startswith='github:'):
             selection = cache.data.get('selection') or {}
+            if cache.data.get('entryId') and cache.data['entryId'] not in public_ids:
+                continue
             if selection.get('shelf') not in ('practical','creative','potential') or selection.get('needsRecheck'):
                 continue
             if shelf!='all' and selection['shelf']!=shelf:
@@ -31,7 +34,7 @@ def cards(request):
             if cache.data.get('repository') in ignored:
                 continue
             candidates.append(cache)
-        candidates.sort(key=lambda c:(c.data['selection']['reviewedAt'],c.key),reverse=True)
+        candidates.sort(key=lambda c:(c.data.get('stars') or 0,c.key),reverse=True)
         keys, offset = [c.key for c in candidates[:200]],0
         snapshot = {'id':secrets.token_urlsafe(16),'keys':keys}
         request.session['feed_snapshot'] = snapshot
@@ -44,14 +47,19 @@ def cards(request):
             continue
         data = cache.data
         selection = data.get('selection') or {}
-        if selection.get('shelf')=='unlisted' or selection.get('needsRecheck'):
+        if selection.get('shelf') not in ('practical','creative','potential') or selection.get('needsRecheck') or data.get('repository') in ignored:
             continue
         guide = data.get('guide',{})
         reviewed = guide.get('reviewState')=='reviewed'
-        entry = Entry.objects.filter(pk=data.get('entryId'),public_revision__gt=0).exclude(state='withdrawn').first() if data.get('entryId') else None
+        entry = public_entries().filter(pk=data.get('entryId'),kind='project').first() if data.get('entryId') else None
+        if data.get('entryId') and not entry:
+            continue
         result.append({'repository':data['repository'],'entryId':str(entry.pk) if entry else None,
-            'cover':pictures.get(data['repository'],{}).get('image',''),
-            'coverCredit':pictures.get(data['repository'],{}).get('credit',''),
+            'cover':pictures.get(data['repository'],{}).get('image','') or (data.get('autoMedia') or {}).get('url',''),
+            'coverCredit':pictures.get(data['repository'],{}).get('credit','') or (data.get('autoMedia') or {}).get('credit',''),
+            'uploadedAt':entry.created.isoformat() if entry else data.get('collectedAt'),
+            'uploadedBy':(entry.owner.display_name or entry.owner.username) if entry and entry.owner else data.get('collectedBy','开源采集机器人'),
+            'reviewedBy':selection.get('reviewer') or guide.get('reviewedBy') or '历史记录未注明',
             'category':(data.get('discovery') or {}).get('category','software'),
             'title':data['repository'].split('/')[-1],
             'idea':guide.get('oneLiner') if reviewed else data.get('description',''),
@@ -63,13 +71,15 @@ def cards(request):
             'repositoryUrl':data['url'],'downloads':data.get('downloads',[]),'readmeUrl':data.get('readmeUrl'),
             'releaseUrl':data.get('releaseUrl'),'license':data.get('license'),'credit':data.get('credit'),
             'githubStars':data.get('stars'),'siteStars':entry.star_set.count() if entry else 0,
+            'views':entry.entryview_set.count() if entry else None,
+            'replyCount':entry.reply_set.filter(state='published').count() if entry else None,
             'starred':bool(entry and request.user.is_authenticated and Star.objects.filter(entry=entry,user=request.user).exists()),
             'media':{'type':'project-card','notice':'项目图文导读；不是实机演示视频。'},
             'evidence':data.get('evidence',[]),'verifiedAt':data.get('verifiedAt'),
             'tested':selection.get('tested',False),'testEvidence':selection.get('testEvidence','')})
     next_cursor = signing.dumps({'snapshot':snapshot['id'],'offset':offset+8},salt='hub.feed') if offset+8<len(keys) else None
-    return {'items':result,'nextCursor':next_cursor,'total':len(keys),
-            'ranking':'维护者精选，按核对时间排列；不以停留时长和刷播放量排序。'}
+    return {'items':result,'nextCursor':next_cursor,'total':len(keys),'ignoredRepositories':sorted(ignored),
+            'ranking':'分类内按 GitHub Star 降序；搜索时优先匹配关键词。'}
 
 
 def feedback(user, body):

@@ -1,0 +1,124 @@
+{
+  "checkedAt": "2026-10-08T10:42:16.180Z",
+  "repos": [
+    {
+      "repo": "flowersteam/MAGELLAN",
+      "url": "https://github.com/flowersteam/MAGELLAN",
+      "stars": 15,
+      "updated": "2025-03-24T15:41:13Z",
+      "sha": "37fda3efbe429520f21af7a489841aa72bcd98cb",
+      "license": "MIT",
+      "paths": [
+        ".gitignore",
+        "LICENSE",
+        "README.md",
+        "configs",
+        "magellan"
+      ]
+    },
+    {
+      "repo": "agentscope-ai/ReMe",
+      "url": "https://github.com/agentscope-ai/ReMe",
+      "stars": 3560,
+      "updated": "2026-10-06T06:32:09Z",
+      "sha": "084c02e43a885d5d42a36c39ce9bd78263c23247",
+      "license": "Apache-2.0",
+      "paths": [
+        ".dockerignore",
+        ".github",
+        ".gitignore",
+        ".pre-commit-config.yaml",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "Dockerfile",
+        "LICENSE",
+        "README.md",
+        "README_ZH.md",
+        "benchmark",
+        "deploy",
+        "docker-compose.yml",
+        "docs",
+        "example.env",
+        "github-pages",
+        "integrations",
+        "plugins",
+        "pyproject.toml",
+        "reme",
+        "reme_studio",
+        "scripts",
+        "skills",
+        "tests"
+      ]
+    },
+    {
+      "repo": "simonucl/PolySkill",
+      "url": "https://github.com/simonucl/PolySkill",
+      "stars": 19,
+      "updated": "2026-07-06T22:16:27Z",
+      "sha": "fff8807d7501d93188f9f658f4d0af2f29f35c23",
+      "license": "MIT",
+      "paths": [
+        ".env.example",
+        ".gitignore",
+        ".gitmodules",
+        "LICENSE",
+        "QUICKSTART.md",
+        "README.md",
+        "baselines",
+        "data",
+        "docs",
+        "examples",
+        "polyskill",
+        "pytest.ini",
+        "requirements.txt",
+        "scripts",
+        "setup.py",
+        "tests"
+      ]
+    },
+    {
+      "repo": "KatherLab/ToolMaker",
+      "url": "https://github.com/KatherLab/ToolMaker",
+      "stars": 84,
+      "updated": "2025-05-16T22:33:33Z",
+      "sha": "b0d883d9d6d047e01f4142d402491d109edabe02",
+      "license": "unknown",
+      "paths": [
+        ".dockerignore",
+        ".github",
+        ".gitignore",
+        ".gitmodules",
+        ".vscode",
+        "README.md",
+        "benchmark",
+        "docker",
+        "external",
+        "notebooks",
+        "pyproject.toml",
+        "resources",
+        "scripts",
+        "tests",
+        "toolmaker",
+        "uv.lock"
+      ]
+    },
+    {
+      "repo": "jmiao24/Paper2Agent",
+      "url": "https://github.com/jmiao24/Paper2Agent",
+      "stars": 3725,
+      "updated": "2026-09-17T16:56:07Z",
+      "sha": "8c2d059165ef8cdcb70dbea76655b9c2b55b38e6",
+      "license": "MIT",
+      "paths": [
+        ".gitignore",
+        ".pre-commit-config.yaml",
+        "LICENSE",
+        "README.md",
+        "assets",
+        "logo",
+        "scripts",
+        "skills"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,405 @@
+[
+  {
+    "repo": "jmiao24/Paper2Agent",
+    "checkedAt": "2026-09-21T23:28:59.453Z",
+    "stars": 3254,
+    "pushedAt": "2026-09-17T16:56:07Z",
+    "sha": "8c2d059165ef8cdcb70dbea76655b9c2b55b38e6",
+    "license": "MIT",
+    "licensePath": "LICENSE",
+    "root": [
+      {
+        "name": ".gitignore",
+        "type": "file"
+      },
+      {
+        "name": ".pre-commit-config.yaml",
+        "type": "file"
+      },
+      {
+        "name": "LICENSE",
+        "type": "file"
+      },
+      {
+        "name": "README.md",
+        "type": "file"
+      },
+      {
+        "name": "assets",
+        "type": "dir"
+      },
+      {
+        "name": "logo",
+        "type": "dir"
+      },
+      {
+        "name": "scripts",
+        "type": "dir"
+      },
+      {
+        "name": "skills",
+        "type": "dir"
+      }
+    ]
+  },
+  {
+    "repo": "KatherLab/ToolMaker",
+    "checkedAt": "2026-09-21T23:29:00.972Z",
+    "stars": 84,
+    "pushedAt": "2025-05-16T22:33:33Z",
+    "sha": "b0d883d9d6d047e01f4142d402491d109edabe02",
+    "license": "unverified",
+    "licensePath": null,
+    "licenseError": 404,
+    "root": [
+      {
+        "name": ".dockerignore",
+        "type": "file"
+      },
+      {
+        "name": ".github",
+        "type": "dir"
+      },
+      {
+        "name": ".gitignore",
+        "type": "file"
+      },
+      {
+        "name": ".gitmodules",
+        "type": "file"
+      },
+      {
+        "name": ".vscode",
+        "type": "dir"
+      },
+      {
+        "name": "README.md",
+        "type": "file"
+      },
+      {
+        "name": "benchmark",
+        "type": "file"
+      },
+      {
+        "name": "docker",
+        "type": "dir"
+      },
+      {
+        "name": "external",
+        "type": "dir"
+      },
+      {
+        "name": "notebooks",
+        "type": "dir"
+      },
+      {
+        "name": "pyproject.toml",
+        "type": "file"
+      },
+      {
+        "name": "resources",
+        "type": "dir"
+      },
+      {
+        "name": "scripts",
+        "type": "dir"
+      },
+      {
+        "name": "tests",
+        "type": "dir"
+      },
+      {
+        "name": "toolmaker",
+        "type": "dir"
+      },
+      {
+        "name": "uv.lock",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "repo": "agentscope-ai/ReMe",
+    "checkedAt": "2026-09-21T23:29:02.526Z",
+    "stars": 3498,
+    "pushedAt": "2026-09-21T04:06:28Z",
+    "sha": "873bcee220c97e7ab6311c7b03af98a8ad849553",
+    "license": "Apache-2.0",
+    "licensePath": "LICENSE",
+    "root": [
+      {
+        "name": ".github",
+        "type": "dir"
+      },
+      {
+        "name": ".gitignore",
+        "type": "file"
+      },
+      {
+        "name": ".pre-commit-config.yaml",
+        "type": "file"
+      },
+      {
+        "name": "AGENTS.md",
+        "type": "file"
+      },
+      {
+        "name": "CLAUDE.md",
+        "type": "file"
+      },
+      {
+        "name": "LICENSE",
+        "type": "file"
+      },
+      {
+        "name": "README.md",
+        "type": "file"
+      },
+      {
+        "name": "README_ZH.md",
+        "type": "file"
+      },
+      {
+        "name": "benchmark",
+        "type": "dir"
+      },
+      {
+        "name": "docs",
+        "type": "dir"
+      },
+      {
+        "name": "example.env",
+        "type": "file"
+      },
+      {
+        "name": "github-pages",
+        "type": "dir"
+      },
+      {
+        "name": "integrations",
+        "type": "dir"
+      },
+      {
+        "name": "plugins",
+        "type": "dir"
+      },
+      {
+        "name": "pyproject.toml",
+        "type": "file"
+      },
+      {
+        "name": "reme",
+        "type": "dir"
+      },
+      {
+        "name": "reme_studio",
+        "type": "dir"
+      },
+      {
+        "name": "scripts",
+        "type": "dir"
+      },
+      {
+        "name": "skills",
+        "type": "dir"
+      },
+      {
+        "name": "tests",
+        "type": "dir"
+      }
+    ]
+  },
+  {
+    "repo": "simonucl/PolySkill",
+    "checkedAt": "2026-09-21T23:29:04.574Z",
+    "stars": 18,
+    "pushedAt": "2026-07-06T22:16:27Z",
+    "sha": "fff8807d7501d93188f9f658f4d0af2f29f35c23",
+    "license": "MIT",
+    "licensePath": "LICENSE",
+    "root": [
+      {
+        "name": ".env.example",
+        "type": "file"
+      },
+      {
+        "name": ".gitignore",
+        "type": "file"
+      },
+      {
+        "name": ".gitmodules",
+        "type": "file"
+      },
+      {
+        "name": "LICENSE",
+        "type": "file"
+      },
+      {
+        "name": "QUICKSTART.md",
+        "type": "file"
+      },
+      {
+        "name": "README.md",
+        "type": "file"
+      },
+      {
+        "name": "baselines",
+        "type": "dir"
+      },
+      {
+        "name": "data",
+        "type": "dir"
+      },
+      {
+        "name": "docs",
+        "type": "dir"
+      },
+      {
+        "name": "examples",
+        "type": "dir"
+      },
+      {
+        "name": "polyskill",
+        "type": "dir"
+      },
+      {
+        "name": "pytest.ini",
+        "type": "file"
+      },
+      {
+        "name": "requirements.txt",
+        "type": "file"
+      },
+      {
+        "name": "scripts",
+        "type": "dir"
+      },
+      {
+        "name": "setup.py",
+        "type": "file"
+      },
+      {
+        "name": "tests",
+        "type": "dir"
+      }
+    ]
+  },
+  {
+    "repo": "zfw1226/D2A",
+    "checkedAt": "2026-09-21T23:29:06.258Z",
+    "stars": 33,
+    "pushedAt": "2026-01-04T06:56:55Z",
+    "sha": "0d194782b5eaed9311a210f950b8061064ea4d92",
+    "license": "MIT",
+    "licensePath": "LICENSE",
+    "root": [
+      {
+        "name": ".devcontainer",
+        "type": "dir"
+      },
+      {
+        "name": ".gitignore",
+        "type": "file"
+      },
+      {
+        "name": "LICENSE",
+        "type": "file"
+      },
+      {
+        "name": "README.md",
+        "type": "file"
+      },
+      {
+        "name": "bin",
+        "type": "dir"
+      },
+      {
+        "name": "concordia",
+        "type": "dir"
+      },
+      {
+        "name": "environment_D2A.yml",
+        "type": "file"
+      },
+      {
+        "name": "examples",
+        "type": "dir"
+      },
+      {
+        "name": "imgs",
+        "type": "dir"
+      },
+      {
+        "name": "pyproject.toml",
+        "type": "file"
+      },
+      {
+        "name": "setup.py",
+        "type": "file"
+      }
+    ]
+  },
+  {
+    "repo": "fQwQf/PersonaForge",
+    "checkedAt": "2026-09-21T23:29:08.180Z",
+    "stars": 9,
+    "pushedAt": "2026-06-12T15:12:09Z",
+    "sha": "10363f65b9649ae258854568608da7add1d6cc98",
+    "license": "Apache-2.0",
+    "licensePath": "LICENSE",
+    "root": [
+      {
+        "name": ".gitignore",
+        "type": "file"
+      },
+      {
+        "name": "LICENSE",
+        "type": "file"
+      },
+      {
+        "name": "NOTICE",
+        "type": "file"
+      },
+      {
+        "name": "README.md",
+        "type": "file"
+      },
+      {
+        "name": "config.json.example",
+        "type": "file"
+      },
+      {
+        "name": "data",
+        "type": "dir"
+      },
+      {
+        "name": "experiments",
+        "type": "dir"
+      },
+      {
+        "name": "personaforge",
+        "type": "dir"
+      },
+      {
+        "name": "poster",
+        "type": "dir"
+      },
+      {
+        "name": "requirements.txt",
+        "type": "file"
+      },
+      {
+        "name": "schemas",
+        "type": "dir"
+      }
+    ]
+  },
+  {
+    "repo": "lululu896/DPC",
+    "checkedAt": "2026-09-21T23:30:25.495Z",
+    "sha": "7ce28f68f2883d8eb31b511377a4c194af0cfa8e",
+    "license": "MIT (nested LICENSE)",
+    "officialStatus": "candidate: paper points to anonymous.4open.science/r/DPC-30A1",
+    "licensePath": "public_release/LICENSE"
+  }
+]

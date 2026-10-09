@@ -1,18 +1,21 @@
 """Community campus places: reviewed coordinates, expiring discoveries and evidence."""
 import math
+import re
 from datetime import timedelta
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 from django.db import transaction
 from django.db.models import Count, Max
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
-from .core import Problem, entry_data, public_entries, require, text, throttle
+from .core import Problem, entry_data, public_entries, require, text, throttle, url
 from .models import Entry, PlaceObservation, Upload
 
 CAMPUS = {'xueyuanlu':'学院路校区','shahe':'沙河校区'}
 TYPES = {'facility':'校园设施','study':'学习空间','food':'饮食','sports':'运动',
          'scenery':'风景','event':'活动','discovery':'同学发现'}
 IMAGE_EXTENSIONS = {'.jpg','.jpeg','.png','.webp'}
+EVENT_FIELDS = {'startsAt','endsAt','building','registrationURL','reminderMinutes'}
+EVENT_TIMESTAMP = re.compile(r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$')
 
 
 def number(value,low,high):
@@ -29,6 +32,61 @@ def timestamp(value,required=False):
     if not dt or timezone.is_naive(dt):
         raise Problem('请提供带时区的完整观察/到期时间。')
     return dt
+
+
+def event_timestamp(value):
+    if not isinstance(value,str) or not EVENT_TIMESTAMP.fullmatch(value):
+        raise Problem('活动起止时间需包含完整日期、时分秒和时区。')
+    if value[-1]!='Z' and (int(value[-5:-3])>23 or int(value[-2:])>59):
+        raise Problem('活动时间的时区格式无效。')
+    try:
+        dt = parse_datetime(value)
+    except (ValueError,OverflowError):
+        dt = None
+    if not dt or timezone.is_naive(dt):
+        raise Problem('活动起止时间不是有效的带时区时间。')
+    return dt
+
+
+def event_fields(data,campus,kind,now):
+    present = EVENT_FIELDS.intersection(data)
+    if kind!='event':
+        if present:
+            raise Problem('活动时间、关联建筑、报名链接和提醒仅适用于活动分类。')
+        return {}
+    result = {}
+    if 'startsAt' in present or 'endsAt' in present:
+        if not {'startsAt','endsAt'}.issubset(present):
+            raise Problem('活动开始和结束时间需成对填写，不能以观察时间或到期时间代替。')
+        start,end = event_timestamp(data['startsAt']),event_timestamp(data['endsAt'])
+        if end<=start:
+            raise Problem('活动结束时间必须晚于开始时间。')
+        if start>now+timedelta(days=730) or end>now+timedelta(days=730):
+            raise Problem('活动时间不能超过未来 730 天。')
+        result.update(startsAt=start.isoformat(),endsAt=end.isoformat())
+    if 'building' in present:
+        from .planner import building
+        result['building'] = building(data['building'])
+        if result['building'] is not None and result['building']['campus']!=campus:
+            raise Problem('活动关联建筑需属于所选校区。')
+    if 'registrationURL' in present:
+        value = text(data['registrationURL'],1000)
+        try:
+            parsed = urlsplit(value)
+            # Empty userinfo is still userinfo; controls must not be removed by URL parsing.
+            if parsed.username is not None or parsed.password is not None or any(ord(ch)<32 or 127<=ord(ch)<=159 for ch in value) or '\\' in value:
+                raise ValueError()
+            if value:
+                parsed.port
+            result['registrationURL'] = url(value)
+        except ValueError:
+            raise Problem('请提供不含账号密码的完整 HTTP 或 HTTPS 报名链接。')
+    if 'reminderMinutes' in present:
+        reminder = data['reminderMinutes']
+        if type(reminder) is not int or not 0<=reminder<=120:
+            raise Problem('活动提醒应为 0–120 分钟的整数。')
+        result['reminderMinutes'] = reminder
+    return result
 
 
 def validate_place(data,user,submit=False):
@@ -67,12 +125,14 @@ def validate_place(data,user,submit=False):
         raise Problem('发布地点需要地图选点、详细位置说明以及至少一张本人有权分享的照片。')
     if submit and data.get('publicLocationConfirmed') is not True:
         raise Problem('请确认分享的是可以公开访问或说明的地点，不是个人行踪。')
-    return {'campus':campus,'placeType':kind,'duration':duration,'location':clean_location,
+    result = {'campus':campus,'placeType':kind,'duration':duration,'location':clean_location,
             'addressHint':hint,'observedAt':observed.isoformat() if observed else None,
             'expiresAt':expires.isoformat() if expires else None,
             'accessNotes':text(data.get('accessNotes',''),1000),
             'photoCredit':text(data.get('photoCredit',''),300),
             'publicLocationConfirmed':data.get('publicLocationConfirmed') is True}
+    result.update(event_fields(data,campus,kind,now))
+    return result
 
 
 def expired(data):

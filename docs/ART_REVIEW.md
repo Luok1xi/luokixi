@@ -34,8 +34,8 @@
 
 | 校区 | 新候选 | 原生尺寸 | 交付内容 |
 |---|---|---|---|
-| 学院路 | [v3 PNG](art-review/maps/campus-xueyuanlu-20261006-v3.png) | 1489 × 1056 | PNG 与同名 JSON；3666 × 2602 的 SVG/PNG 坐标底稿另存 |
-| 沙河 | [v1 PNG](art-review/maps/campus-shahe-20261006-v1.png) | 1264 × 1244 | PNG 与同名 JSON；2691 × 2648 的 SVG/PNG 坐标底稿另存 |
+| 学院路 | [v3 PNG](../public/art/cumtb/_review/campus-xueyuanlu-20261006-v3.png) | 1489 × 1056 | PNG 与同名 JSON；3666 × 2602 的 SVG/PNG 坐标底稿另存 |
+| 沙河 | [v1 PNG](../public/art/cumtb/_review/campus-shahe-20261006-v1.png) | 1264 × 1244 | PNG 与同名 JSON；2691 × 2648 的 SVG/PNG 坐标底稿另存 |
 
 本次流程：投影原始校园边界与建筑要素 → 在边界内绘制有限立面厚度 → 用坐标底稿与本机卫星图作生成参考。53/8 为 OSM 建筑要素数，可能包含分段或建筑群，不能替代实际楼栋统计。沙河额外 6 处仅为人工观察的屋顶轮廓，记录在 JSON 的 `traced` / `observedBuildings`，不是现场测绘或确认的地面边界。
 

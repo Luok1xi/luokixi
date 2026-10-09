@@ -1,0 +1,14 @@
+/* Extend the existing segmented index; keep its typography, pills and palette. */
+.dc .dc-top { flex-wrap:nowrap; }
+#dc-shelf { min-width:0; max-width:100%; flex:0 1 auto; overflow-x:auto; overscroll-behavior-x:contain; scrollbar-width:none; }
+#dc-shelf::-webkit-scrollbar { display:none; }
+#dc-shelf button { flex:none; white-space:nowrap; }
+.dc .feed-links { flex:none; align-items:center; }
+#dc-search-toggle { padding:0; border:0; background:none; color:var(--fg-2); font:inherit; cursor:pointer; white-space:nowrap; }
+.dc-search { position:absolute; top:calc(100% + 10px); left:0; display:flex; align-items:center; gap:10px; width:min(420px,100%); max-width:100%; padding:8px 12px; border-radius:14px; }
+.dc-search[hidden] { display:none; }
+.dc-search input { flex:1; width:0; min-width:0; border:0; background:transparent; color:var(--fg); font:inherit; font-size:14px; padding:6px 0; }
+.dc-search button { flex:none; background:none; border:0; color:var(--fg-2); font:inherit; font-size:12px; cursor:pointer; }
+#dc-search-count { position:absolute; top:100%; left:12px; padding-top:4px; font-size:11px; color:var(--fg-2); }
+.dc.dg-detail-open .dc-top, .dc.dg-detail-open .dc-top *, .dc.dg-detail-open .dc-plan-btn { pointer-events:none; }
+@media(max-width:760px) { .dc .dc-top { gap:12px; } .dc .feed-links { gap:10px; } .dc-search input { font-size:16px; } }

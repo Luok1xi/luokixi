@@ -4,6 +4,7 @@
 // 颜色、线宽、楼的“墙”都在 map.css 里用 CSS 变量控制，深色外观自动换成夜景配色。
 import * as L from 'leaflet';
 import { mapIcon } from './map-icons.js';
+import { campusBuildings, campusRoads, pointInGeometry, prepareCampusData } from './campus-geometry.js';
 
 export const BUILDING_USE = {
   teaching: { name: '教学楼' },
@@ -40,7 +41,7 @@ export function createCampusMap(map, { onBuilding } = {}) {
     mark: pane(map, 'cm-mark', 590),
   };
   // 每个层用自己的 SVG 渲染器，这样 CSS 能按层设置滤镜（楼的“墙”）
-  const svg = (name) => L.svg({ pane: name, padding: 0.4 });
+  const svg = (name) => L.svg({ pane: name, padding: 0.2 });
   const renderers = { ground: svg(panes.ground), area: svg(panes.area), road: svg(panes.road), building: svg(panes.building) };
   const groups = Object.fromEntries(['ground', 'area', 'road', 'building', 'label', 'mark'].map((k) => [k, L.layerGroup().addTo(map)]));
 
@@ -48,13 +49,41 @@ export function createCampusMap(map, { onBuilding } = {}) {
   let selected = null;
   const byOsm = new Map();
 
-  // 线宽和“墙高”跟着缩放变：17 级为基准
+  // Leaflet handles the camera transform. Only settle label density and wall sizes
+  // after movement, never on each pan/zoom frame. CSS can suspend costly shadows.
+  let moving = false;
+  let zooming = false;
+  let styleFrame = 0;
+  const syncMotion = () => {
+    container.dataset.moving = moving ? 'on' : 'off';
+    container.dataset.zooming = zooming ? 'on' : 'off';
+  };
   const syncZoom = () => {
     const z = map.getZoom();
     container.style.setProperty('--cm-s', String(2 ** (z - 17)));
     container.dataset.zoom = z >= 17.5 ? 'near' : z >= 16 ? 'mid' : 'far';
   };
-  map.on('zoomend', syncZoom);
+  const settle = () => {
+    if (styleFrame) return;
+    styleFrame = requestAnimationFrame(() => {
+      styleFrame = 0;
+      syncMotion();
+      syncZoom();
+    });
+  };
+  const moveStart = () => { moving = true; syncMotion(); };
+  const moveEnd = () => { moving = false; settle(); };
+  const zoomStart = () => { zooming = true; syncMotion(); };
+  const zoomEnd = () => { zooming = false; settle(); };
+  const dispose = () => {
+    if (styleFrame) cancelAnimationFrame(styleFrame);
+    styleFrame = 0;
+    map.off('movestart', moveStart).off('moveend', moveEnd);
+    map.off('zoomstart', zoomStart).off('zoomend', zoomEnd).off('unload', dispose);
+  };
+  map.on('movestart', moveStart).on('moveend', moveEnd);
+  map.on('zoomstart', zoomStart).on('zoomend', zoomEnd).on('unload', dispose);
+  syncMotion();
   syncZoom();
 
   function clear() {
@@ -65,7 +94,7 @@ export function createCampusMap(map, { onBuilding } = {}) {
 
   function load(next) {
     clear();
-    data = next;
+    data = prepareCampusData(next);
     if (!data) return;
     const ring = data.boundary.coordinates[0].map(([lng, lat]) => [lat, lng]);
     const [w, s, e, n] = ring.reduce(([a, b, c, d], [lat, lng]) => [Math.min(a, lng), Math.min(b, lat), Math.max(c, lng), Math.max(d, lat)], [180, 90, -180, -90]);
@@ -83,7 +112,7 @@ export function createCampusMap(map, { onBuilding } = {}) {
     }).addTo(groups.area);
 
     // 路分两遍画：先画宽一点的描边，再画路面，路口才会自然连在一起
-    const roads = data.features.filter((f) => ['road', 'mainroad', 'path'].includes(f.properties.kind));
+    const roads = campusRoads(data);
     for (const layer of ['case', 'fill']) {
       L.geoJSON(roads, {
         pane: panes.road, renderer: renderers.road, interactive: false,
@@ -92,7 +121,7 @@ export function createCampusMap(map, { onBuilding } = {}) {
     }
     L.polygon(ring, { pane: panes.road, renderer: renderers.road, className: 'cm-edge', interactive: false, fill: false }).addTo(groups.road);
 
-    const buildings = data.features.filter((f) => f.properties.kind === 'building');
+    const buildings = campusBuildings(data);
     L.geoJSON(buildings, {
       pane: panes.building, renderer: renderers.building,
       style: (f) => ({ className: `cm-b cm-b-${f.properties.use} ${tier(f.properties.levels)}` }),
@@ -110,13 +139,27 @@ export function createCampusMap(map, { onBuilding } = {}) {
     // 名字标签：有名字的楼、校门、带名字的设施
     for (const f of buildings.filter((b) => b.properties.name)) {
       const [lng, lat] = f.properties.center;
-      L.marker([lat, lng], {
+      const marker = L.marker([lat, lng], {
         pane: panes.mark,
         icon: L.divIcon({ className: 'cm-label-wrap', html: `<span class="cm-label cm-l-${f.properties.use}"><i class="atlas-pin">${mapIcon(f.properties.use)}</i><b>${escapeHTML(f.properties.name)}</b></span>`, iconSize: null }),
         keyboard: true, title: f.properties.name,
-      })
-        .on('click', () => onBuilding?.(f))
-        .addTo(groups.label);
+      });
+      marker.on('click', () => onBuilding?.(f));
+      marker.on('add', () => {
+        const el = marker.getElement();
+        if (!el) return;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', f.properties.name);
+        el.dataset.osm = f.properties.osm;
+        // Custom popups use click listeners rather than bindPopup; handle both button keys.
+        el.addEventListener('keydown', (event) => {
+          if (event.key !== ' ' && event.key !== 'Enter') return;
+          event.preventDefault();
+          marker.fire('click');
+        });
+      });
+      marker.addTo(groups.label);
+      byOsm.get(f.properties.osm).label = marker;
     }
     for (const p of data.pois ?? []) {
       const [lng, lat] = p.geometry.coordinates;
@@ -145,17 +188,24 @@ export function createCampusMap(map, { onBuilding } = {}) {
   }
 
   function select(osm) {
-    if (selected) byOsm.get(selected)?.layer.getElement()?.classList.remove('is-on');
+    if (selected) {
+      const old = byOsm.get(selected);
+      old?.layer.getElement()?.classList.remove('is-on');
+      old?.label?.getElement()?.classList.remove('is-on');
+    }
     selected = osm;
-    byOsm.get(osm)?.layer.getElement()?.classList.add('is-on');
+    const current = byOsm.get(osm);
+    current?.layer.getElement()?.classList.add('is-on');
+    current?.label?.getElement()?.classList.add('is-on');
   }
 
   // 给楼加状态：到过（is-visited）、有我的课（is-course）、当前任务目标（is-target）
   function mark(states) {
-    for (const [osm, { layer }] of byOsm) {
-      const el = layer.getElement();
-      if (!el) continue;
-      for (const cls of ['is-visited', 'is-course', 'is-target']) el.classList.toggle(cls, Boolean(states[cls]?.has(osm)));
+    for (const [osm, { layer, label }] of byOsm) {
+      for (const el of [layer.getElement(), label?.getElement()]) {
+        if (!el) continue;
+        for (const cls of ['is-visited', 'is-course', 'is-target']) el.classList.toggle(cls, Boolean(states[cls]?.has(osm)));
+      }
     }
   }
 
@@ -173,18 +223,8 @@ function escapeHTML(s) {
 }
 
 // 点是否在多边形里（GeoJSON 坐标：经度, 纬度）
-export function pointInFeature([lng, lat], feature) {
-  const polys = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.type === 'MultiPolygon' ? feature.geometry.coordinates : [];
-  return polys.some((rings) => {
-    let hit = false;
-    const ring = rings[0];
-    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-      const [xi, yi] = ring[i];
-      const [xj, yj] = ring[j];
-      if (yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) hit = !hit;
-    }
-    return hit;
-  });
+export function pointInFeature(point, feature) {
+  return pointInGeometry(point, feature);
 }
 
 // ---------- 楼的小模型：按真实轮廓和层数画一个等轴视角的“沙盘” ----------

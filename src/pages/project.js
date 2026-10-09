@@ -1,3 +1,5 @@
+import { chinesePresentation } from '../js/content-language.js';
+import { journalExpression } from '../js/journal-expression.js';
 // 内容详情：社区里的项目、资料、论文、复现、讨论……每一条都在这里展开。
 // 数据来自 /api/hub/entries/{id}（也接受 ?slug=）；地点（kind=place）转到校园地图。
 // 几条不能破的规矩：
@@ -5,11 +7,12 @@
 // - 待审核的版本只给作者和维护者看，而且要明确标出来，不能混进公开页面。
 // - AI 导读没核对时标“尚未核对”，原文 README 的入口放在最显眼的位置。
 import { initShell } from '../js/shell.js';
-import { hubApi, hubState, loginURL, HubError } from '../js/hub.js';
+import { canParticipate, hubApi, hubState, loginURL, HubError } from '../js/hub.js';
 import { avatarHTML, catTag, fmtNum, timeAgo } from '../js/community.js';
 import { CATEGORIES } from '../js/schema.js';
 import { renderMarkdown } from '../js/markdown.js';
 import { esc } from '../js/data.js';
+import { depthSlides, mountDepthSlider } from '../js/depth-slider.js';
 import '../styles/community.css';
 import '../styles/project.css';
 
@@ -67,7 +70,7 @@ function toast(msg, action) {
 
 function blocked(action) {
   if (!st.user) return toast(`登录之后才能${action}。`, { href: loginURL(), label: '去登录' }), true;
-  if (!st.user.emailVerified) return toast(`验证邮箱之后才能${action}。`, { href: 'me.html#account', label: '去验证' }), true;
+  if (!canParticipate(st.user)) return toast(`验证邮箱之后才能${action}。`, { href: 'me.html#account', label: '去验证' }), true;
   return false;
 }
 
@@ -85,7 +88,7 @@ const ghRepo = (u) => {
 };
 const fmtBytes = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 const md = (text) => `<div class="md">${renderMarkdown(text)}</div>`;
-const person = (m, size = 28) => (m ? `${avatarHTML({ login: m.username, name: m.name }, size)}<span>${esc(m.name)}</span>` : '');
+const person = (m, size = 28) => (m ? `${avatarHTML({ login: m.username, name: m.name, avatar: m.avatar }, size)}<span>${esc(m.name)}</span>` : '');
 
 // ---------- 渲染 ----------
 
@@ -109,9 +112,12 @@ function headHTML(d) {
       ${e().owner ? `<span class="pd-by"><span class="muted">站内投稿</span>${person(e().owner, 24)}</span>` : '<span class="pd-by"><span class="muted">来自已有公开目录，还没有成员认领</span></span>'}
       ${d.credit ? `<span class="pd-by"><span class="muted">原作者</span><span>${esc(d.credit)}</span></span>` : ''}
       <span class="pd-by"><span class="muted">许可</span>${d.license && !/待核/.test(d.license) ? `<span>${esc(d.license)}</span>` : '<span class="lic-unknown">许可待核</span>'}</span>
+      <span class="pd-by"><span class="muted">收录时间</span><span>${esc((d.provenance?.uploadedAt || e().created) ? new Date(d.provenance?.uploadedAt || e().created).toLocaleString('zh-CN') : '历史记录未注明')}</span></span>
+      ${d.provenance?.reviewedBy ? `<span class="pd-by"><span class="muted">审核者</span>${esc(d.provenance.reviewedBy)}</span>` : ''}
       <span class="pd-by"><span class="muted">更新</span><span>${timeAgo(e().updated)}</span></span>
     </div>
     <div class="pd-actions">
+      <a class="btn btn-outline" href="viewer.html?kind=entry&id=${esc(e().id)}">站内阅读 / 导出</a>
       ${repo ? `<a class="btn btn-primary" href="${esc(repo)}" target="_blank" rel="noopener">${ghRepo(repo) ? '在 GitHub 上查看' : '查看源代码'}</a>` : ''}
       ${canAct ? `<button class="pd-act${e().starred ? ' is-on' : ''}" type="button" data-act="star" aria-pressed="${Boolean(e().starred)}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5 4.2 12.9a4.9 4.9 0 0 1 6.9-6.9l.9.9.9-.9a4.9 4.9 0 0 1 6.9 6.9z"/></svg>
@@ -200,7 +206,7 @@ function guideHTML(d) {
       : '';
   return `<section class="pd-sec" id="guide">
     <div class="pd-sec-head"><h2>导读</h2>
-      ${generated ? `<span class="tag ${reviewed ? 'tag-ok' : 'tag-warn'}">${reviewed ? '中文导读 · 维护者已核对' : 'AI 导读 · 尚未核对'}</span>` : ''}</div>
+      ${generated ? `<span class="tag ${reviewed ? 'tag-ok' : 'tag-warn'}">${reviewed ? '中文导读 · 已按记录核对' : 'AI 导读 · 尚未核对'}</span>` : ''}</div>
     ${safeURL(gh.readmeUrl) ? `<p class="pd-guide-cta"><a class="btn btn-outline btn-sm" href="${esc(gh.readmeUrl)}" target="_blank" rel="noopener">阅读原文 README</a>${reviewed ? '' : '<span class="muted">以原文为准</span>'}</p>` : ''}
     ${generated
       ? `${guide.oneLiner ? `<p class="pd-oneliner">${esc(guide.oneLiner)}</p>` : ''}
@@ -226,16 +232,34 @@ function bodyHTML(d) {
     d.deadline && ['截止', d.deadline], d.ruleVersion && ['规则版本', d.ruleVersion], d.doi && ['DOI', d.doi],
   ].filter(Boolean);
   return `<section class="pd-sec" id="about"><h2>说明</h2>
+      ${journalExpression(d)}
+      ${d.sourceLanguage ? `<details><summary>中外文对照 · 原始介绍</summary>${Object.values(d.sourceLanguage).map(t=>md(t)).join('')}</details>` : ''}
       ${d.body ? md(d.body) : `<p class="muted">作者还没有写详细说明。${ghRepo(d.links?.repo) ? '可以先看上面的导读或者原项目的 README。' : ''}</p>`}
+      ${d.maintenanceFacts?`<details><summary>执行记录 · 未解决事项</summary><ul>${d.maintenanceFacts.unresolved.map(r=>`<li>${esc(r.robot)}：${r.state==='failed'?'失败':'部分完成'} · ${esc(r.error||'')}</li>`).join('')||'<li>此次记录没有失败项；不代表全站没有问题。</li>'}</ul></details>`:''}
       ${meta.length ? `<dl class="pd-dl">${meta.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
     </section>${extras}`;
 }
+
+let disposePhotos = () => {};
+let disposeFilm = () => {};
+let renderVersion = 0;
+function photosHTML(d) {
+  if (st.view !== 'public') return '';
+  const urls = (e().attachments || []).filter(a => /\.(png|jpe?g|webp)$/i.test(a.name || ''))
+    .map(a => a.url).filter(u => /^\/api\/hub\/uploads\/[a-f0-9-]+\/file$/.test(u));
+  if (!urls.length && safeURL(d.media?.src)) urls.push(d.media.src);
+  if (!urls.length && /^\/art\/[a-zA-Z0-9_./-]+\.(webp|png|jpe?g)$/.test(d.autoMedia?.url || '')) urls.push(d.autoMedia.url);
+  if (!urls.length) return '';
+  const credit = d.media?.credit || d.autoMedia?.credit || '投稿配图';
+  return `<figure class="pd-photos"><div class="${urls.length > 1 ? 'ds-track' : ''}">${depthSlides(urls, d.title || credit)}</div><figcaption>${esc(credit)}</figcaption></figure>`;
+}
+window.addEventListener('pagehide', () => disposePhotos());
 
 function attachmentsHTML() {
   const list = st.view === 'public' ? e().attachments ?? [] : [];
   if (!list.length) return '';
   return `<section class="pd-sec" id="files"><h2>附件</h2><ul class="pd-files" role="list">${list
-    .map((a) => `<li><a href="${esc(a.url)}" download><b>${esc(a.name)}</b><span>${fmtBytes(a.bytes)}${a.pages ? ` · ${a.pages} 页` : ''}</span></a>
+    .map((a) => `<li><a href="viewer.html?kind=upload&id=${esc(a.id)}"><b>${esc(a.name)}</b><span>${fmtBytes(a.bytes)}${a.pages ? ` · ${a.pages} 页` : ''} · 站内查看</span></a><a href="${esc(a.url)}" download>下载原件</a>
       <span class="tag${a.extraction === 'needs-ocr' || a.extraction === 'encrypted' ? ' tag-warn' : ''}">${EXTRACTION[a.extraction] ?? esc(a.extraction)}</span></li>`)
     .join('')}</ul></section>`;
 }
@@ -243,7 +267,7 @@ function attachmentsHTML() {
 function replyHTML(r) {
   const mine = st.user && r.author?.id === st.user.id;
   const canAccept = st.user && !mine && r.state === 'published' && !r.accepted && (isOwner() || isMod());
-  return `<li class="pd-reply${r.accepted ? ' is-accepted' : ''}" data-reply="${esc(r.id)}">
+  return `<li class="pd-reply${r.accepted ? ' is-accepted' : ''}" id="reply-${esc(r.id)}" tabindex="-1" data-reply="${esc(r.id)}">
     <div class="pd-reply-head">${person(r.author, 28)}<span class="muted">@${esc(r.author?.username ?? '')} · ${timeAgo(r.created)}</span>
       ${r.accepted ? '<span class="tag tag-ok">已采纳</span>' : ''}
       ${r.state === 'pending' ? `<span class="tag tag-warn">${mine ? '等待审核，只有你和维护者看得到' : '待审核'}</span>` : ''}
@@ -264,7 +288,7 @@ function discussionHTML() {
   const shown = list.filter((r) => r.state === 'published').length;
   let form;
   if (!st.user) form = `<p class="pd-hint"><a href="${esc(loginURL())}">登录</a>之后可以参与讨论。</p>`;
-  else if (!st.user.emailVerified) form = '<p class="pd-hint">验证邮箱之后可以参与讨论。<a href="me.html#account">去验证</a></p>';
+  else if (!canParticipate(st.user)) form = '<p class="pd-hint">验证邮箱之后可以参与讨论。<a href="me.html#account">去验证</a></p>';
   else
     form = `<form class="pd-reply-form" data-form="reply">
       <label class="sr-only" for="pd-reply-body">回复内容</label>
@@ -308,7 +332,7 @@ function downloadHTML() {
     body = `<ul class="pd-dl" role="list">${m.items.filter(f=>f.available).map((f) => `<li>
         <div><b>${esc(f.name)}</b><span>${esc(f.tag)} · ${fmtBytes(f.size)} · ${esc(f.license)}${f.downloads ? ` · 本站下载 ${fmtNum(f.downloads)} 次` : ''}</span>
           <details><summary>版本与文件校验</summary><code style="overflow-wrap:anywhere;white-space:normal">SHA-256 ${esc(f.sha256)}</code><p>${f.integrity==='upstream-sha256-matched'?'已与 GitHub 官方 SHA-256 核对一致':'本站计算的 SHA-256；上游未提供可比对校验值'}</p><p>${f.kind==='source-archive'?'源码包，需要按项目说明构建':`系统：${esc(f.platform==='unknown'?'原文件名未说明':f.platform)} · 架构：${esc(f.architecture==='unknown'?'未确认':f.architecture)}`}</p>${f.licenseUrl?`<a href="${esc(f.licenseUrl)}" download>下载许可证与署名</a>`:''}</details></div>
-        <a class="btn btn-primary btn-sm" href="${esc(f.url)}" download>下载</a></li>`).join('')}</ul>
+        <a class="btn btn-outline btn-sm" href="viewer.html?kind=mirror&id=${esc(f.id)}">查看文件</a><a class="btn btn-primary btn-sm" href="${esc(f.url)}" data-accelerate data-filename="${esc(f.name)}" download="${esc(f.name)}">加速下载</a></li>`).join('')}</ul>
       <p class="pd-hint">文件从原仓库原样保存，保留版本、来源与许可证。本站下载不依赖访问 GitHub；安装依赖、模型或联网服务可能仍需连接外部平台。</p>`;
   else if (m.status === 'license-blocked') body = `<p class="muted">${esc(m.reason || '这个仓库没有声明允许再分发的开源许可证，本站不能转存。')}</p>`;
   else body = '<p class="muted">本站还没有镜像这个项目的发布包。</p>';
@@ -369,15 +393,21 @@ function sideHTML(d) {
   </aside>`;
 }
 
+let replyLocated = false;
 function render() {
-  const d = viewData();
+  disposePhotos(); disposeFilm();
+  const version = ++renderVersion;
+  const d = st.view === 'draft' ? viewData() : chinesePresentation(viewData(), st.gh?.guide);
+  const focusedReply = document.activeElement?.closest('.pd-reply')?.id;
   document.title = `${d.title ?? '内容'} · Luokixi`;
   main.innerHTML = `<div class="wrap">
     ${headHTML(d)}
     <div class="pd-grid">
       <div class="pd-main">
         ${ownerBarHTML()}
+        ${photosHTML(d)}
         ${guideHTML(d)}
+        ${st.gh?.guide?.reviewState==='reviewed'?'<section class="pd-sec pd-film"><h2>用短片了解项目</h2><button type="button" data-film-open>打开中文讲解</button><div data-project-film></div></section>':''}
         ${bodyHTML(d)}
         ${attachmentsHTML()}
         ${discussionHTML()}
@@ -385,6 +415,21 @@ function render() {
       ${sideHTML(d)}
     </div>
   </div>`;
+  disposePhotos = mountDepthSlider(main.querySelector('.pd-photos .ds-track'));
+  main.querySelector('[data-film-open]')?.addEventListener('click', async event => { const {mountProjectFilm}=await import('../js/project-film.js'); if(version!==renderVersion)return; event.target.hidden=true; disposeFilm=mountProjectFilm(main.querySelector('[data-project-film]'),{title:d.title,guide:st.gh.guide,source:d.links.repo}); });
+  if (focusedReply) document.getElementById(focusedReply)?.focus({ preventScroll: true });
+  if (!replyLocated && /^#reply-[a-f0-9-]{36}$/i.test(location.hash)) {
+    const anchor = location.hash;
+    requestAnimationFrame(() => {
+      if (replyLocated || location.hash !== anchor) return;
+      const target = document.getElementById(anchor.slice(1));
+      if (target) {
+        replyLocated = true;
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }
+    });
+  }
 }
 
 function renderMessage(title, text, action = '') {

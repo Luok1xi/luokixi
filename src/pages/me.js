@@ -10,6 +10,8 @@ import {mountContribution} from '../js/contribution-view.js';
 import { projectReviews, newsReviews, guideReviews } from '../js/maintenance-review.js';
 import { supervisorReviews } from '../js/supervisor-review.js';
 import { mountBeikuang, stopBeikuang } from '../js/beikuang-chat.js';
+import { mountCodexChat, stopCodexChat } from '../js/codex-chat.js';
+import { mountOperations } from '../js/operations-panel.js';
 
 initShell();
 
@@ -63,6 +65,10 @@ const needLogin = () =>
     : empty('社区服务未连接。', '现在只能使用“本机足迹”。连接社区服务后，可以登录查看投稿和收藏。');
 
 const titleOf = (e) => (e.draft?.title || e.data?.title || '未命名');
+const noticeHref = (value) => {
+  if (typeof value !== 'string') return null;
+  try { const target = new URL(value, location.href); return target.origin === location.origin && /\/(?:circle|project|reputation|me)\.html$/.test(target.pathname) ? target.pathname + target.search + target.hash : null; } catch { return null; }
+};
 
 // ---------- 各分区 ----------
 
@@ -121,6 +127,11 @@ function setBkUnread(n) {
 }
 
 const SECTIONS = {
+  codex() {
+    if (!st.user) return needLogin();
+    if (!st.user.moderator) return empty('Codex 仅向本机站主开放。', '');
+    return '<div id="codex-root"></div>';
+  },
   beikuang() {
     if (!st.user) return needLogin();
     if (!st.user.moderator) return `<h2 class="me-h">北矿娘</h2>${empty('只有维护者能和北矿娘对话。', '')}`;
@@ -150,8 +161,8 @@ const SECTIONS = {
   maintenance() {
     if (!st.user?.moderator) return `<h2 class="me-h">维护机器人</h2>${empty('只有维护者能看到这里。', '维护机器人的运行状态和待审核的新闻只对维护者开放。')}`;
     const m = st.maint;
-    if (!m) return '<h2 class="me-h">维护机器人</h2><p class="acct-sub">正在读取运行状态…</p>';
-    if (m.error) return `<h2 class="me-h">维护机器人</h2><p class="acct-err">${esc(m.error)}</p>`;
+    if (!m) return '<h2 class="me-h">维护机器人</h2><p class="acct-sub">正在读取采集状态…</p><div data-operations-panel></div>';
+    if (m.error) return `<h2 class="me-h">维护机器人</h2><p class="acct-err">采集状态暂不可用：${esc(m.error)}</p><div data-operations-panel></div>`;
     const tasks = Object.entries(m.tasks ?? {});
     const repos = Object.values(m.mirror ?? {});
     const lib = m.notices?.library ?? {};
@@ -163,6 +174,7 @@ const SECTIONS = {
           <span class="tag ${cls}">${label}</span><button class="btn btn-secondary btn-sm" type="button" data-run="${esc(task)}">运行</button></li>`;
       }).join('')}</ul>
 
+      <div data-operations-panel></div>
       ${projectReviews(m)}
       ${newsReviews(m)}
       ${guideReviews(m)}
@@ -253,7 +265,7 @@ const SECTIONS = {
           <div><dt>邮箱</dt><dd>${esc(u.email ?? '')} ${u.emailVerified ? '<span class="tag tag-ok">已验证</span>' : '<span class="tag tag-warn">未验证</span>'}</dd></div>
           <div><dt>身份</dt><dd>${u.campusVerified ? '<span class="tag tag-ok">已确认矿大身份</span>' : '<span class="tag">未确认矿大身份</span>'} ${u.githubVerified ? '<span class="tag tag-accent">已绑定 GitHub</span>' : ''}</dd></div>
         </dl>
-        ${u.emailVerified ? '' : '<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>邮箱还没验证。</strong>验证之前不能投稿、收藏和回复。</span></p><button class="btn btn-primary" type="button" data-act="resend">重新发送验证邮件</button>'}
+        ${u.developer ? '<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span>开发者账号可以直接发帖、回复、上传和测试，无需验证邮箱。</span></p>' : u.emailVerified ? '' : '<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>邮箱还没验证。</strong>验证之前不能投稿、收藏和回复。</span></p><button class="btn btn-primary" type="button" data-act="resend">重新发送验证邮件</button>'}
         <p class="me-msg" role="status"></p>
       </div>
       <div class="me-actions"><button class="btn btn-secondary" type="button" data-act="logout">退出登录</button></div>`;
@@ -320,8 +332,10 @@ const SECTIONS = {
     return `${head}${bk}${[...groups].map(([label, items]) => `<h3 class="me-note-day">${esc(label)}</h3>
       <ul class="me-notes" role="list">${items.map((x) => {
         const robot = st.user.moderator && x.event === 'maintenance';
+        const href = noticeHref(x.action?.href);
+        const destination = href ? ` · <a href="${esc(href)}" data-notice-open="${x.id}">${esc(x.action.label || '查看详情')} ›</a>` : x.action?.kind === 'content' ? ` · ${esc(x.action.label || '内容暂不可查看')}` : '';
         return `<li class="me-note${x.read ? '' : ' is-unread'}"><span class="me-note-dot" aria-hidden="true"></span>
-          <div class="me-note-main"><p>${esc(x.text)}</p><span>${timeAgo(x.created)}${robot ? ' · <a href="#beikuang">交给北矿娘了 ›</a>' : ''}</span></div></li>`;
+          <div class="me-note-main"><p>${esc(x.text)}</p><span>${timeAgo(x.created)}${robot ? ' · <a href="#beikuang">交给北矿娘了 ›</a>' : destination}</span></div></li>`;
       }).join('')}</ul>`).join('')}`;
   },
 
@@ -371,16 +385,21 @@ const SECTIONS = {
 
 // ---------- 渲染与切换 ----------
 
+let disposeOperations;
 function show(sec) {
+  disposeOperations?.();
   disposeContribution?.();
   stopBeikuang();
+  stopCodexChat();
   if (!SECTIONS[sec]) sec = st.user ? 'account' : 'local';
   $$('#me-nav a').forEach((a) => (a.getAttribute('aria-current') === 'page' ? a.removeAttribute('aria-current') : null));
   $(`#me-nav a[data-sec="${sec}"]`)?.setAttribute('aria-current', 'page');
   main.innerHTML = SECTIONS[sec]();
   main.dataset.sec = sec;
   if(sec==='contributions') disposeContribution=mountContribution($('#my-contribution'),st.user);
+  if (sec === 'codex' && st.user?.moderator) mountCodexChat($('#codex-root'));
   if (sec === 'beikuang' && st.user?.moderator) mountBeikuang($('#bk-root'), { unread: setBkUnread });
+  if (sec === 'maintenance' && st.user?.moderator) disposeOperations = mountOperations($('[data-operations-panel]'));
   if (sec === 'maintenance' && st.user?.moderator && !st.maint) loadMaint();
   if (sec === 'synced' && st.user && !st.sync)
     hubApi.syncData()
@@ -486,6 +505,12 @@ const msg = (text, err = false) => {
 };
 
 main.addEventListener('click', async (e) => {
+  const openedNotice = e.target.closest('[data-notice-open]');
+  if (openedNotice) {
+    // A read receipt never blocks navigation or approves content.
+    hubApi.request('notifications/read', { ids: [Number(openedNotice.dataset.noticeOpen)] }, { keepalive: true }).catch(() => {});
+    return;
+  }
   const robot = e.target.closest('[data-summarize],[data-classify],[data-draft-announcement],[data-supervisor-discuss]');
   if (robot) {
     robot.disabled = true;
@@ -763,7 +788,7 @@ function renderWho() {
   const links = u?.externalLinks ?? {};
   const line = u ? [u.preferences?.faculty, u.major, u.preferences?.year && `${u.preferences.year} 级`, u.preferences?.campus].filter(Boolean).join(' · ') : '';
   $('#me-who').innerHTML = u
-    ? `${avatarHTML({ login: u.username, name: u.name }, 64)}<div><p class="me-name">${esc(u.name)}</p><p class="muted">@${esc(u.username)}</p>${line ? `<p class="me-line">${esc(line)}</p>` : ''}
+    ? `${avatarHTML({ login: u.username, name: u.name, avatar: u.avatar }, 64)}<div><p class="me-name">${esc(u.name)}</p><p class="muted">@${esc(u.username)}</p>${line ? `<p class="me-line">${esc(line)}</p>` : ''}
       <p class="me-ext">${links.github ? `<a href="${esc(links.github)}" target="_blank" rel="noopener">GitHub ↗</a>` : ''}${links.luogu ? `<a href="${esc(links.luogu)}" target="_blank" rel="noopener">洛谷 ↗</a>` : ''}${!links.github && !links.luogu ? '<a href="#profile">关联 GitHub / 洛谷</a>' : ''}</p>
       ${links.luogu ? '<p class="me-sync"><button type="button" disabled title="洛谷题解同步需要读取你在洛谷公开发表的题解，接口还在接入">同步洛谷题解</button><small>接口接入中，暂不能同步</small></p>' : ''}</div>`
     : `<p class="me-name">${st.online ? '未登录' : '离线'}</p><p class="muted">${st.online ? `<a href="${esc(loginURL())}">登录</a> 后查看投稿与收藏` : '社区服务未连接'}</p>`;
@@ -779,7 +804,7 @@ function renderWho() {
   }
   renderWho();
   if (st.user?.moderator) {
-    $('#me-nav').insertAdjacentHTML('afterbegin', '<a href="#beikuang" data-sec="beikuang">北矿娘 <span class="me-badge num" id="bk-unread" hidden></span></a><a href="#maintenance" data-sec="maintenance">维护机器人</a>');
+    $('#me-nav').insertAdjacentHTML('afterbegin', '<a href="#beikuang" data-sec="beikuang">北矿娘 <span class="me-badge num" id="bk-unread" hidden></span></a><a href="#codex" data-sec="codex">Codex 对话</a><a href="#maintenance" data-sec="maintenance">维护机器人</a>');
     hubApi.beikuangUnread().then((r) => { setBkUnread(r.unread); if (main.dataset.sec === 'notices') show('notices'); }).catch(() => {});
   }
   show(location.hash.slice(1));

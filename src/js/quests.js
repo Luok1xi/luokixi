@@ -2,78 +2,120 @@
 // 课表是个人信息，只存在这个浏览器里，不上传；可以导出备份，换设备时再导入。
 // 任务只用两种真实来源：你自己填的课表，和 OpenStreetMap 里真实存在的楼。没有的楼不会出现在任务里。
 
-const KEY = 'luokixi.campus.me';
-const blank = () => ({ version: 1, profile: { faculty: '', major: '', year: '', campus: '' }, courses: [], visited: {}, updated: null });
+import { normalizePlan, dateOf, addDays, weekStart, occurrences, occurrenceId } from './campus-plan.js';
+import { readPlan, writePlan, subscribePlan } from './campus-store.js';
 
-export function loadMe() {
+const KEY = 'luokixi.campus.me';
+const blank = () => normalizePlan();
+
+// Reading upgrades defaults in memory only; it never writes the user's storage.
+export function loadStorage(storage) {
   try {
-    const v = JSON.parse(localStorage.getItem(KEY));
-    if (v?.version === 1) return { ...blank(), ...v, profile: { ...blank().profile, ...v.profile }, visited: v.visited ?? {} };
-  } catch { /* 隐私模式或数据损坏：从空白开始 */ }
+    const source = storage === undefined ? globalThis.localStorage : storage;
+    const raw = JSON.parse(source?.getItem(KEY) ?? 'null');
+    if (raw?.version === 1) return normalizePlan(raw);
+  } catch { /* 隐私模式或数据损坏：原存储保留，界面从空白开始 */ }
   return blank();
 }
 
-export function saveMe(me) {
-  me.updated = new Date().toISOString();
-  try {
-    localStorage.setItem(KEY, JSON.stringify(me));
-    return true;
-  } catch {
-    return false;
-  }
+let memory;
+let unsubscribeMemory;
+const memoryVersions = new WeakMap();
+function remember(state) {
+  memory = { ...state, data: normalizePlan(state.data) };
+  memoryVersions.set(memory.data, memory.revision);
+  return memory;
 }
 
-// 备份文件：只认这个格式，导入时逐项检查，不信任文件里的任意字段
+export async function readyMe() {
+  if (!unsubscribeMemory) unsubscribeMemory = subscribePlan(remember);
+  return remember(await readPlan());
+}
+
+export function loadMe() {
+  if (!memory) throw new Error('校园数据尚未读取，请先等待 readyMe()。');
+  return memory.data;
+}
+
+// A retained object keeps the revision it was read at, even when another tab has
+// refreshed the memory cache. Patches read the latest plan, then use the same CAS.
+function corruptEdit() {
+  const error = new Error('旧校园数据校验未通过，请先保留原备份，再通过导入或清空恢复；普通编辑未保存。');
+  error.code = 'corrupt';
+  return error;
+}
+export async function saveMe(meOrPatch, revision) {
+  let data;
+  let expectedRevision;
+  if (typeof meOrPatch === 'function') {
+    const latest = await readPlan();
+    if (latest.corrupt) throw corruptEdit();
+    expectedRevision = revision ?? latest.revision;
+    const patched = meOrPatch(latest.data);
+    if (patched && typeof patched.then === 'function') throw new Error('校园改动函数需要同步返回计划。');
+    data = normalizePlan(patched ?? latest.data);
+  } else {
+    if (!memory) throw new Error('校园数据尚未读取，请先等待 readyMe()。');
+    if (memory.corrupt && revision === undefined) throw corruptEdit();
+    expectedRevision = revision ?? memoryVersions.get(meOrPatch);
+    if (expectedRevision === undefined) {
+      const error = new Error('替换完整计划需要先读取版本号，再按该版本确认保存。');
+      error.code = 'revision_required';
+      throw error;
+    }
+    data = normalizePlan(meOrPatch);
+  }
+  data.updated = new Date().toISOString();
+  const saved = await writePlan(data, expectedRevision);
+  remember(saved);
+  if (typeof meOrPatch !== 'function') {
+    Object.assign(meOrPatch, saved.data);
+    memoryVersions.set(meOrPatch, saved.revision);
+  }
+  return true;
+}
 export function importMe(raw) {
   if (raw?.version !== 1 || !Array.isArray(raw.courses)) throw new Error('这不是校园地图导出的备份文件。');
-  const me = blank();
-  const str = (v, n) => (typeof v === 'string' ? v.slice(0, n) : '');
-  const time = (v) => (/^\d{2}:\d{2}$/.test(v) ? v : '');
-  me.profile = { faculty: str(raw.profile?.faculty, 80), major: str(raw.profile?.major, 80), year: str(raw.profile?.year, 10), campus: str(raw.profile?.campus, 20) };
-  me.courses = raw.courses.slice(0, 60).map((c) => ({
-    id: str(c.id, 40) || newId(),
-    name: str(c.name, 80),
-    courseId: str(c.courseId, 60),
-    room: str(c.room, 60),
-    building: c.building && typeof c.building.osm === 'string'
-      ? { campus: str(c.building.campus, 20), osm: str(c.building.osm, 40), name: str(c.building.name, 80), center: Array.isArray(c.building.center) ? c.building.center.slice(0, 2).map(Number) : null }
-      : null,
-    slots: (Array.isArray(c.slots) ? c.slots : []).slice(0, 14)
-      .map((s) => ({ day: Math.min(7, Math.max(1, Number(s.day) || 1)), start: time(s.start), end: time(s.end) }))
-      .filter((s) => s.start && s.end),
-  })).filter((c) => c.name);
-  for (const [campus, list] of Object.entries(raw.visited ?? {})) if (Array.isArray(list)) me.visited[str(campus, 20)] = list.filter((x) => typeof x === 'string').slice(0, 500);
-  return me;
+  return normalizePlan(raw);
 }
 
 export const newId = () => Math.random().toString(36).slice(2, 10);
-
 export const DAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-export const todayIndex = (d = new Date()) => ((d.getDay() + 6) % 7) + 1; // 周一 = 1
+export const todayIndex = (d = new Date()) => ((new Date(`${dateOf(d)}T00:00:00Z`).getUTCDay() + 6) % 7) + 1;
 const minutes = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
 
-// 某一天的课，按开始时间排好，并标出“上完了 / 正在上 / 下一节 / 之后”
+// The old map interface keeps its course/slot/status shape. With a semester, a
+// weekday refers to the actual date in this Shanghai week, including week filters.
 export function classesOn(me, day, now = new Date()) {
-  const list = me.courses
-    .flatMap((course) => course.slots.filter((s) => s.day === day).map((slot) => ({ course, slot })))
-    .sort((a, b) => minutes(a.slot.start) - minutes(b.slot.start));
-  if (day !== todayIndex(now)) return list.map((x) => ({ ...x, status: 'later' }));
-  const t = now.getHours() * 60 + now.getMinutes();
+  if (!Number.isInteger(day) || day < 1 || day > 7) return [];
+  const checked = normalizePlan(me);
+  const today = dateOf(now);
+  const target = addDays(weekStart(today), day - 1);
+  const eligible = checked.term.starts ? new Set(occurrences(checked, target, target).filter((x) => x.source === 'course').map((x) => x.id)) : null;
+  const hidden = new Set(checked.hiddenOccurrences);
+  const list = (me.courses ?? []).flatMap((course, i) => {
+    const c = checked.courses[i];
+    if (c.hidden || c.cancelled) return [];
+    return (course.slots ?? []).flatMap((slot, j) => {
+      const s = c.slots[j];
+      const occurrence = occurrenceId('course', c.id, target, s.id);
+      return s.day === day && (eligible ? eligible.has(occurrence) : !hidden.has(occurrence)) ? [{ course, slot }] : [];
+    });
+  }).sort((a, b) => minutes(a.slot.start) - minutes(b.slot.start));
+  if (target !== today) return list.map((x) => ({ ...x, status: 'later' }));
+  const shanghai = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+  const t = shanghai.getUTCHours() * 60 + shanghai.getUTCMinutes();
   let nextGiven = false;
   return list.map((x) => {
     const [s, e] = [minutes(x.slot.start), minutes(x.slot.end)];
     let status = 'later';
     if (e <= t) status = 'done';
     else if (s <= t) status = 'now';
-    else if (!nextGiven) {
-      status = 'next';
-      nextGiven = true;
-    }
+    else if (!nextGiven) { status = 'next'; nextGiven = true; }
     if (status === 'now') nextGiven = true;
     return { ...x, status };
   });
 }
-
 export const visitedSet = (me, campus) => new Set(me.visited[campus] ?? []);
 
 export function toggleVisited(me, campus, osm) {

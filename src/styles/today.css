@@ -583,3 +583,5 @@ body[data-page="home"] .v3-head .v3-title { font-size: clamp(32px, 4vw, 40px); f
 /* 其他标签页：窄栏阅读 */
 .td-plain { padding-top: 8px; }
 .td-plain .v3-sec { border-top: 0; }
+
+.td-learning-search{display:flex;gap:12px;max-width:660px;margin:24px 0 28px}.td-learning-search input{min-width:0;flex:1;border:1px solid var(--line);border-radius:var(--r-pill);padding:12px 20px;background:var(--bg);color:var(--fg);font:inherit;font-size:16px}.td-learning-search button{flex-shrink:0}

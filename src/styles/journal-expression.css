@@ -1,0 +1,2 @@
+.journal-expression { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--fg-2); }
+.journal-expression img { border-radius:50%; object-fit:cover; }

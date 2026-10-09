@@ -703,3 +703,15 @@
 .pd-dl code { color: var(--fg-3); font-size: 11px; }
 .pd-dl small { color: var(--warn); font-size: 11px; }
 .pd-dl-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; font-size: 13px; }
+.pd-photos { margin: 0 0 32px; --ds-ratio: 16 / 9; }
+.pd-photos figcaption { color: var(--fg-3); font-size: 12px; margin-top: 10px; }
+
+.pd-film canvas { display:block; width:100%; border-radius:20px; aspect-ratio:16/9; }
+.pd-film [data-project-film]>div { display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+.pd-film button { font:inherit; color:var(--accent); cursor:pointer; }
+.pd-film p, .pd-film [role=status] { font-size:13px; color:var(--fg-2); }
+.pd-main, .pd-main > section, .pd-film [data-project-film] { min-width: 0; max-width: 100%; }
+.pd-main { overflow-wrap: anywhere; }
+nav.pd-guide-cta { flex-wrap: wrap; justify-content: flex-start; gap: 8px 12px; }
+nav.pd-guide-cta > a { flex: 0 1 auto; }
+@media (max-width: 640px) { .pd-watch-menu { left: auto; right: 0; } }

@@ -1,0 +1,53 @@
+原版 AI 接线与控制补充（2026-10-08）
+
+当前入口与版本
+http://127.0.0.1:17860/studio.html
+http://127.0.0.1:17860/me.html#beikuang
+网站 Hub18 / 原版宿主8，模型 deepseek-flash。工作室默认选择原有共同房间，双方历史未改写，私聊仍可选择。聊天头部和工作室均有额度设置。导航入口只对具备本机站主权限的登录用户显示。
+
+接入的是原版
+campus/companion 保持 Luok1xi/campus-companion@d5ca8d3 的 Chat、Agency、人格卡、情绪、记忆和工具。新增工作行为在 website-work 中观察并由原 Agency 决定，执行复用 Django Job / StudioRoom / StudioRun。没有第二套人格或任务数据库，原电脑独立 companion 目录未覆盖。
+
+本轮已接通
+1. 逐句 expression 与原文边界一起保存，舞台优先采用该句表情，无标签时再取原情绪。非法表情不丢正文，不改变权限。Codex 七姿态；北矿娘使用新版中性图和 Owner 原先的表情图。旧表情图服装较新版少金色装饰，没有伪称制作了全套新版表情。
+2. 停止网站浏览器系统声音回退。接入原版 Speech 的真实服务音频，取消/切页/过期请求清理，长句分段顺序播放。Genie load_character / set_reference_audio / tts 协议兼容接线，模型加载缓存、串行合成和音频缓存。
+3. 站主额度窗口可调本站 DeepSeek 日限额和 Codex 日次数，保留当前使用量并写审计。今日实际仍5元/12次，预留4.981384元、Codex4次。原版月预算仍有效，本站设置不是充值、账单或服务商额度。
+4. 未来成功且返回完整 token 用量的原版调用，使用调用预留时保存的费率结算并释放多占额度。失败、未知用量、无历史费率不释放；重复结算幂等；不追溯修改旧预算记录。
+5. Agency 可选择 inspect_site / discuss。网页检查6小时冷却，共同讨论2小时冷却，问题指纹去重，同站主已有运行中讨论时不抢占。派单不生成假发言。余额不足时不继续为网站工作决策请求付费模型。
+6. 工作室展示实际决定、执行状态、阅读/学习计数、检查错误和最近自主讨论链接。原聊天进入工作室的入口明确。已有共同房间默认优先，长任务上下文可展开，真实长地址在390px页面不再溢出。
+7. QQ Bridge 公共搜索接原 ResearchTools、来源账本、结果缓存和经验排序，无需额外搜索密钥。安全传输沿用私网/DNS校验、受限重定向与响应大小。实际原版工具入口返回 Playwright 相关搜索结果。普通公共搜索排序可能偏离意图，关键结论仍需读取原文，未声称全网检索质量已达标。
+8. Microsoft Playwright 接现有 Job，固定公开页面和桌面/手机视口，检查页面状态、脚本异常、同源图片与横向溢出；结果通过 campus_site_browser_report 交回原模型。隔离浏览器无登录，只允许本机站点 GET/HEAD，不提供任意命令或自动发布。
+
+上游取用范围（非全量移植）
+QQ Bridge：https://github.com/Derpyu520/qq-bridge
+本轮核验版本 9df6a7e7fc5abcb36793337f778483bd442a3d2d。
+MIT 原安全传输复制于 vendor/qq-bridge/safe-fetch.js；搜索从 MCP 实现适配到原工具注册，保留 LICENSE 与 UPSTREAM.json。QQ通信和 DSH 未接入。
+
+Shinsekai：https://github.com/RachelForster/Shinsekai
+本轮核验版本 b39c8cef73fd5283c993675719e21ea808cfa5bf。
+研究其 sprite_voice、tts配置、模型包清单、tts_manager与Genie接口；本轮独立实现兼容协议和演出联动，未复制其引擎代码。当前源可见 EULA 对分发有限制，不能把它描述为可无条件重新分发的 MIT 项目。
+
+七海语音未完成
+七海不是仓库内置的一个语音名称开关。需要独立角色模型及参考音频资源；当前本机没有找到，社区资源页需要登录/验证码，未绕过。没有下载1GB/8GB引擎包冒充七海，也没有换成另一种系统声音。已向 Owner 询问本地角色包路径或下载页面，等待答复。实际 voice engine=off，按钮显示角色包未配置。尚未合成、试听或验证情绪声线；字段接通不等于可听质量验收。
+
+未完成与实际限制
+新的自主双人讨论没有真实运行：今日剩余0.018616元不足最低预留，Owner日限额没有被提高。隔离测试验证 Agency 选择讨论、幂等派单、原工作室状态跟进，不等于真实双方模型对话成功。历史共同房间仍是真实原记录，未伪装成本轮讨论。
+3篇阅读笔记和5次学习记录为原有数据。本轮没有新付费学习/对话；语气自然度、人格一致性、智商情商无新的真人或模型评测。
+Shinsekai整套舞台/BGM/CG/插件商城、QQ通信、机器人候选代码的完整功能验收和自动应用/回滚闭环尚未实现。现有候选、差异、语法检查和站主确认仍保留。
+公开页面巡检不能代表私有工作流通过；原 Playwright Job 未登录所以没有发现旧共同房间的长文本溢出，该问题由后续真实站主浏览器验收发现并修好。
+
+验收
+260项原版 Node 检查通过；网站启动器154项隔离检查通过；舞台3项原检查通过。生产构建通过，现有Three大包提示保留。
+实际站主浏览器：资料页工作室入口、默认已有双方共同房间、额度读取/原值保存、使用量不清零、关闭窗口、390px布局、原聊天/立绘、缺七海的明确提示、资料目录218均通过。
+隔离API浏览器：Codex七姿态、北矿娘逐句表情优先于全局情绪、双人换位、历史回看、收起、输入可达、减少动态效果通过；无正式测试台词写入。
+实际网页 Job c2005296-e67a-454f-8013-0da5fbb3e81d：3页面×2宽度完成，0问题。实际原版 web_search 返回相关结果，无模型调用。
+
+测试隔离修正
+初次直接运行网站测试只隔离了Django数据库，继承了真实配置目录，部分测试碰到运行中的原宿主并失败。检查显示模型用量记录955条、聊天200条、命令27条、历史27条未增加；隐藏投递回执由220到235，未擅自删除回执。之后 manage_hub.py test 在导入Django前强制临时配置目录，避免任何测试读取真实桥接配置；启动器隔离检查继续保留。后续154项通过。
+
+备份与证据（私有文件不提交）
+campus/.data/before-companion-controls-20261008-170156：三个SQLite一致性备份与私有配置副本。
+campus/.data/companion-controls-verification/result.json、search.json、budget-desktop.png、budget-mobile.png、studio-mobile.png。
+campus/.data/companion-controls-node.log、chat-repair-tests.log、companion-controls-build.log。
+C:/Users/user/Documents/Codex/2026-10-07/cha/verification/companion-stage/result.json。
+无GitHub推送、公网部署、外部消息发送或新付费模型调用。

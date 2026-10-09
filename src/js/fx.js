@@ -8,7 +8,8 @@
 // rollTo(el, text)    数字换值：旧的往上滑走，新的从下面滑进来（SwiftUI 的 numericText）
 // openFrom(dlg, from) 弹窗从被点的卡片“长”出来（App Store 点开 Today 卡片），closeTo(dlg) 收回去
 // setSegment(seg, i)  分段控件切到第 i 段
-import { animate } from './motion.js';
+// tilt(el)            校圈头条卡：鼠标移动时整张卡朝鼠标微微倾斜，高光跟着走（Owner 点名保留的效果）
+import { animate, SPRINGS } from './motion.js';
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 // 等动画结束，但最多等 ms 毫秒：页面在后台时动画不跑，界面状态（数字、弹窗）不能卡在半路
@@ -46,6 +47,128 @@ export function observeIn(scope = document) {
 export function refreshFx(scope = document) {
   observeReveals(scope);
   observeIn(scope);
+  scope.querySelectorAll('[data-tilt]').forEach(tilt);
+}
+
+// ---------- 校圈头条卡：一条按需弹簧，保留整卡倾斜、图片放大与跟随高光 ----------
+const MAX_TILT = 6;
+const tiltControllers = new WeakMap();
+const hoverPointer = matchMedia('(hover: hover) and (pointer: fine)');
+const tiltMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const clamp01 = (v) => Math.min(1, Math.max(0, v));
+
+// 使用全站 interactive 弹簧的解析解，120/240Hz 与 60Hz 维持相同响应；重定向保留速度。
+function stepTilt(axis, target, seconds) {
+  const { response, damping } = SPRINGS.interactive;
+  const w = 2 * Math.PI / response, wd = w * Math.sqrt(1 - damping * damping);
+  const decay = Math.exp(-damping * w * seconds), sin = Math.sin(wd * seconds), cos = Math.cos(wd * seconds);
+  const delta = axis.value - target;
+  const velocity = axis.velocity;
+  axis.value = target + decay * (delta * cos + (velocity + damping * w * delta) / wd * sin);
+  axis.velocity = decay * (velocity * cos - (damping * w * velocity + w * w * delta) / wd * sin);
+  if (Math.abs(axis.value - target) < 0.0001 && Math.abs(axis.velocity) < 0.002) {
+    axis.value = target;
+    axis.velocity = 0;
+  }
+}
+
+export function disposeTilts(scope) {
+  scope?.querySelectorAll('[data-tilt]').forEach((el) => tiltControllers.get(el)?.());
+}
+
+export function tilt(el) {
+  if (!el || tiltControllers.has(el)) return;
+  el.dataset.fxTilt = '1';
+  el.classList.add('fx-tilt');
+  const sheen = document.createElement('span');
+  sheen.className = 'fx-sheen';
+  sheen.setAttribute('aria-hidden', 'true');
+  el.append(sheen);
+  const events = new AbortController();
+  const listen = (node, type, fn, options = {}) => node.addEventListener(type, fn, { ...options, signal: events.signal });
+  let frame = 0, lastTime = 0, rect = null, active = false;
+  let targetX = 0, targetY = 0, pointerX = 0, pointerY = 0, viewportX = scrollX, viewportY = scrollY, lastCard = '', lastSheen = '';
+  const x = { value: 0, velocity: 0 }, y = { value: 0, velocity: 0 }, scale = { value: 1, velocity: 0 };
+  const allowed = () => !tiltMotion.matches && hoverPointer.matches && !document.hidden;
+  const reset = () => {
+    cancelAnimationFrame(frame);
+    frame = lastTime = 0;
+    active = false;
+    rect = null;
+    targetX = targetY = 0;
+    x.value = y.value = x.velocity = y.velocity = scale.velocity = 0;
+    scale.value = 1;
+    el.classList.remove('is-tilting', 'is-settling');
+    el.style.transform = sheen.style.transform = lastCard = lastSheen = '';
+  };
+  const paint = (time) => {
+    frame = 0;
+    if (!allowed() || !el.isConnected) { reset(); return; }
+    if (active && rect) {
+      targetX = clamp01((pointerX + viewportX - rect.left) / rect.width) - 0.5;
+      targetY = clamp01((pointerY + viewportY - rect.top) / rect.height) - 0.5;
+    }
+    const dt = Math.min(0.064, (time - (lastTime || time - 1000 / 60)) / 1000);
+    lastTime = time;
+    stepTilt(x, targetX, dt);
+    stepTilt(y, targetY, dt);
+    stepTilt(scale, active ? 1.01 : 1, dt);
+    const cardValue = `perspective(1000px) rotateX(${(-y.value * MAX_TILT).toFixed(3)}deg) rotateY(${(x.value * MAX_TILT).toFixed(3)}deg) scale(${scale.value.toFixed(5)})`;
+    const sheenValue = `translate3d(${(x.value * 50).toFixed(2)}%, ${(y.value * 50).toFixed(2)}%, 0)`;
+    if (cardValue !== lastCard) el.style.transform = lastCard = cardValue;
+    if (sheenValue !== lastSheen) sheen.style.transform = lastSheen = sheenValue;
+    const moving = x.velocity || y.velocity || scale.velocity || x.value !== targetX || y.value !== targetY || scale.value !== (active ? 1.01 : 1);
+    if (moving) frame = requestAnimationFrame(paint);
+    else {
+      lastTime = 0;
+      if (!active) reset();
+    }
+  };
+  const wake = () => { if (!frame) { lastTime = 0; frame = requestAnimationFrame(paint); } };
+  const point = (e) => {
+    if (e.pointerType !== 'mouse' || (!active && !allowed())) return;
+    if (!rect) {
+      // 保存未变形时的文档坐标。滚动只改变 scrollX/Y，不能重测旋转后的包围盒。
+      const b = el.getBoundingClientRect();
+      viewportX = scrollX; viewportY = scrollY;
+      rect = { left: b.left + viewportX, top: b.top + viewportY, width: b.width, height: b.height };
+    }
+    if (!active) { active = true; el.classList.add('is-tilting', 'is-settling'); }
+    pointerX = e.clientX;
+    pointerY = e.clientY;
+    wake();
+  };
+  const leave = () => {
+    if (!active) return;
+    active = false;
+    targetX = targetY = 0;
+    el.classList.remove('is-tilting');
+    wake();
+  };
+  listen(el, 'pointerenter', point, { passive: true });
+  listen(el, 'pointermove', point, { passive: true });
+  listen(el, 'pointerleave', leave, { passive: true });
+  listen(el, 'pointercancel', reset, { passive: true });
+  listen(window, 'scroll', () => { viewportX = scrollX; viewportY = scrollY; if (active) wake(); }, { passive: true });
+  listen(window, 'blur', reset);
+  listen(window, 'resize', reset, { passive: true });
+  listen(window, 'pagehide', reset);
+  listen(document, 'visibilitychange', () => { if (document.hidden) reset(); });
+  listen(tiltMotion, 'change', reset);
+  listen(hoverPointer, 'change', reset);
+  const sizeObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(reset) : null;
+  sizeObserver?.observe(el);
+  const dispose = () => {
+    reset();
+    events.abort();
+    sizeObserver?.disconnect();
+    sheen.remove();
+    el.classList.remove('fx-tilt');
+    delete el.dataset.fxTilt;
+    tiltControllers.delete(el);
+  };
+  tiltControllers.set(el, dispose);
+  return dispose;
 }
 
 // ---------- 图标弹一下 ----------

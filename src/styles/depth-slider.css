@@ -1,0 +1,139 @@
+/* ---------- 空间感图片滑轨（Agrumea Farm 产品详情页的照片轨）---------- */
+/* 照片装在固定画框里，照片比画框宽 28%，随滑动反向平移、离开中间时略微放大——像隔着窗看远处。
+   视差是滚动驱动动画：每个画框是一条横向 view timeline，照片跟着它走；不占主线程，也不改 DOM。 */
+
+.ds-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--ds-col, 78%);
+  gap: var(--ds-gap, 10px);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  cursor: grab;
+}
+
+.ds-track::-webkit-scrollbar { display: none; }
+
+.ds-track.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ds-frame {
+  position: relative;
+  display: block;
+  overflow: clip;
+  border-radius: var(--ds-radius, 16px);
+  aspect-ratio: var(--ds-ratio, 4 / 3);
+  background: var(--fill);
+  scroll-snap-align: start;
+  isolation: isolate;
+  view-timeline: --ds-frame inline;
+}
+
+.ds-frame > .ds-img {
+  display: block;
+  width: 128%;
+  max-width: none;
+  height: 100%;
+  margin-left: -14%;
+  aspect-ratio: auto;
+  border-radius: 0;
+  object-fit: cover;
+  background: none;
+  scroll-snap-align: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* 只有一张时不平移 */
+.ds-frame.is-still > .ds-img { width: 100%; margin-left: 0; }
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .ds-frame.is-still > .ds-img { transition: scale 380ms cubic-bezier(.23,1,.32,1); }
+  .ds-frame.is-still:hover > .ds-img { scale: 1.035; }
+}
+
+/* One photograph keeps the same spatial treatment without an idle JS loop. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ds-frame.is-still { view-timeline: --ds-single block; }
+    .ds-frame.is-still > .ds-img {
+      animation: ds-vertical linear both;
+      animation-timeline: --ds-single;
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+@keyframes ds-vertical {
+  from { transform: translate3d(0, -3%, 0) scale(1.08); }
+  to { transform: translate3d(0, 3%, 0) scale(1.08); }
+}
+.cs-post-photos.ds-track { display: grid; grid-template-columns: none; }
+.cs-post-photos .ds-frame { min-width: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .ds-frame > .ds-img { animation: none !important; transform: none !important; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ds-frame:not(.is-still) > .ds-img {
+      animation: ds-pan linear both;
+      animation-timeline: --ds-frame;
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+@keyframes ds-pan {
+  0% { transform: translate3d(-10.9%, 0, 0) scale(1.06); }
+  50% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(10.9%, 0, 0) scale(1.06); }
+}
+
+/* 打开详情时一张张从右边滑进来 */
+@media (prefers-reduced-motion: no-preference) {
+  .ds-track.ds-enter .ds-frame {
+    animation: ds-in 820ms var(--ease-out) both;
+    animation-delay: calc(min(var(--i, 0), 4) * 80ms + 120ms);
+  }
+}
+
+@keyframes ds-in {
+  from { opacity: 0; transform: translate3d(56px, 0, 0) scale(0.96); }
+}
+
+/* 前后按钮和页码 */
+.ds-ui {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ds-count {
+  min-width: 44px;
+  color: var(--fg-2);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.ds-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--fill-2);
+  color: var(--fg);
+  transition: transform 200ms var(--ease-ios), opacity 200ms;
+}
+
+.ds-btn:active { transform: scale(0.9); }
+.ds-btn:disabled { opacity: 0.35; }
+.ds-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }

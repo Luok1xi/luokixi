@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-09-19T07:56:33.742Z",
+  "repositories": [
+    {
+      "repo": "AstrBotDevs/AstrBot",
+      "url": "https://github.com/AstrBotDevs/AstrBot",
+      "stars": 40684,
+      "licenseApi": "AGPL-3.0",
+      "pushedAt": "2026-09-19T05:56:04Z"
+    },
+    {
+      "repo": "K-Dense-AI/scientific-agent-skills",
+      "url": "https://github.com/K-Dense-AI/scientific-agent-skills",
+      "stars": 45554,
+      "licenseApi": "MIT",
+      "pushedAt": "2026-09-14T09:27:38Z"
+    },
+    {
+      "repo": "langchain-ai/langgraph",
+      "url": "https://github.com/langchain-ai/langgraph",
+      "stars": 41919,
+      "licenseApi": "MIT",
+      "pushedAt": "2026-09-18T23:31:45Z"
+    },
+    {
+      "repo": "Mai-with-u/MaiBot",
+      "url": "https://github.com/Mai-with-u/MaiBot",
+      "stars": 5991,
+      "licenseApi": "GPL-3.0",
+      "pushedAt": "2026-09-19T03:43:12Z"
+    },
+    {
+      "repo": "moeru-ai/airi",
+      "url": "https://github.com/moeru-ai/airi",
+      "stars": 49255,
+      "licenseApi": "MIT",
+      "pushedAt": "2026-09-19T05:50:02Z"
+    },
+    {
+      "repo": "Open-LLM-VTuber/Open-LLM-VTuber",
+      "url": "https://github.com/Open-LLM-VTuber/Open-LLM-VTuber",
+      "stars": 13818,
+      "licenseApi": "NOASSERTION",
+      "pushedAt": "2026-05-15T07:18:04Z"
+    },
+    {
+      "repo": "openclaw/openclaw",
+      "url": "https://github.com/openclaw/openclaw",
+      "stars": 390068,
+      "licenseApi": "NOASSERTION",
+      "pushedAt": "2026-09-19T07:36:59Z"
+    },
+    {
+      "repo": "SillyTavern/SillyTavern",
+      "url": "https://github.com/SillyTavern/SillyTavern",
+      "stars": 33542,
+      "licenseApi": "AGPL-3.0",
+      "pushedAt": "2026-09-14T19:16:18Z"
+    },
+    {
+      "repo": "unclecode/crawl4ai",
+      "url": "https://github.com/unclecode/crawl4ai",
+      "stars": 83845,
+      "licenseApi": "Apache-2.0",
+      "pushedAt": "2026-09-18T07:00:43Z"
+    }
+  ]
+}

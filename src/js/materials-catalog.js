@@ -51,6 +51,13 @@ const fetchJSON = async (url) => {
   return r.json();
 };
 
+// Preserve approved metadata needed for exact collections; never copy private file paths/body.
+export function normalizeLocalMaterial(x) {
+  const fields = ['id', 'title', 'course', 'year', 'kind', 'format', 'pages', 'rights', 'scope', 'origin', 'status', 'sha256', 'group_key', 'extract_status', 'created', 'version', 'role', 'attachmentRole', 'collection', 'match_page', 'score'];
+  const item = Object.fromEntries(fields.filter((key) => x[key] !== undefined).map((key) => [key, x[key]]));
+  return { ...item, courseId: x.course_id || x.courseId || '', offeringId: x.offering_id || x.offeringId || '', term: x.term || '', access: x.access || '', checkedAt: x.checked_at || x.checkedAt || '', url: `/api/file/${encodeURIComponent(x.id)}`, source: x.source_url || x.source || '', note: x.snippet || '' };
+}
+
 let cached = null;
 
 // 返回 { items, isLocal, notes }；notes 是要如实告诉用户的情况（哪一路没读到、本机资料的边界）
@@ -59,11 +66,25 @@ export function loadMaterials() {
     const notes = [];
     let items = [];
     let isLocal = false;
+    let collectionManifest = null;
     try {
       if (['127.0.0.1', 'localhost'].includes(location.hostname)) {
         const first = await fetchJSON('/api/catalogue');
-        const pages = await Promise.all(Array.from({ length: Math.max(0, Math.ceil(first.total / 30) - 1) }, (_, i) => fetchJSON(`/api/catalogue?offset=${(i + 1) * 30}`)));
-        items = [...first.items, ...pages.flatMap((x) => x.items)].map((x) => ({ id: x.id, title: x.title, course: x.course, year: x.year, kind: x.kind, format: x.format, pages: x.pages, url: `/api/file/${x.id}`, rights: x.rights, source: x.source_url, note: x.snippet }));
+        const [pages, organized] = await Promise.all([
+          Promise.all(Array.from({ length: Math.max(0, Math.ceil(first.total / 30) - 1) }, (_, i) => fetchJSON(`/api/catalogue?offset=${(i + 1) * 30}`))),
+          fetchJSON('/api/library/collections').catch(() => null),
+        ]);
+        items = [...first.items, ...pages.flatMap((x) => x.items)].map(normalizeLocalMaterial);
+        // This optional endpoint supplies only explicitly verified book/chapter membership.
+        // Exact CET grouping also works with older local servers that lack this endpoint.
+        if (organized?.schemaVersion === 1 && Array.isArray(organized.collections)) {
+          collectionManifest = { schemaVersion: 1, collections: organized.collections.filter((book) => book.grouping === 'verified-manifest' && book.collectionId && Array.isArray(book.files)).map((book) => ({
+            id: book.collectionId, title: book.title, course: book.course, courseId: book.courseId || '', verified: true,
+            source: '/api/library/collections', members: book.files.map((file) => ({ id: file.id, sha256: file.sha256 || '', role: file.role || '', chapter: file.chapter || '', order: file.order ?? 0 })),
+          })) };
+        }
+        const shelf=await fetchJSON('/api/library/feed').catch(()=>null);
+        if(shelf){items=items.map(x=>({...x,...(shelf.provenance?.[x.id]||{})}));items.push(...(shelf.items||[]));}
         isLocal = true;
       }
     } catch {
@@ -86,8 +107,8 @@ export function loadMaterials() {
         const pages = await Promise.all(Array.from({ length: Math.min(9, Math.max(0, Math.ceil(first.total / 30) - 1)) }, (_, i) => hubApi.catalogue({ kind: 'resource', offset: (i + 1) * 30 })));
         for (const entry of [...first.items, ...pages.flatMap((p) => p.items)]) {
           const d = entry.data;
-          for (const a of entry.attachments || []) items.push({ id: a.id, title: `${d.title} · ${a.name}`, course: d.course || '其他课程', year: d.year, kind: d.tags?.includes('笔记') ? '笔记' : '资料', format: a.name.split('.').pop().toLowerCase(), pages: a.pages, url: a.url, rights: d.license, source: d.links?.source || '', note: d.summary, fresh: entry.updated });
-          if (!(entry.attachments || []).length && d.links?.source) items.push({ id: entry.id, title: d.title, course: d.course || '其他课程', year: d.year, kind: '站外链接', format: 'link', url: d.links.source, rights: d.license, source: d.links.source, note: d.summary, external: true, fresh: entry.updated });
+          for (const a of entry.attachments || []) items.push({ id: a.id, title: `${d.title} · ${a.name}`, course: d.course || '其他课程', courseId: d.learning?.courseId || '', offeringId: d.learning?.offeringId || '', term: d.learning?.term || '', version: d.learning?.version || '', access: d.learning?.access || 'unknown', checkedAt: d.learning?.checkedAt || '', year: d.year, kind: d.tags?.includes('笔记') ? '笔记' : '资料', format: a.name.split('.').pop().toLowerCase(), pages: a.pages, url: a.url, rights: d.license, source: d.links?.source || '', note: d.summary, uploader: entry.owner?.name, stars: entry.siteStars, fresh: entry.updated });
+          if (!(entry.attachments || []).length && d.links?.source) items.push({ id: entry.id, title: d.title, course: d.course || '其他课程', courseId: d.learning?.courseId || '', offeringId: d.learning?.offeringId || '', term: d.learning?.term || '', version: d.learning?.version || '', access: d.learning?.access || 'unknown', checkedAt: d.learning?.checkedAt || '', year: d.year, kind: '收录说明', format: 'md', url: `/api/hub/reader/entry/${encodeURIComponent(entry.id)}/download`, rights: d.license, source: d.links.source, note: `${d.summary || ''} · 当前可下载站内收录说明，来源原件尚未入库。`, uploader: entry.owner?.name, stars: entry.siteStars, external: false, fresh: entry.updated });
         }
         if (first.total > 300) notes.push('已载入最近 300 条公开投稿；更多内容请使用全文检索。');
       } catch {
@@ -95,7 +116,7 @@ export function loadMaterials() {
       }
     }
     if (isLocal && items.some((x) => x.url.startsWith('/api/file/'))) notes.push('当前包含本机资料，仅在这台电脑可用；不代表已获公开转载授权。');
-    return { items, isLocal, notes };
+    return { items, isLocal, notes, collectionManifest };
   })();
   return cached;
 }

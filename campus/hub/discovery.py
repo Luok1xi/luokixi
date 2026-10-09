@@ -69,7 +69,11 @@ def validate_source(body):
     interval = int(body.get('interval_hours',24))
     if not 1<=interval<=720:
         raise Problem('采集间隔应为 1–720 小时。')
-    return {'name':text(body.get('name',''),160,True),'url':source_url,'kind':kind,
+    metadata = body.get('metadata', {})
+    if not isinstance(metadata, dict):
+        raise Problem('来源信息格式不正确。')
+    metadata = {key: text(metadata.get(key, ''), limit) for key, limit in [('school', 100), ('department', 120), ('maintainer', 100)]}
+    return {'metadata': metadata, 'name':text(body.get('name',''),160,True),'url':source_url,'kind':kind,
             'entry_kind':entry_kind,'enabled':body.get('enabled') is True,'interval_hours':interval}
 
 
@@ -78,12 +82,21 @@ def parse_source(raw, kind, origin):
         if b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
             raise Problem('不接受含外部实体声明的订阅文件。')
         root = ElementTree.fromstring(raw)
-        items = root.findall('.//item') or root.findall('{http://www.w3.org/2005/Atom}entry')
+        if root.tag not in ('rss', '{http://www.w3.org/2005/Atom}feed', '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF'):
+            raise Problem('订阅结构无法识别，不能当作没有新内容。')
+        if root.tag == 'rss' and root.find('channel') is None:
+            raise Problem('RSS 缺少 channel 结构，请核对订阅地址。')
+        items = (root.findall('./channel/item') or root.findall('{http://www.w3.org/2005/Atom}entry')
+                 or root.findall('{http://purl.org/rss/1.0/}item'))
         output = []
         for node in items[:40]:
             def find(name):
                 e = node.find(name)
-                return e if e is not None else node.find('{http://www.w3.org/2005/Atom}'+name)
+                if e is None:
+                    e = node.find('{http://www.w3.org/2005/Atom}' + name)
+                if e is None:
+                    e = node.find('{http://purl.org/rss/1.0/}' + name)
+                return e
             title_node, link_node = find('title'),find('link')
             if title_node is None or link_node is None:
                 continue
@@ -91,6 +104,8 @@ def parse_source(raw, kind, origin):
             link = link_node.get('href') or link_node.text or ''
             if title and link:
                 output.append({'title':title,'url':urljoin(origin,link),'summary':'原始订阅标题；详情请查看来源。'})
+        if items and not output:
+            raise Problem('订阅含有条目，但标题或链接未能解析。')
         return output
     from scrapling.parser import Selector
     page = Selector(content=raw, url=origin)
@@ -132,6 +147,8 @@ def refresh_source(identifier):
         count = 0
         if status!=304:
             items = parse_source(raw,source.kind,final_url)
+            if not items and source.kind == 'html':
+                raise Problem('网页返回成功，但没有解析到有效条目；请检查页面结构。')
             for item in items:
                 link = url(item['url'],True)
                 fingerprint = hashlib.sha256(link.encode()).hexdigest()
@@ -157,7 +174,11 @@ def refresh_source(identifier):
             source.modified = response_headers.get('Last-Modified','')[:100]
         source.last_success, source.error = timezone.now(),''
         source.save()
-        return {'pending':count,'unchanged':status==304,'source':source.name}
+        health = {'pending': count, 'matched': len(items) if status != 304 else None,
+                  'status': 'unchanged' if status == 304 or (items and not count) else ('updated' if count else 'empty'),
+                  'unchanged': status == 304 or (bool(items) and not count), 'source': source.name}
+        ExternalCache.objects.update_or_create(key='source-health:' + str(source.pk), defaults={'data': health, 'checked': timezone.now(), 'success': timezone.now(), 'error': ''})
+        return health
     except Exception as exc:
         source.error = str(exc)[:300]
         source.save(update_fields=['error'])

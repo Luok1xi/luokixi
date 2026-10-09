@@ -1,0 +1,96 @@
+2026-10-08：原版双角色运行时、角色包导入与日语演出
+
+当前交付
+本机网站 http://127.0.0.1:17860，Hub21，两个原版宿主均为 bridgeVersion11。
+本记录替代旧记录中的“七海模型尚缺”“Codex 仅使用工作室提示词”和系统声音方案。
+仅在本机更新，未提交、推送或公开部署。原游戏与独立 companion 项目没有改动。
+
+一、共用程序，分开人格和记忆
+沿用 campus/companion/ 的完整 createApp，不新写简化人格引擎。原始来源：
+https://github.com/Luok1xi/campus-companion
+分支 claude/nice-cerf-b24x36，基线 d5ca8d3feab76271049868ed5f56ce85ac45cadb。
+UPSTREAM.json 保留原始源码哈希，列出本地修改与新增适配器。
+
+北矿娘：17862 宿主、17839 完整控制台、.data/companion 独立状态，DeepSeek Flash。
+Codex：17864 宿主、17840 完整控制台、.data/codex-companion 独立状态，本机 Codex CLI。
+CodexModels 仅转换模型传输协议，原 Chat / Agency / affect / motivation / MemoryWriter /
+Research / ResearchCortex / Inquiry / SelfStudy / WebLife / ToolRegistry / scheduler /
+vision / website-work / 研究项目程序共用。同一角色在工作室、私聊与完整控制台读取自己的状态。
+公开搜索已给 Codex 启用；22 个已注册工具分布于 default/research/site/campus。
+外部账号、付费顾问等仍需各自配置；没有复制北矿娘的私人账号密钥或数据库。
+
+网站旧 StudioRoom/Run/Message 是原有协作历史。continuity 从对应角色参与的房间提取历史，
+区分谁说了什么，不把伙伴或用户发言写成自己的经历。两席按私有连接令牌区分身份；同角色
+跨窗口续接，不开放对方私聊。运行态缓存按站主和角色分开，避免两面板轮询相互失效。
+新 Codex 长期记忆库从空库开始，但原有网站 Codex 聊天仍保留并可回忆；没有覆盖原聊天。
+
+二、人格与角色包
+北矿娘唯一角色卡：companion/vendor/airi/moyu-card.json（v3）。
+七海的安静、细腻、游戏兴趣与偶尔困倦只作性格灵感。北矿娘/小煤渣仍是原角色；
+不导入七海的身份、作品经历或下载包的指令。既有记忆、关系和用户明确语气偏好保留。
+Codex 唯一卡：companion/vendor/airi/codex-card.json，清冷、克制、敏锐可靠，有干幽默，
+保留情感与闺蜜关系。原公开发帖、创作提示和对白中强制“小煤渣/温柔”的共用硬编码已移除。
+角色卡的情绪、语气学习走原机制，非额外随机表情；不声称模型被重新训练或智商改变。
+
+用户提供的 D:/下载/七海千秋.char、蕾姆.char 已安全解包到 .data/voices 的独立目录，
+检查路径穿越、符号链接、大小和模型/音频完整性；归档中的代码或人格指令不执行。
+七海包包含 GPT/SoVITS 权重与参考音频；蕾姆包为模型加 LoRA/参考音频，均已实际合成。
+七海千秋.json、芙莉莲.json 只包含 MiniMax 云端音色 ID，没有模型权重。芙莉莲记录为
+待配置，不冒称已接通；Codex 当前使用用户同时指定的蕾姆本地音色。
+
+三、真实日语语音
+网站模型每个 text 消息同时写中文 text、日语 speech 和 expression；不另付费翻译。
+中文保持可读，日语表达同样意思；不把整段中文直接交给日语模型读。
+新增 migration0021 为 StudioMessage 保存 messages；旧记录可读且不会自动翻译重播。
+北矿娘配七海，Codex 配蕾姆。本机 GPT-SoVITS GPU 服务在 17863。
+模型切换与合成共用一条队列，网站和 Codex 完整控制台不各自争抢权重。
+声音缓存包括角色、模型、参考音频、语言与表情，预加载和播放共用正在处理的请求。
+网站无操作系统声音兜底。刷新和回看历史静音；新消息自动朗读，被浏览器阻止时提示
+“开启声音”，点击一次继续。首句响应是实际本地语音服务，不是假录音或预设台词。
+
+运行包来源：Shinsekai 作者文档指向的 GPT-SoVITS-v2pro-20250604-nvidia50 整合包。
+下载归档 8,835,144,925 字节；SHA256：
+97b4edcd451c42357db7e26e6c1c877ca5d85144fe97beaff6d7005d35bee008
+运行目录 .data/voice-runtime/engine/GPT-SoVITS-v2pro-20250604-nvidia50。
+模型与音频私有，不复制到 public，不上传。仅 loopback，限制模型路径，不开放 control。
+run_character_voice.py 保持 weights_only 并仅允许所需 HParams 类型。
+
+四、演出
+继续使用用户正确的新服装素材，白发 Codex、黑红北矿娘。放大接近半身，真实每句情绪
+驱动姿态，图像解码后交叉淡入，离屏/折叠暂停，减少动态效果偏好受尊重。
+StagePlayback 用稳定消息 ID 排队；快速连续发言不跳最后一句、不重复播放、不丢中间句。
+点击对白显示整句；回看、继续新消息、声音开关各有明确行为。长对白在纸面内滚动。
+字体/纸页对白框参考直接取自用户 E:/Lv/game/css/dialogue.css、js/engine/textbox.js、
+js/fonts/fonts.js。提取原文楷、龙藏 woff2，附各自 OFL 和 SOURCE.txt。没有修改游戏。
+同时修复个人中心按钮行在 390px 产生 637px 横向溢出的问题。
+
+五、费用与验证范围
+所有 Codex 原版模型步骤仍计入网站 StudioDay 调用额度；幂等记录防止重试双重计费。
+DeepSeek 原有费用预留/确认用量结算保留，不提高预算，不重置历史消耗。
+验收时本站设定：每日 ¥10，已预留 ¥7.285236；Codex 12/12 次已用完。
+这是用户当前配置，非本轮提高。Codex 真实模型对话仍因额度用完未完成验收。
+不能把替代模型测试当作真实语气质量验收，也不能据此声称新世界所有功能已照搬。
+
+已通过：265 项原版 Node 检查；163 项隔离网站检查；3 项消息演出队列检查；
+3 项角色包导入检查；生产构建；Codex 完整控制台身份/模型显示/可用输入框；
+实际 17860 两个私聊和 studio 页面在桌面与 390px 浏览器模拟的图片、字体、无溢出、
+旧消息不自动朗读、无脚本错误。隔离浏览器另测快速轮询、顺序三句、阻止自动播放后
+真实点击恢复、长对白滚动、折叠和减少动态效果。实体手机及主观声线相似度没有验收。
+
+实际日语 API 音频：北矿娘 6.38 秒/32kHz/408364字节；Codex 4.12秒/48kHz/395564字节；
+均为有效非静音 PCM WAV。复测缓存分别 46ms/29ms，不能代表初次合成或模型回复速度。
+本轮备份 .data/before-voice-continuity-20261008-182141；原13条记忆全部按ID/内容保留，
+验收时现17条，Codex新长期记忆0条，未复制北矿娘记忆。
+原111条北矿娘消息、19条工作室消息、3房间、10轮记录的原内容全部保留；
+现131/20/3/11，增加来自正在使用的真实会话，非测试伪造。资料219条，公开目录218。
+
+可复查证据（本机）：
+C:/Users/user/Documents/Codex/2026-10-07/cha/verification/japanese-stage/
+stage-result.json / live-result.json / voice-result.json / data-preservation.json
+stage-desktop.png / stage-mobile.png / beikuang-ja.wav / codex-ja.wav
+隔离与真实验证脚本在同一 cha 目录，日志在 campus/.data/dual-original-tests.log、
+chat-repair-tests.log、dual-start-11.log、dual-ui-build.log。脚本不输出凭据或聊天正文。
+
+后续验收
+站主在已有“额度设置”窗口自行调整 Codex 次数，或等北京时间00:00后，再做一次
+同角色私聊→工作室→私聊的真实对话和学习测试；不能为了验收擅自绕过限额。

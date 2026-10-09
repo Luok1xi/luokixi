@@ -1,10 +1,11 @@
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
 // 教师与课程口碑（Opus · 2026-10-07 改版）：App Store 的产品页 + 虎扑评分的组织方式。
 // - 目录：弹幕墙（可关）→ 评分榜（≥5 人）→ 热议榜（近 90 天）→ 评分墙（每格：分数、人数、最热原话）
 // - 详情：照片 + 名字 + “写评价” → 信息条 → 同学印象 → 评分及评论（大号均分 + 分布条）→ 最热 / 最新 → 评论竖排
 //         → 官网资料（教师资料机器人每周核对）→ 站外讨论（只收链接和同学的一句话，标明来源，不计分）
 // - 评分规则照 docs/PRODUCT_SPEC.md：0 人暂无评分；1–4 人显示真实均分并标“样本较少”；一位老师每个账号只保留一份评价。
 import { initShell, observeLive } from '../js/shell.js';
-import { hubApi, hubState, loginURL } from '../js/hub.js';
+import { canParticipate, hubApi, hubState, loginURL } from '../js/hub.js';
 import { esc } from '../js/data.js';
 import { pop, rollTo, refreshFx, setSegment } from '../js/fx.js';
 import '../styles/circle-news.css';
@@ -46,7 +47,7 @@ function fail(error) { message(error?.message || '暂时无法加载，请稍后
 function allowed() {
   if (!state?.online) { message('社区服务尚未连接，请稍后重试。'); return false; }
   if (!state.user) { location.assign(loginURL()); return false; }
-  if (!state.user.emailVerified) { message('请先到“个人中心”验证邮箱，再参与评价。'); return false; }
+  if (!canParticipate(state.user)) { message('请先到“个人中心”验证邮箱，再参与评价。'); return false; }
   return true;
 }
 function stars(value, label = true) {
@@ -169,6 +170,17 @@ async function directory() {
       ${data.items.length ? `<div class="rp-grid">${data.items.map((t) => cell(t, kind)).join('')}</div>` : empty('没有匹配的结果', '换个关键词试试；教师资料由机器人每周从学院官网补充。')}
       ${pager(data.nextOffset, offset)}
     </section>`;
+  const suggestions = new Map(data.items.map(item => [item.id,item]));
+  attachSearchSuggestions($('#rp-q'), {
+    getItems: async query => {
+      const result = await (kind === 'teacher' ? hubApi.teachers({q:query}) : hubApi.courses({q:query}));
+      for (const item of result.items) suggestions.set(item.id,item);
+      return [...suggestions.values()];
+    },
+    getTitle: item => item.name,
+    getText: item => item.faculty,
+    getMeta: item => item.faculty || (kind === 'teacher' ? '教师' : '课程'),
+  });
   $('#rp-search').addEventListener('submit', (event) => {
     event.preventDefault();
     const p = new URLSearchParams(params);

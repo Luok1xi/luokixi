@@ -29,6 +29,9 @@ def capabilities():
 
 
 def session(request):
+    if request.user.is_authenticated:
+        from .interests import read_interests
+        read_interests(request.user)
     return {'user':member_data(request.user, True) if request.user.is_authenticated else None,
             'csrfToken':get_token(request), 'capabilities':capabilities()}
 
@@ -57,6 +60,18 @@ def send_verification(member):
     send_mail('验证你的 Luokixi 邮箱', '请在 24 小时内打开以下链接：\n'+link+'\n如果不是你申请的，请忽略。', settings.DEFAULT_FROM_EMAIL, [member.email])
 
 
+def checked_display_name(value, user=None):
+    import unicodedata
+    name = text(value, 80)
+    normalized = ''.join(unicodedata.normalize('NFKC', name).split())
+    if normalized in ('北矿娘', '小煤渣', '煤渣'):
+        import os
+        configured = os.environ.get('HUB_COMPANION_MEMBER_ID', '')
+        if not user or (user.username != '北矿娘' and str(user.pk) != configured and name != user.display_name):
+            raise Problem('这个昵称属于本站角色，请换一个昵称。', 409)
+    return name
+
+
 def register(request, body):
     throttle('register', request.META.get('REMOTE_ADDR',''), 10)
     email = email_value(body.get('email',''))
@@ -64,7 +79,7 @@ def register(request, body):
     import re
     if not re.fullmatch(r'[a-zA-Z0-9_][a-zA-Z0-9_.-]{2,29}', handle):
         raise Problem('用户名需为 3–30 位英文、数字、下划线、点或短横线。')
-    member = Member(username=handle, email=email, display_name=text(body.get('name',''),80) or handle)
+    member = Member(username=handle, email=email, display_name=checked_display_name(body.get('name','')) or handle)
     member.set_password(check_password(body.get('password',''), member))
     try:
         with transaction.atomic():
@@ -137,12 +152,13 @@ def verify(request, body):
     return {'message':'邮箱验证成功。', **session(request)}
 
 
+@transaction.atomic
 def profile(request, body):
     require(request.user)
     user = request.user
     for key, limit in [('display_name',80),('bio',2000),('major',80)]:
         if key in body:
-            setattr(user, key, text(body[key], limit))
+            setattr(user, key, checked_display_name(body[key], user) if key == 'display_name' else text(body[key], limit))
     if 'externalLinks' in body:
         links = body['externalLinks']
         if not isinstance(links, dict) or len(links)>8:
@@ -157,10 +173,20 @@ def profile(request, body):
         if not isinstance(value,dict):
             raise Problem('兴趣设置应为对象。')
         # Optional, self-declared and private. This never grants verified campus status.
-        preferences = {key:text(value.get(key,''),80) for key in ('faculty','year','campus')}
-        preferences.update({key:string_list(value.get(key,[]),12,80) for key in ('goals','interests','courses')})
+        from .interests import read_interests
+        read_interests(user)
+        preferences = dict(user.preferences)
+        preferences.update({key:text(value[key],80) for key in ('faculty','year','campus') if key in value})
+        preferences.update({key:string_list(value[key],12,80) for key in ('goals','interests','courses') if key in value})
+        if not value:
+            # Preserve the documented explicit reset while treating non-empty payloads as partial updates.
+            preferences = {'faculty': '', 'year': '', 'campus': '', 'goals': [], 'interests': [], 'courses': []}
         user.preferences = preferences
     user.save(update_fields=['display_name','bio','major','external_links','digest_enabled','preferences'])
+    if 'preferences' in body and ('interests' in body['preferences'] or not body['preferences']):
+        from .interests import save_interests
+        save_interests(user, user.preferences['interests'])
+        request.session.pop('circle_snapshot', None)
     return session(request)
 
 

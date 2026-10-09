@@ -1,0 +1,50 @@
+旧北矿娘 / Codex 协作程序核对（2026-10-08，Hub14 / 原版宿主5）
+
+范围：检查已有 AI 工作室、聊天、监督与候选代码链，不是宣称全网站全部业务已审计。
+Owner 指出旧程序和对话已经存在，要求优先检查、不要重做。此前尚未接线的新协作模块已撤下；没有覆盖旧数据库或删除旧会话。
+
+一、找回并核对的实际证据
+真实 community.sqlite3：3 个 StudioRoom、4 个 StudioRun、7 条 StudioMessage。
+2026-10-07 08:44（北京时间）：北矿娘 × Codex：simplefoc/Arduino-FOC。
+房间 d157dea4-21cb-40c3-86ec-7760147d090b，两席已完成讨论，内容涉及控制算法与嵌入式分类、固定提交镜像、校验值及验证范围。
+当时两条实际 provider 都是 codex；这是历史调用事实，不能重写成当时已经由原版 DeepSeek 人格参与。
+现有 Codex 私聊另有2轮已完成记录，未删除。
+旧候选验证证据仍在 C:/Users/user/Documents/Codex/2026-10-06/zhe/work/studio-live-verification/result.json。
+它记录 Codex 生成 campus/search_query_normalizer.py 候选、设计席审阅、Python语法通过；功能测试 not-run、published=false。
+
+二、现成程序，不再另做
+campus/hub/supervisor.py 的 discuss 建立既有共同讨论。
+campus/hub/studio.py / studio_worker.py 管理房间、轮次、停止、讨论、工作模式及真实消息。
+campus/hub/studio_workspace.py 管理选定源码、独立候选、可读差异、语法检查、内容哈希与冲突保护。
+campus/studio-client.js 和 src/pages/studio.js 已有页面接线、按房间展示记录、逐轮状态与候选查看。
+campus/hub/codex_chat.py 本来就复用 StudioRoom / StudioRun，不需再建聊天数据库。
+campus/hub/beikuang.py / supervisor.py / worker.py 仍执行原来的机器人审核与任务队列。
+
+三、发现并修复的断点
+1. Codex 私聊只读自己的私聊历史，看不到它自己参与过的工作室共同讨论。现在显式读同一站主最近4轮共同讨论，保留原房间编号和状态；不会读取其他站主或个人私聊。
+2. 原版人格已用于北矿娘私聊，但工作室北矿娘席位仍用旧直接模型提示。现在工作室接同一个原版 Chat.compose，不再因入口不同换人格；原版失败直接报错，不退回旧提示。
+3. 共同讨论进入原版 WebsiteWork 观察。站主设定的闺蜜关系与克制 Codex 口吻进入既有提示，不把历史建议写成已经执行的成果，不替对方编台词。
+4. 原版宿主已负责统一模型预算；工作室只记一条调用收据，避免再占用一遍费用。
+5. 同事讨论由现有工作室保存，不把 Codex 的发言追加成站主私聊。原版语气、情绪、记忆继续参与表达，未复制第二套人格卡。
+6. 减少无用工作：原版北矿娘席位不再生成未使用的旧模型提示与重复的共同历史查询。Codex页面历史查询次数固定，不随私聊轮数逐条增加。
+
+四、为什么仍可能显得不够主动（观察与推断分开）
+实际原版运行设置：agency.enabled=true，paused=false，dailyLimit=3，shareIdleMinutes=30，dailyBurstLimit=6，maxUnanswered=3，shareCheckLimit=12，creationEnabled=false，shareStyle=diary，免打扰22:30–07:00。
+代码事实：普通自主活动基本间隔90分钟，并随心情/失败变化；网站待办有单独的每日12次决策预算，但仍受总的暂停、免打扰和08:00门槛。网页宿主优先处理 cortex/inquiry/日阅读/记忆，再进入 Agency，前面的工作持续到期时可能延后后者。这里是代码路径风险，不是已测得实际饥饿时长。
+代码与页面事实：原版分条/表情数据保留，网站仍主要显示合并文字；语音与视觉上传未完整接入网站。通用搜索供应商和外部MCP未配置。完整 Shinsekai 舞台/语音/CG 不是已移植能力。
+推断：旧入口人格不一致、共同历史断开、较慢的主动节奏以及网页表达缺项，都可能影响用户感到的自然程度；不能仅凭测试通过宣称她已达到某个人格或生命力水平。
+本次按“先检查旧程序”保留原有节奏偏好，未一口气删除暂停、预算、免打扰或防止重复消息的控制。进一步优化应区分后台安静工作和向用户发消息，沿用现有调度与原版能力。
+
+五、仍缺少的工作闭环
+原候选模式只做到候选、语法检查和审阅记录。完整功能测试、自动应用、失败回滚还没有接通；人工确认状态也不代表文件已经应用。
+Owner 已提出机器人提交后自行更新与汇报的目标。后续应在既有 StudioRun/artifact、机器人审核结果上扩展，不新建平行编排器。本次不把这一目标标为完成。
+Codex这次增加共享历史与口吻，不等于已给Codex移植整套北矿娘的情绪、自主学习和任务决策运行时。
+
+六、实际验收
+253 项原版及连接层测试通过，143 项网站隔离检查通过，构建成功。
+本机已加载 Hub14 / 原版宿主5。
+真实账号登录实际网站，旧房间可见双方发言；Codex接口和原版运行时均读到同一共同房间。此次没有新增房间、消息或付费验收调用。
+数据库仍3房间/4轮/7条发言；原版10条记忆、3篇阅读记录、5次学习记录；公开资料目录218项。
+证据：campus/.data/existing-studio-verification/result.json、original-joint-room.png、existing-studio-full-tests.log、existing-studio-companion-tests.log、existing-studio-launch.log。
+源码修改前备份：campus/.data/before-colleague-workflow-20261008-140801。
+没有 GitHub 推送或公网发布。

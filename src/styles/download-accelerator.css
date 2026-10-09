@@ -1,0 +1,8 @@
+.download-progress { position: fixed; z-index: 1200; right: 24px; bottom: 24px; width: min(380px, calc(100vw - 32px)); padding: 20px; border: 1px solid var(--line, #ddd); border-radius: 22px; background: var(--bg, #fff); color: var(--fg, #222); box-shadow: 0 12px 48px #0002; }
+.download-progress b { display: block; overflow-wrap: anywhere; }
+.download-progress progress { width: 100%; height: 5px; margin-top: 16px; accent-color: var(--accent); }
+.download-progress p { font-size: 13px; color: var(--fg-2); }
+.download-progress > div { display: flex; gap: 18px; align-items: center; font-size: 13px; }
+.download-progress button { font: inherit; color: var(--accent); background: none; border: 0; cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) { .download-progress { animation: download-enter 240ms cubic-bezier(.23,1,.32,1); } }
+@keyframes download-enter { from { opacity: 0; transform: translateY(14px); } }

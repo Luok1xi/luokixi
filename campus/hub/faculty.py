@@ -10,7 +10,7 @@
 维护者可以在口碑审核页立即运行。HUB_FACULTY_CRAWL=0 时跳过。
 怎么用：
 - 文字资料自动更新，标明来源页和核对时间；维护者手工核对过的姓名、职称、照片不会被覆盖；
-- 照片只记录官网原地址，作为“待确认”候选，维护者确认是本人后才显示；拒绝过的地址不会再提；老师本人可申请撤下；
+- 照片记录官网原地址，交给北矿娘核对署名个人页与正文配图后自动提交；拒绝过的地址不会再提；老师本人可申请撤下；
 - 从名单里消失的老师不自动删除，只记录 missingSince，避免一次解析失败就把评价藏起来。
 """
 import json
@@ -485,7 +485,7 @@ def status():
     return {'sources': sources, 'pendingPhotos': pending[:200], 'pendingPhotoCount': len(pending),
             'botTeachers': bot.count(), 'missing': sum(1 for t in bot if (t.profile or {}).get('missingSince')),
             'requests': requests,
-            'policy': '只读学院官网公开师资页；robots.txt 允许、请求间隔 1.5 秒；文字资料自动更新，照片经维护者确认后显示。'}
+            'policy': '只读学院官网公开师资页；robots.txt 允许、请求间隔 1.5 秒；文字资料自动更新；北矿娘核对官网个人页署名与配图后自动提交，异常候选暂存或驳回。'}
 
 
 def decide_photo(user, teacher, decision):

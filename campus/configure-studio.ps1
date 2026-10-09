@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Owner = 'luokixi-owner',
     [switch]$WithoutDeepSeek,
     [switch]$Disable

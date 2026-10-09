@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <!-- @include head -->
-<title>校园探索 · Luokixi</title>
+<title>校园地图 · Luokixi</title>
 <meta name="description" content="矿大（北京）学院路和沙河两个校区的同学共建地图：自习、饮食、运动、风景和同学的新发现，核对之后才上图。">
 <script type="module" src="/src/pages/map.js"></script>
 </head>
@@ -25,6 +25,7 @@
             <button type="button" data-campus="xueyuanlu" aria-pressed="true">学院路</button>
             <button type="button" data-campus="shahe" aria-pressed="false">沙河</button>
           </div>
+          <a class="cx-plan-link" href="planner.html" target="_top">课表与日程</a>
           <button class="cx-add-btn" type="button" data-add-place aria-label="标一个地点">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           </button>
@@ -34,19 +35,26 @@
           <span class="sr-only">搜索楼和地点</span>
           <input type="search" id="cx-q" placeholder="搜楼名、地点或关键词" autocomplete="off" enterkeyhint="search">
         </label>
-        <div class="cx-tabs" role="tablist" aria-label="面板内容" id="cx-tabs">
-          <button type="button" role="tab" data-tab="quests" aria-selected="true">我的课程</button>
-          <button type="button" role="tab" data-tab="places" aria-selected="false">活动与发现</button>
-          <button type="button" role="tab" data-tab="buildings" aria-selected="false">校园设施</button>
-        </div>
+        <nav class="cx-tabs" aria-label="校园工具" id="cx-tabs">
+          <a href="planner.html" target="_top">课表</a><button type="button" data-tab="buildings" aria-pressed="true">地图</button><button type="button" data-tab="places" aria-pressed="false">活动</button><button type="button" data-tab="route" aria-pressed="false">导航</button><a href="materials.html" target="_top">资料库</a>
+        </nav>
       </div>
-      <div class="cx-panel-body" id="cx-body" role="tabpanel" aria-live="polite"></div>
+      <div class="cx-panel-body" id="cx-body" role="region" aria-label="校园工具内容" aria-live="polite"></div>
       <div class="cx-panel-foot">
         <label class="cx-toggle" id="cx-expired-wrap"><input type="checkbox" id="cx-expired"> 显示已过期的发现</label>
         <span class="cx-fetched" id="cx-fetched"></span>
         <button class="cx-mod-btn" type="button" id="cx-mod-btn" hidden>待审核 <span class="num" id="cx-mod-n">0</span></button>
       </div>
     </aside>
+
+    <aside class="cx-inspector" id="cx-inspector" aria-label="地点详情" hidden inert>
+      <div class="cx-inspector-surface">
+        <div class="cx-inspector-top"><span>地点档案</span><button type="button" id="cx-inspector-close" aria-label="关闭地点详情"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button></div>
+        <nav class="cx-recent" id="cx-recent" aria-label="最近打开的地点" hidden></nav>
+        <div class="cx-inspector-body" id="cx-inspector-body" aria-live="polite"></div>
+      </div>
+    </aside>
+    <div class="cx-canvas-tools"><span>拖动探索 · 滚轮缩放</span><button type="button" id="cx-reset">回到校区 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1.5 7M4 4v6h6"/></svg></button></div>
 
     <p class="cx-legend glass" id="cx-legend" hidden></p>
 
@@ -114,7 +122,7 @@
         <li data-reveal><b>只标公共区域。</b>宿舍房间、实验室内部、需要刷卡才能进的地方不上图。</li>
         <li data-reveal><b>照片要去掉隐藏信息。</b>公开展示的是重新生成的预览图，拍摄位置等 EXIF 信息会被去掉；原图只有你和维护者能看到。</li>
         <li data-reveal><b>“还在 / 不在”是同学反馈。</b>只统计最近 24 小时，每人每个地点只算一条，不是官方确认，也不会延长有效期。</li>
-        <li data-reveal><b>路线交给外部地图。</b>导航按钮会打开百度地图，起点和路线由你在那边选择；校内能不能走通，以现场为准。本站不记录你的位置。</li>
+        <li data-reveal><b>路线由你选择。</b>个人路线按已记录步行路网估算；未覆盖区域标为直线估算，时间按每分钟约 75 米计算。入口、开放和无障碍条件以现场为准。本站不记录你的位置。</li>
       </ul>
     </div>
   </section>
@@ -153,6 +161,22 @@
       <fieldset class="cx-fs">
         <legend>这是什么地方</legend>
         <div class="cx-typepick" id="cx-typepick"></div>
+      </fieldset>
+
+      <fieldset class="cx-fs" id="cx-activity-fields" hidden>
+        <legend>活动日程 <small>可选，按北京时间填写</small></legend>
+        <p class="cx-hint">只填写主办方公布的实际时间。看到的时间和地图有效期不会代替活动时间；没有起止时间仍可投稿，但不能自动加入个人日程。</p>
+        <div class="cx-field-row">
+          <label class="cx-field"><span>活动开始</span><input type="datetime-local" name="startsAt"></label>
+          <label class="cx-field"><span>活动结束</span><input type="datetime-local" name="endsAt"></label>
+        </div>
+        <label class="cx-field"><span>活动原来源链接 <em>可选</em></span><input type="url" name="activitySourceURL" maxlength="1000" placeholder="https://…"></label>
+        <label class="cx-field"><span>报名链接 <em>可选</em></span><input type="url" name="registrationURL" maxlength="1000" placeholder="https://…"></label>
+        <div class="cx-field-row">
+          <label class="cx-field"><span>所在楼宇 <em>可选，来自地图</em></span><select name="eventBuilding" id="cx-event-building"><option value="">不指定楼宇</option></select></label>
+          <label class="cx-field"><span>本地提醒</span><select name="reminderMinutes"><option value="0">不提醒</option><option value="5">提前 5 分钟</option><option value="10">提前 10 分钟</option><option value="15">提前 15 分钟</option><option value="30">提前 30 分钟</option><option value="60">提前 60 分钟</option><option value="120">提前 120 分钟</option></select></label>
+        </div>
+        <p class="cx-hint">楼宇不会从教室号或当前位置推测。提醒随活动复制到你的本地计划，需要打开本站后由本地计划提示。</p>
       </fieldset>
 
       <fieldset class="cx-fs">
@@ -275,11 +299,11 @@
           </div>
         </fieldset>
       </div>
-      <label class="cx-check" id="cx-sync-wrap" hidden><input type="checkbox" name="sync"> 同时存到我的社区账号（只有我自己看得到，用来推荐和我相关的内容）</label>
       <div class="cx-form-actions"><button class="btn btn-primary" type="submit">保存</button></div>
     </form>
 
     <h3 class="cx-h3">我的课</h3>
+    <p class="cx-hint"><a href="planner.html" target="_top">打开完整计划：周次、考试、冲突检查与系统日历 →</a></p>
     <p class="cx-hint">按每周的固定时间填。上课地点从地图上的楼里选，地图会把它变成你的任务点。</p>
     <ul class="cx-courses" id="cx-courses" role="list"></ul>
 

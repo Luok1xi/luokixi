@@ -115,6 +115,7 @@ def inspect(repo, refresh=False):
         result = {'repository':full,'url':info['html_url'],'description':info.get('description') or '',
                   'credit':info['owner']['login'],'stars':info.get('stargazers_count',0),
                   'language':info.get('language'),'topics':info.get('topics',[]),'archived':info.get('archived',False),
+                  'collectedAt':previous.get('collectedAt') or timezone.now().isoformat(),'collectedBy':previous.get('collectedBy','开源采集机器人'),
                   'license':license_id,'pushedAt':info.get('pushed_at'),'createdAt':info.get('created_at'),
                   'readmeUrl':readme_url,'readme':raw,'readmeSha':readme.get('sha',''),
                   'defaultBranch':info.get('default_branch','HEAD'), 'readmePath':readme.get('path','README.md'),
@@ -190,7 +191,7 @@ def curate(user, body):
                    'tags':cache.data.get('topics',[])[:12],'uploads':[],'category':(cache.data.get('classification') or {}).get('primary','software'),
                    'sourceNote':'外部项目推荐，原作者保留署名'}
         entry = Entry.objects.create(kind='project',slug='github-'+hashlib.sha256(repo.lower().encode()).hexdigest()[:20],
-            state='published',draft=payload,published=payload,public_revision=1,canonical_key=canonical,
+            state='published',owner=user,draft=payload,published=payload,public_revision=1,canonical_key=canonical,
             search_text=json.dumps(payload,ensure_ascii=False))
         Revision.objects.create(entry=entry,number=1,data=payload,state='published',reviewer=user,note=reason)
     if entry:
@@ -200,9 +201,10 @@ def curate(user, body):
         if cache.data['guide'].get('formatVersion') == 2 and cache.data['guide'].get('sourceFingerprint') != fingerprint(cache.data):
             raise Problem('导读原文已变化，请重新生成后再核对。',409)
         cache.data['guide'] = dict(cache.data['guide'],reviewState='reviewed',reviewer=user.username,
-                                   notice='AI 辅助导读，维护者已核对；原文与实测记录分别列示。')
+                                   reviewMode='automatic' if user.username in ('北矿娘','Codex') else 'human',
+                                   notice='AI 辅助导读，北矿娘已按规则自动检查；未进行人工或运行核验。' if user.username in ('北矿娘','Codex') else 'AI 辅助导读，维护者已核对；原文与实测记录分别列示。')
     cache.save(update_fields=['data'])
-    if shelf != 'unlisted':
+    if shelf != 'unlisted' and os.environ.get('HUB_MIRROR_AUTO') == '1':
         from .models import Job
         Job.objects.get_or_create(key='mirror-after-curate:'+hashlib.sha256((repo+str(cache.data.get('releaseVersion'))).encode()).hexdigest(),
                                   defaults={'kind':'mirror-repo','payload':{'repository':repo},'due':timezone.now(),'owner':user})

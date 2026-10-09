@@ -1,3 +1,5 @@
+import { fuzzySearch, searchTokens } from '../js/fuzzy-search.js';
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
 import { initShell } from '../js/shell.js';
 import { campusApi as api, campusAvailable } from '../../campus/client.js';
 import '../styles/knowledge.css';
@@ -13,6 +15,7 @@ function toast(message) { const node=$('#kb-toast');node.textContent=message;nod
 function showError(error) { toast(error.message || String(error)); }
 function empty(title, detail) { return `<div class="kb-empty"><strong>${e(title)}</strong>${e(detail)}</div>`; }
 async function refreshMeta() {
+  suggestionCatalogue = null;
   meta=await api.meta();
   $('#connection').textContent='本机知识库已连接。资料、摘录与复习记录保存在这台电脑。';
   $('#summary').innerHTML=`<span><strong>${meta.documents}</strong> 份资料</span><span><strong>${meta.scopes['本校资料']||0}</strong> 份本校资料</span><span><strong>${meta.pages}</strong> 页原卷与正文</span><span>课程可持续添加</span>`;
@@ -25,6 +28,24 @@ async function refreshMeta() {
 function documentRow(d) {
   return `<article class="kb-item"><div class="kb-file-icon" aria-hidden="true">${e(d.format.toUpperCase())}</div><div><h3>${e(d.title)}</h3><div class="kb-tags">${tag(d.course)}${tag(d.scope)}${tag(d.kind)}${d.year?tag(d.year):''}${d.extract_status==='scan'?tag('扫描件 · 查看原卷'):''}</div><p class="kb-snippet">${e(d.snippet||d.extract_status)}</p><span class="kb-source">${e(d.origin)}${d.match_page&&$('#query').value?`，命中第 ${d.match_page} 页`:''}${d.source_url?' · '+e(new URL(d.source_url).hostname):''}</span></div><div class="kb-item-actions"><button type="button" class="btn btn-secondary btn-sm" data-document="${e(d.id)}" data-page="${d.match_page||1}">${mode==='pending'?'查看并核对':'阅读与摘录'}</button></div></article>`;
 }
+let suggestionCatalogue;
+async function localSuggestionItems() {
+  if (!campusAvailable || mode !== 'local') return [];
+  suggestionCatalogue ??= (async () => {
+    const items = []; let cursor = 0, total = 1;
+    while (cursor < total) {
+      const result = await api.catalogue({ offset: cursor });
+      items.push(...result.items); total = result.total; cursor += result.items.length;
+      if (!result.items.length) break;
+    }
+    return items;
+  })().catch(error => { suggestionCatalogue = null; throw error; });
+  return suggestionCatalogue;
+}
+const knowledgeSearchText = item => [item.course, item.kind, item.year, item.scope].filter(Boolean).join(' ');
+const inKnowledgeScope = item => (!$('#course-filter').value || item.course === $('#course-filter').value) && (!$('#scope-filter').value || item.scope === $('#scope-filter').value) && (!$('#kind-filter').value || item.kind === $('#kind-filter').value);
+attachSearchSuggestions($('#query'), { getItems: async () => (await localSuggestionItems()).filter(inKnowledgeScope), getText: knowledgeSearchText, getMeta: knowledgeSearchText });
+
 async function loadResults() {
   const serial=++sequence;
   $('#next').hidden=true;$('#previous').hidden=true;$('#result-count').textContent='读取中…';
@@ -40,7 +61,12 @@ async function loadResults() {
       $('#result-count').textContent=`${data.items.length} 条网络结果`;
       $('#results').innerHTML=data.items.map(r=>`<article class="kb-item"><div class="kb-file-icon" aria-hidden="true">WEB</div><div><h3><a href="${e(url(r.href))}" target="_blank" rel="noopener noreferrer">${e(r.title)}</a></h3><p class="kb-snippet">${e(r.body)}</p><span class="kb-source">${e(r.href)}</span></div><button type="button" class="btn btn-secondary btn-sm" data-crawl="${e(url(r.href))}">采集此页</button></article>`).join('')||empty('没有找到结果','换一组课程关键词、学校全称或指定网站再试。');return;
     }
-    const data=await api.catalogue({q:$('#query').value,course:$('#course-filter').value,scope:$('#scope-filter').value,kind:$('#kind-filter').value,status:mode==='pending'?'pending':'ready',offset});
+    const query=$('#query').value.trim();
+    let data=await api.catalogue({q:searchTokens(query).join(' '),course:$('#course-filter').value,scope:$('#scope-filter').value,kind:$('#kind-filter').value,status:mode==='pending'?'pending':'ready',offset});
+    if (!data.total && query && mode === 'local') {
+      const matched=fuzzySearch((await localSuggestionItems()).filter(inKnowledgeScope),query,{getText:knowledgeSearchText,limit:Infinity});
+      data={...data,total:matched.length,items:matched.slice(offset,offset+30).map(item=>({...item,snippet:'目录近似匹配，可打开原件核对。',match_page:null}))};
+    }
     if(serial!==sequence)return;
     $('#result-title').textContent=mode==='pending'?'核对后再入库':($('#course-filter').value||'课程资料');
     $('#result-count').textContent=`${data.total} 份${data.total?` · ${offset+1}–${Math.min(offset+30,data.total)}`:''}`;
@@ -53,6 +79,7 @@ async function loadResults() {
 }
 async function changeMode(next) {
   mode=next;offset=0;
+  $('#query').dispatchEvent(new Event('blur'));
   document.querySelectorAll('[data-mode]').forEach(b=>next===b.dataset.mode?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
   $('#search-section').hidden=next==='cards';$('#local-filters').hidden=next==='web';$('#web-hint').hidden=next!=='web';$('#review-toolbar').hidden=next!=='cards';$('#jobs').hidden=next!=='pending';
   if(next==='pending'){$('#query').value='';$('#course-filter').value='';$('#scope-filter').value='';$('#kind-filter').value='';await pollJobs();}

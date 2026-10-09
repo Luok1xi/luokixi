@@ -4,8 +4,9 @@ import json
 import re
 from django.db import transaction
 from django.utils import timezone
-from .core import Problem
-from .models import Entry, ExternalCache, MirrorAsset
+from .core import Problem, public_entries
+from .search_matching import text_score
+from .models import ExternalCache, MirrorAsset
 
 TAXONOMY = {
     'mech': ('机器人与机械', ('robot', 'robotics', 'ros', 'ros2', 'slam', 'robot-arm', 'mechanical', '机器人', '机械臂')),
@@ -110,12 +111,13 @@ def catalogue(query, user):
     except (OSError, ValueError):
         static = []
     known = {(p.get('repo') or {}).get('fullName', '').lower(): p for p in static}
-    published = {e.published.get('links', {}).get('repo', '').removeprefix('https://github.com/').rstrip('/').lower(): e for e in Entry.objects.filter(kind='project', state='published')}
+    published = {e.published.get('links', {}).get('repo', '').lower().removeprefix('https://github.com/').rstrip('/').removesuffix('.git'): e for e in public_entries().filter(kind='project')}
     assets = {}
     for asset in MirrorAsset.objects.order_by('-created'):
         if (item := serialize(asset))['available']:
             assets.setdefault(asset.repository.lower(), []).append(item)
     items, counts = [], {k: 0 for k in TAXONOMY}
+    search_scores = {}
     for cache in ExternalCache.objects.filter(key__startswith='github:', success__isnull=False).order_by('-success'):
         data = cache.data
         repo = data.get('repository', '')
@@ -132,13 +134,18 @@ def catalogue(query, user):
         guide = data.get('guide') or {}
         intro = guide.get('oneLiner', '') if guide.get('reviewState') == 'reviewed' or pending else ''
         haystack = ' '.join([repo, data.get('description', ''), intro, ' '.join(data.get('topics', [])), ' '.join(x['name'] for x in classification['labels'])]).lower()
-        if q and not all(term in haystack for term in q.split()):
+        score = text_score(q, repo, body=haystack, keywords=' '.join(data.get('topics', []))) if q else 1
+        if not score:
             continue
+        search_scores[repo] = score
         files = assets.get(repo.lower(), [])
         if query.get('download') == 'local' and not files:
             continue
         link = f'project.html?id={entry.pk}' if entry else f'project.html?slug={seed["slug"]}' if seed else ''
         items.append({'repository': repo, 'url': data.get('url'), 'pageUrl': link, 'description': intro or data.get('description', ''),
+                      'stars': data.get('stars',0), 'uploadedAt': (data.get('discovery') or {}).get('collectedAt') or (entry.created.isoformat() if entry else cache.success.isoformat()),
+                      'uploader': (data.get('discovery') or {}).get('source') or data.get('credit') or '开源采集机器人',
+                      'reviewer': (data.get('selection') or {}).get('reviewer') or '历史审核者未记录',
                       'classification': classification, 'license': data.get('license'), 'language': data.get('language'),
                       'guideState': guide.get('reviewState') if guide.get('state') == 'generated' else 'missing',
                       'downloads': [download_hint(d) for d in data.get('downloads', [])], 'localFiles': files,
@@ -148,5 +155,8 @@ def catalogue(query, user):
         offset = max(0, int(query.get('offset', 0)))
     except (TypeError, ValueError):
         raise Problem('分页参数无效。')
+    items.sort(key=lambda item: (-item['stars'], item['repository'].lower()))
+    if q:
+        items.sort(key=lambda item: (-search_scores[item['repository']], item['repository']))
     return {'items': items[offset:offset + 30], 'total': len(items), 'offset': offset,
             'categories': [{'id': k, 'name': v[0], 'count': counts[k]} for k, v in TAXONOMY.items()]}

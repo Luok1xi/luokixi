@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "maxNodeModuleJsDepth": 0,
+    "types": []
+  },
+  "typeAcquisition": { "enable": false },
+  "include": ["src/**/*.mjs", "public/*.js", "test/*.mjs"],
+  "exclude": ["node_modules", "data", "test-output", "vendor"]
+}

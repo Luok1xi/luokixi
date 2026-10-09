@@ -35,28 +35,77 @@ def room_data(room):
             'contextFiles': room.context_files, 'created': room.created.isoformat()}
 
 
+def joint_runs(user):
+    from django.db.models import TextField
+    from django.db.models.functions import Cast
+    # A joint run is explicit room-sharing. Ordinary private chat rooms stay separate.
+    return (StudioRun.objects.filter(room__owner=user).exclude(mode='chat')
+                .annotate(seat_names=Cast('seats',TextField()))
+                .filter(seat_names__contains='"beikuang"').filter(seat_names__contains='"codex"')
+                .order_by('-updated'))
+
+
+def collaboration_context(user):
+    """Read the existing joint rooms; do not create a second memory or task store."""
+    from .studio_config import TEAM_RELATION
+    runs = list(joint_runs(user).select_related('room').prefetch_related('messages')[:4])
+    return {'relationship': TEAM_RELATION, 'source': 'existing-studio-rooms',
+            'meaning':'历史讨论、任务建议和候选不是已执行成果；状态与实际检查记录为准。',
+            'runs':[{'id':str(r.pk),'room':str(r.room_id),'title':r.room.title,'goal':r.prompt[:1200],
+                'mode':r.mode,'state':r.state,'updated':r.updated.isoformat(),
+                'checks':r.artifact.get('checks',[]),'functionalTests':r.artifact.get('functionalTests','not-run'),
+                'messages':[{'seat':m.seat,'body':m.body[:1800],'tasks':m.tasks[:6]}
+                            for m in sorted(r.messages.all(),key=lambda m:m.sequence)[-4:]]} for r in runs]}
+
+
 def run_data(run):
+    from .studio_workflow import task
+    cached = getattr(run, '_prefetched_objects_cache', {}).get('messages')
+    messages = sorted(cached, key=lambda m: m.sequence) if cached is not None else run.messages.order_by('sequence')
     return {'id': str(run.pk), 'room': str(run.room_id), 'mode': run.mode, 'prompt': run.prompt,
             'seats': run.seats, 'rounds': run.rounds, 'state': run.state, 'stopRequested': run.stop_requested,
-            'error': run.error, 'artifact': run.artifact, 'approvedHash': run.approved_hash,
+            'error': run.error, 'artifact': run.artifact, 'approvedHash': run.approved_hash, 'workflow':task(run) if run.mode!='chat' else {},
             'created': run.created.isoformat(), 'updated': run.updated.isoformat(),
             'messages': [{'id': m.pk, 'sequence': m.sequence, 'seat': m.seat, 'provider': m.provider,
-                          'model': m.model, 'body': m.body, 'tasks': m.tasks, 'usage': m.usage,
-                          'created': m.created.isoformat()} for m in run.messages.order_by('sequence')]}
+                          'model': m.model, 'body': m.body, 'tasks': m.tasks, 'usage': m.usage, 'expression': m.expression, 'messages':m.messages,
+                          'created': m.created.isoformat()} for m in messages]}
 
 
 def get(request, route):
     cfg = owner(request)
     parts = route.split('/')
+    if route == 'studio/robots':
+        from .robot_actions import policy
+        from .robot_inventory import snapshot
+        return dict(snapshot(), policy=policy())
+    if route == 'studio/budget':
+        from .studio_budget import view
+        return view(cfg)
+    if route == 'studio/activity':
+        from .companion_team import activity
+        return activity(request.user)
+    if route == 'studio/voice':
+        from .companion_bridge import call
+        return call('voice')
+    if route == 'studio/codex/chat':
+        from .codex_chat import view
+        return view(request.user, cfg)
     if route == 'studio/capabilities':
         day = StudioDay.objects.filter(day=timezone.localdate()).first()
         return dict(capabilities(cfg), budget={'day': timezone.localdate().isoformat(),
             'reservedCny': str(day.reserved_cny if day else 0), 'codexCalls': day.codex_calls if day else 0})
     if route == 'studio/rooms':
-        return {'items': [room_data(r) for r in StudioRoom.objects.filter(owner=request.user).order_by('-created')[:50]]}
+        preferred = joint_runs(request.user).values_list('room_id', flat=True).first()
+        return {'preferredRoom': str(preferred) if preferred else None,
+                'items': [room_data(r) for r in StudioRoom.objects.filter(owner=request.user).order_by('-created')[:50]]}
     if len(parts) == 3 and parts[1] == 'rooms':
         room = room_for(request.user, parts[2])
-        return dict(room_data(room), runs=[run_data(r) for r in room.runs.order_by('-created')[:20]])
+        from . import studio_workflow
+        runs = list(room.runs.order_by('-created').prefetch_related('messages')[:20])
+        for run in runs: run.room = room
+        if hasattr(studio_workflow, 'preload'):
+            studio_workflow.preload(runs)
+        return dict(room_data(room), runs=[run_data(r) for r in runs])
     if len(parts) == 3 and parts[1] == 'runs':
         run = StudioRun.objects.filter(pk=parts[2], room__owner=request.user).first()
         if not run:
@@ -65,10 +114,40 @@ def get(request, route):
     raise Problem('接口不存在。', 404)
 
 
-@transaction.atomic
 def post(request, route, body):
+    owner(request)
+    if route == 'studio/voice':
+        from .companion_bridge import call
+        from .studio_providers import EXPRESSIONS
+        words = text(body.get('text', ''), 600, True)
+        if body.get('seat') not in ('beikuang', 'codex') or body.get('expression', 'neutral') not in EXPRESSIONS:
+            raise Problem('角色或表情无效。')
+        if body.get('language', 'ja') not in ('ja','zh','en'):
+            raise Problem('朗读语言无效。')
+        return call('voice', {'language':body.get('language','ja'), 'text': words, 'seat': body.get('seat', 'beikuang'), 'expression': body.get('expression', 'neutral')}, timeout=300)
+    return transactional_post(request, route, body)
+
+
+@transaction.atomic
+def transactional_post(request, route, body):
     cfg = owner(request)
     parts = route.split('/')
+    if route == 'studio/robots':
+        from .robot_actions import policy
+        from .robot_inventory import snapshot
+        return dict(snapshot(), policy=policy())
+    if route == 'studio/budget':
+        from .studio_budget import save
+        return save(request.user, body)
+    if route == 'studio/inspect':
+        import uuid
+        from .companion_team import dispatch
+        from .beikuang import today_stats
+        return dispatch(request.user, {'id': str(uuid.uuid4()), 'action': 'inspect_site',
+            'goal': '检查当前网站的页面和图片', 'reason': '站主在工作室请求浏览器巡检'}, today_stats())
+    if route == 'studio/codex/messages':
+        from .codex_chat import send
+        return send(request.user, cfg, body)
     if route == 'studio/rooms':
         names = body.get('contextFiles', [])
         context_files(names)
@@ -80,7 +159,7 @@ def post(request, route, body):
         key = text(body.get('requestKey', ''), 80, True)
         prompt = checked_text(text(body.get('prompt', ''), 6000, True))
         mode = body.get('mode', 'discuss')
-        seats = body.get('seats', ['deepseek', 'design', 'codex'])
+        seats = body.get('seats', ['beikuang', 'codex'])
         rounds = body.get('rounds', 6 if mode == 'work' else 3)
         if mode not in {'discuss', 'work'} or type(rounds) is not int or not 1 <= rounds <= cfg['max_rounds']:
             raise Problem('模式或轮数无效；一次最多 6 轮。')
@@ -93,7 +172,7 @@ def post(request, route, body):
             if (existing.prompt, existing.mode, existing.seats, existing.rounds) != (prompt, mode, seats, rounds):
                 raise Problem('此请求编号已用于不同内容。', 409)
             return run_data(existing)
-        if StudioRun.objects.filter(room=room, state__in=['queued', 'running']).exists():
+        if StudioRun.objects.filter(room=room, state__in=['queued', 'running', 'reconnecting', 'interrupted', 'waiting_jobs']).exists():
             raise Problem('该房间还有工作未结束。', 409)
         for seat in set(seats[:rounds]):
             ready(PERSONAS[seat]['provider'], cfg)
@@ -106,9 +185,9 @@ def post(request, route, body):
             raise Problem('讨论不存在。', 404)
         action = parts[3]
         if action == 'stop':
-            if run.state in {'queued', 'running'}:
+            if run.state in {'queued', 'running', 'interrupted', 'reconnecting', 'waiting_jobs'}:
                 run.stop_requested = True
-                if run.state == 'queued':
+                if run.state != 'running':
                     run.state = 'cancelled'
                 run.save(update_fields=['stop_requested', 'state', 'updated'])
             return run_data(run)

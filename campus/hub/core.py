@@ -1,14 +1,16 @@
 """Shared validation, permissions and auditable community transitions."""
 import hashlib
+import hmac
 import json
 import re
 from pathlib import Path
 from datetime import timedelta
 from urllib.parse import urlsplit, urlunsplit
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from .models import (Audit, Contribution, Entry, Member, Notification, RateBucket,
+from .models import (Audit, Contribution, Entry, EntryView, Member, Notification, RateBucket,
                      Reply, Revision, Upload, Watch)
 
 KINDS = {'project', 'resource', 'paper', 'reproduction', 'topic', 'contest', 'news', 'announcement', 'collection', 'place'}
@@ -26,12 +28,17 @@ class Problem(Exception):
         super().__init__(message)
 
 
+def can_participate(user):
+    """Server-granted developers may test without a real mailbox; never fake verification."""
+    return bool(user.is_authenticated and user.is_active and (user.email_verified or user.is_superuser))
+
+
 def require(user, staff=False, verified=False):
     if not user.is_authenticated:
         raise Problem('请先登录。', 401)
     if not user.is_active or (staff and not user.is_staff):
         raise Problem('没有此操作的权限。', 403)
-    if verified and not user.email_verified:
+    if verified and not can_participate(user):
         raise Problem('请先验证邮箱再参与共建。', 403)
 
 
@@ -94,10 +101,32 @@ def member_data(member, private=False):
     data = {'id': member.pk, 'username': member.username, 'name': member.display_name or member.username,
             'bio': member.bio, 'major': member.major, 'externalLinks': member.external_links,
             'campusVerified': member.campus_verified, 'githubVerified': bool(member.github_id)}
+    # Owner-assigned to an exact account; never inferred from a display name.
+    avatar = (member.preferences or {}).get('companionAvatar')
+    if avatar in ('/art/beikuang/avatar.png', '/art/companions/beikuang-chibi.png', '/art/companions/codex-avatar-v1.png'):
+        data['avatar'] = avatar
     if private:
         data.update(email=member.email, emailVerified=member.email_verified, moderator=member.is_staff,
+                    developer=bool(member.is_active and member.is_superuser), canParticipate=can_participate(member),
                     digestEnabled=member.digest_enabled, preferences=member.preferences)
     return data
+
+
+def record_view(request, entry):
+    """记一次浏览并返回总浏览量。只统计已公开的内容；按账号或浏览器会话、按天去重。"""
+    if not entry.public_revision or entry.state == 'withdrawn':
+        return entry.entryview_set.count()
+    user = request.user
+    if user.is_authenticated:
+        who = f'user:{user.pk}'
+    else:
+        if not request.session.session_key:
+            request.session.save()
+        who = f'session:{request.session.session_key}'
+    throttle('view', who, 600)
+    viewer = hmac.new(settings.SECRET_KEY.encode(), who.encode(), hashlib.sha256).hexdigest()
+    EntryView.objects.get_or_create(entry=entry, viewer=viewer, day=timezone.localdate())
+    return entry.entryview_set.count()
 
 
 def entry_data(entry, user, own=False):
@@ -107,7 +136,8 @@ def entry_data(entry, user, own=False):
             'owner': member_data(entry.owner) if entry.owner_id else None,
             'updated': entry.updated.isoformat(), 'created': entry.created.isoformat(),
             'canonical': str(entry.canonical_id) if entry.canonical_id else None,
-            'siteStars': entry.star_set.count(), 'starred': False, 'watch': []}
+            'siteStars': entry.star_set.count(), 'starred': False, 'watch': [],
+            'views': entry.entryview_set.count(), 'replyCount': entry.reply_set.filter(state='published').count()}
     if user.is_authenticated:
         star = entry.star_set.filter(user=user).first()
         watch = entry.watch_set.filter(user=user).first()
@@ -132,6 +162,9 @@ def validate_payload(kind, data, user, submit=False):
         raise Problem('请选择网站现有分类。')
     result['tags'] = string_list(data.get('tags', []))
     result['courses'] = string_list(data.get('courses', []))
+    if 'learning' in data:
+        from .learning import validate_learning
+        result['learning'] = validate_learning(data['learning'])
     result['links'] = {}
     links = data.get('links', {})
     if not isinstance(links, dict) or len(links) > 12:
@@ -183,6 +216,15 @@ def validate_payload(kind, data, user, submit=False):
 
 
 def canonical_key(kind, data):
+    base = _canonical_key(kind, data)
+    meta = data.get('learning')
+    if base and isinstance(meta, dict):
+        scope = {key: meta.get(key, '') for key in ('school', 'courseId', 'offeringId', 'term', 'version', 'publicationStatus')}
+        return 'learning:' + hashlib.sha256((base + json.dumps(scope, sort_keys=True)).encode()).hexdigest()
+    return base
+
+
+def _canonical_key(kind, data):
     if kind == 'topic' and data.get('circle', {}).get('external', {}).get('url'):
         return 'circle-link:' + hashlib.sha256(data['circle']['external']['url'].encode()).hexdigest()
     if kind == 'place' and data.get('location'):
@@ -199,7 +241,7 @@ def canonical_key(kind, data):
     value = links.get('repo') if kind == 'project' else links.get('source') or links.get('paper')
     if value:
         p = urlsplit(value)
-        path = p.path.rstrip('/').removesuffix('.git')
+        path = p.path.rstrip('/').removesuffix('.git') if kind == 'project' else p.path or '/'
         return kind + ':' + urlunsplit((p.scheme, p.netloc.lower(), path, p.query, ''))[:470]
     return ''
 
@@ -306,6 +348,9 @@ def review_entry(user, entry, body):
         entry.state = 'rejected'
     entry.review_note = note
     entry.save()
+    if decision == 'approve':
+        from .learning_follow import on_entry_publish
+        on_entry_publish(entry)
     if decision == 'approve' and entry.published.get('circle'):
         from .circle import on_publish
         on_publish(entry, first_publication)

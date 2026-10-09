@@ -4,6 +4,8 @@
 import { hubApi, HubError } from '../../campus/hub-client.js';
 
 export { hubApi, HubError };
+// The server owns the exemption; an ordinary moderator/nickname does not grant it.
+export const canParticipate = user => Boolean(user && (user.canParticipate ?? user.emailVerified));
 
 let state;
 export function hubState() {

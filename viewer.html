@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>站内阅读 · Luokixi</title>
+<script type="module" src="/src/pages/viewer.js"></script>
+</head>
+<body data-page="viewer">
+<!-- @include nav -->
+<main class="reader-page">
+  <header class="reader-head"><a class="reader-back" id="reader-back" href="materials.html">← 返回</a><p class="eyebrow">LUOKIXI · 站内阅读</p><h1 id="reader-title">正在打开…</h1><p id="reader-note" class="muted" role="status"></p>
+    <nav class="reader-actions" aria-label="文件操作"><a class="btn btn-primary" id="reader-download" hidden download>下载原件</a><button class="btn btn-outline" id="reader-print" type="button" hidden>打印 / 存为 PDF</button></nav>
+  </header>
+  <section id="reader-content" aria-busy="true"></section>
+</main>
+<!-- @include footer -->
+</body>
+</html>

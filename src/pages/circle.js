@@ -3,9 +3,11 @@
 // 帖子详情从被点的卡片“长”出来；楼层编号，获赞最多的回复先放上面（亮回复）。
 // 接口：circle/feed、circle/hot、circle/posts/<id>/thread、circle/replies/<id>/like、reputation/rankings（campus/hub/circle.py、reputation.py）。
 import { initShell } from '../js/shell.js';
-import { hubApi, hubState, loginURL } from '../js/hub.js';
+import { canParticipate, hubApi, hubState, loginURL } from '../js/hub.js';
 import { esc } from '../js/data.js';
-import { pop, rollTo, openFrom, closeTo, setSegment, refreshFx } from '../js/fx.js';
+import { pop, rollTo, openFrom, closeTo, setSegment, refreshFx, disposeTilts } from '../js/fx.js';
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
+import { depthSlides, mountDepthSlider } from '../js/depth-slider.js';
 import '../styles/circle-news.css';
 
 initShell();
@@ -14,8 +16,9 @@ const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const scrollToEl = (el) => el?.scrollIntoView({ behavior: reduced() ? 'instant' : 'smooth', block: 'start' });
+const face = user => user?.avatar === '/art/beikuang/avatar.png' ? `<img src="${esc(user.avatar)}" alt="" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;transform:scale(2);transform-origin:50% 35%">` : initial(user?.name);
 const CAMPUS = { all: '全校', shahe: '沙河', xueyuanlu: '学院路' };
-const S = { boards: [], items: [], lane: 'recommended', board: '', cursor: null, serial: 0, thread: null, user: null, proposals: [], news: [] };
+const S = { boards: [], items: [], lane: 'recommended', board: '', cursor: null, serial: 0, thread: null, threadSerial: 0, replyTarget: null, user: null, proposals: [], news: [], searchPosts: new Map() };
 
 // 图标：Lucide（ISC 许可，见 src/js/vendor/LUCIDE-LICENSE.txt）
 const ICON = {
@@ -96,6 +99,10 @@ async function selectBoard(id) {
   scrollToEl($('#cs-feed-section'));
 }
 
+function authorFollowHTML(p) {
+  return p.canFollowAuthor && p.owner?.username ? `<button class="as-get is-small ${p.authorFollowed ? 'is-on' : ''}" type="button" data-follow-creator="${esc(p.owner.username)}" aria-pressed="${Boolean(p.authorFollowed)}">${p.authorFollowed ? '已关注作者' : '关注作者'}</button>` : '';
+}
+
 // ---------- 帖子流（竖排） ----------
 function postCard(p) {
   const d = p.data || {};
@@ -103,13 +110,15 @@ function postCard(p) {
   const photos = (p.photos || []).slice(0, 3);
   return `<article class="cs-post fx-press" data-post="${esc(p.id)}">
     <header class="cs-post-head">
-      <span class="cs-avatar" aria-hidden="true">${initial(p.owner?.name)}</span>
+      <span class="cs-avatar" aria-hidden="true">${face(p.owner)}</span>
       <span class="cs-post-who"><b>${esc(p.owner?.name || '同学')}</b><span>${esc(boardName(c.board))} · ${esc(CAMPUS[c.campus] || '全校')}</span></span>
+      ${authorFollowHTML(p)}
       <time class="cs-post-time" datetime="${esc(c.publishedAt || p.created || '')}">${esc(timeAgo(c.publishedAt || p.created || ''))}</time>
     </header>
     <h3 class="cs-post-title">${esc(d.title || '')}</h3>
     ${d.body || d.summary ? `<p class="cs-post-body">${esc(d.body || d.summary)}</p>` : ''}
-    ${photos.length ? `<div class="cs-post-photos is-${photos.length}">${photos.map((src) => `<img src="${esc(src)}" loading="lazy" decoding="async" alt="同学上传的照片">`).join('')}</div>` : ''}
+    ${photos.length ? `<div class="cs-post-photos is-${photos.length}${photos.length > 1 ? ' ds-track' : ''}">${depthSlides(photos, p.photoCredit || '帖子配图')}</div>` : ''}
+    ${p.recommendationReasons?.length ? `<p class="cs-feed-reason">${p.recommendationReasons.map(esc).join(' · ')}</p>` : ''}
     ${p.selection ? `<p class="cs-post-pick"><span class="as-hot-badge">精选</span>${esc(p.selection.reason)}</p>` : ''}
     <footer class="as-review-foot cs-post-foot">
       <button type="button" data-like="${esc(p.id)}" aria-pressed="${Boolean(p.liked)}" aria-label="亮了">${ICON.flame}<span class="num">${p.likes || 0}</span></button>
@@ -118,12 +127,15 @@ function postCard(p) {
     </footer>
   </article>`;
 }
+let feedSliders = [], threadSlider = () => {};
 function renderFeed() {
+  feedSliders.forEach(dispose => dispose());
   $('#circle-feed').innerHTML = S.items.map(postCard).join('') || `<div class="as-empty">
-      <b>${S.lane === 'following' ? '你关注的人还没有发帖' : '第一条好讨论，从你开始'}</b>
-      <p>${S.lane === 'following' ? '去“逛吧”关注几个吧，或者看看“推荐”。' : '这里还没有公开帖子。分享一个真实经历，或发起一次合作。'}</p>
+      <b>${S.lane === 'following' ? '关注的人和吧还没有新帖子' : '第一条好讨论，从你开始'}</b>
+      <p>${S.lane === 'following' ? '在帖子上关注作者，或去“逛吧”订阅感兴趣的吧；两者的新帖子都会出现在这里。' : '这里还没有公开帖子。分享一个真实经历，或发起一次合作。'}</p>
       <button class="as-get is-primary" type="button" data-compose>发帖</button></div>`;
   refreshFx($('#circle-feed'));
+  feedSliders = [...$('#circle-feed').querySelectorAll('.ds-track')].map(track => mountDepthSlider(track, { enter: false }));
 }
 async function load(more = false) {
   const serial = ++S.serial;
@@ -133,7 +145,9 @@ async function load(more = false) {
     const r = await hubApi.circleFeed({ lane: S.lane, board: S.board, campus: $('#circle-campus').value, q: $('#circle-q').value.trim(), cursor: more ? S.cursor : null });
     if (serial !== S.serial) return;
     S.cursor = r.nextCursor;
-    S.items = more ? [...S.items, ...r.items] : r.items;
+    for (const item of r.items) S.searchPosts.set(item.id, item);
+    while (S.searchPosts.size > 200) S.searchPosts.delete(S.searchPosts.keys().next().value);
+    S.items = more ? [...new Map([...S.items, ...r.items].map((item) => [item.id, item])).values()] : r.items;
     renderFeed();
     $('#circle-more').hidden = !S.cursor;
     if (S.lane === 'recommended' && S.items.length) status('按你主动选择的兴趣、关注和编辑精选排序；想按时间看就切到“最新”。');
@@ -220,9 +234,14 @@ async function loadNews() {
     }
   } catch { /* 社区服务未连接 */ }
   const seen = new Set();
+  try {
+    const r = await hubApi.circleFeed({ board: 'frontier', lane: 'latest' });
+    out.push(...r.items.map(p => ({ title: p.data.title, dek: p.data.summary, url: `circle.html?post=${p.id}`, source: p.data.credit, date: p.data.circle?.publishedAt || p.created, media: { src: p.photos?.[0] } })));
+  } catch { /* The school feed remains available. */ }
   S.news = out.filter((n) => n.title && n.url && !seen.has(n.url) && seen.add(n.url))
     .sort((x, y) => (Date.parse(y.date) || 0) - (Date.parse(x.date) || 0)).slice(0, 5);
   const box = $('#circle-news');
+  disposeTilts(box);
   if (!S.news.length) {
     box.innerHTML = `<article class="as-card as-today is-plain">
       <div class="as-today-top"><p class="as-eyebrow">校园头条</p><h2>今天还没有核对过的学校新闻</h2></div>
@@ -231,7 +250,7 @@ async function loadNews() {
   }
   const [lead, ...rest] = S.news;
   const img = lead.media?.src && safeHref(lead.media.src);
-  box.innerHTML = `<article class="as-card as-today${img ? '' : ' is-plain'}">
+  box.innerHTML = `<article class="as-card as-today${img ? '' : ' is-plain'}" data-tilt>
       ${img ? `<img src="${esc(img)}" alt="${esc(lead.media.alt || lead.title)}" loading="eager" decoding="async" referrerpolicy="no-referrer">` : ''}
       <div class="as-today-top"><p class="as-eyebrow">校园头条 · ${esc(lead.source)}</p><h2>${esc(lead.title)}</h2></div>
       <div class="as-today-bottom">
@@ -315,9 +334,9 @@ $('#circle-form').addEventListener('submit', async (e) => {
 // ---------- 帖子详情：楼层 + 亮回复 ----------
 function replyHTML(r, lit = false) {
   return `<article class="cs-floor${lit ? ' is-lit' : ''}" id="${lit ? 'lit' : 'floor'}-${esc(r.id)}">
-    <header><b>${esc(r.author?.name || '同学')}</b>${r.isOwner ? '<span class="cs-op">楼主</span>' : ''}<span>${r.floor ? `${r.floor} 楼` : '待审核'} · ${esc(timeAgo(r.created))}</span></header>
+    <header><b>${esc(r.author?.name || '同学')}</b>${r.isOwner ? '<span class="cs-op">楼主</span>' : ''}${r.accepted ? '<span class="as-tag cs-accepted">已采纳</span>' : ''}<span>${r.floor ? `${r.floor} 楼` : '待审核'} · ${esc(timeAgo(r.created))}</span></header>
     <p>${esc(r.body)}</p>
-    ${r.state === 'published' ? `<footer class="as-review-foot"><button type="button" data-reply-like="${esc(r.id)}" aria-pressed="${r.liked}" ${r.own ? 'disabled title="不能点亮自己的回复"' : ''}>${ICON.flame}<span class="num">${r.likes}</span><span>亮</span></button></footer>` : '<footer class="as-fine">待审核 · 只有你和维护者能看到</footer>'}
+    ${r.state === 'published' ? `<footer class="as-review-foot"><button type="button" data-reply-like="${esc(r.id)}" aria-pressed="${r.liked}" ${r.own ? 'disabled title="不能点亮自己的回复"' : ''}>${ICON.flame}<span class="num">${r.likes}</span><span>亮</span></button>${r.canAccept && !r.accepted ? `<button type="button" data-accept-reply="${esc(r.id)}">采纳回答</button>` : ''}</footer>` : '<footer class="as-fine">待审核 · 只有你和维护者能看到</footer>'}
   </article>`;
 }
 function threadHTML(t) {
@@ -329,12 +348,16 @@ function threadHTML(t) {
   return `<article class="cs-op-post">
       <p class="as-review-meta"><span class="as-tag">${esc(boardName(c.board))}</span>${esc(CAMPUS[c.campus] || '全校')} · ${esc(timeAgo(c.publishedAt || p.created || ''))}</p>
       <h2>${esc(d.title || '')}</h2>
-      <p class="cs-op-who"><span class="cs-avatar" aria-hidden="true">${initial(p.owner?.name)}</span><b>${esc(p.owner?.name || '同学')}</b><span class="cs-op">楼主</span></p>
+      <p class="cs-op-who"><span class="cs-avatar" aria-hidden="true">${face(p.owner)}</span><b>${esc(p.owner?.name || '同学')}</b><span class="cs-op">楼主</span>${authorFollowHTML(p)}</p>
       <div class="cs-op-body">${esc(d.body || '')}</div>
-      ${(p.photos || []).length ? `<div class="cs-op-photos">${p.photos.map((src) => `<img src="${esc(src)}" loading="lazy" alt="同学上传的照片">`).join('')}</div>` : ''}
+      ${d.languageVersions?.original?`<details><summary>中外文对照 · 来源原文摘要</summary><h3>${esc(d.languageVersions.original.title||'')}</h3><div class="cs-op-body">${esc(d.languageVersions.original.body||'')}</div></details>`:''}
+      ${d.maintenanceFacts?`<details><summary>查看执行记录和未解决事项</summary><ul>${d.maintenanceFacts.unresolved.map(r=>`<li>${esc(r.robot)}：${r.state==='failed'?'失败':'部分完成'} · ${esc(r.error||'')}</li>`).join('')||'<li>此次记录没有失败项；不代表全站没有问题。</li>'}</ul></details>`:''}
+      ${(p.photos || []).length ? `<div class="cs-op-photos${p.photos.length > 1 ? ' ds-track' : ''}">${depthSlides(p.photos, '同学上传的照片')}</div>` : ''}
       ${c.external?.url ? `<p><a class="as-see-all" href="${esc(safeHref(c.external.url))}" target="_blank" rel="noopener">阅读原文 ›</a></p>` : ''}
       ${p.selection ? `<p class="cs-post-pick"><span class="as-hot-badge">精选</span>${esc(p.selection.reason)}</p>` : ''}
       <footer class="as-review-foot">
+        <a class="as-see-all" href="viewer.html?kind=entry&id=${esc(p.id)}">阅读 / 导出帖子</a>
+        ${(p.photos||[]).map((url,i)=>`<a class="as-see-all" href="${esc(url)}">查看配图 ${i+1}</a>`).join('')}
         <button type="button" data-like="${esc(p.id)}" aria-pressed="${Boolean(p.liked)}">${ICON.flame}<span class="num">${p.likes || 0}</span><span>亮</span></button>
         <button type="button" data-star="${esc(p.id)}" aria-pressed="${Boolean(p.starred)}">${ICON.star}<span>${p.starred ? '已收藏' : '收藏'}</span></button>
       </footer>
@@ -343,20 +366,32 @@ function threadHTML(t) {
     <section class="cs-floors" aria-label="全部回复"><h3>全部回复 · ${t.replies.filter((r) => r.state === 'published').length}</h3>
       ${t.replies.map((r) => replyHTML(r)).join('') || '<p class="as-fine">还没有回复，来坐沙发。</p>'}</section>`;
 }
-async function openThread(id, from) {
+async function openThread(id, from, reply = S.thread === id ? S.replyTarget : null) {
   const dlg = $('#circle-thread');
+  const serial = ++S.threadSerial;
   try {
-    const t = await hubApi.circleThread(id);
+    const t = reply ? await hubApi.request(`circle/posts/${encodeURIComponent(id)}/thread?reply=${encodeURIComponent(reply)}`) : await hubApi.circleThread(id);
+    if (serial !== S.threadSerial) return;
+    S.replyTarget = reply;
     S.thread = id;
     $('#thread-board').textContent = boardName(t.post.data?.circle?.board);
+    threadSlider();
     $('#thread-body').innerHTML = threadHTML(t);
+    threadSlider = mountDepthSlider($('#thread-body .ds-track'));
     $('#reply-status').textContent = '';
     if (!dlg.open) {
       if (from) openFrom(dlg, from); else dlg.showModal();
       dlg.scrollTop = 0;
     }
+    if (reply) {
+      const floor = document.getElementById(`floor-${reply}`);
+      if (floor) {
+        requestAnimationFrame(() => { scrollToEl(floor); floor.classList.add('is-target'); floor.setAttribute('tabindex', '-1'); floor.focus({ preventScroll: true }); });
+      } else $('#reply-status').textContent = '对应回复已撤回或暂不可查看，下面仍可阅读原帖。';
+    }
   } catch (e) {
-    status(e.message);
+    if (serial !== S.threadSerial) return;
+    status(e.status === 404 ? '原帖已撤回、不可查看或被你隐藏。' : e.message);
   }
 }
 $('#thread-reply').addEventListener('submit', async (e) => {
@@ -382,7 +417,7 @@ $('#thread-reply').addEventListener('submit', async (e) => {
 async function proposeBoard() {
   const s = await hubState();
   if (!s.user) { location.href = loginURL(); return; }
-  if (!s.user.emailVerified) { status('验证邮箱之后才能申请开吧。<a href="me.html#account">去验证 ›</a>', true); return; }
+  if (!canParticipate(s.user)) { status('验证邮箱之后才能申请开吧。<a href="me.html#account">去验证 ›</a>', true); return; }
   $('#board-status').textContent = '';
   $('#board-dialog').showModal();
   $('#board-form').elements.name.focus();
@@ -517,6 +552,28 @@ document.addEventListener('click', async (e) => {
   if (like) { e.stopPropagation(); await toggleLike(like); return; }
   const star = t.closest('[data-star]');
   if (star) { e.stopPropagation(); await toggleStar(star); return; }
+  const accept = t.closest('[data-accept-reply]');
+  if (accept) {
+    accept.disabled = true;
+    try { await hubApi.accept(accept.dataset.acceptReply); await openThread(S.thread); $('#reply-status').textContent = '已采纳这条回答，原采纳记录会同步调整。'; }
+    catch (err) { $('#reply-status').textContent = err.message; }
+    finally { accept.disabled = false; }
+    return;
+  }
+  const creator = t.closest('[data-follow-creator]');
+  if (creator) {
+    e.stopPropagation();
+    creator.disabled = true;
+    try {
+      const enabled = creator.getAttribute('aria-pressed') !== 'true';
+      await hubApi.followCreator(creator.dataset.followCreator, enabled);
+      S.items.forEach((p) => { if (p.owner?.username === creator.dataset.followCreator) p.authorFollowed = enabled; });
+      if (S.lane === 'following') await load(); else renderFeed();
+      if (S.thread && $('#circle-thread').open) await openThread(S.thread);
+      status(enabled ? '已关注作者，新帖子会进入关注动态。' : '已取消关注作者。');
+    } catch (err) { status(err.message); } finally { creator.disabled = false; }
+    return;
+  }
   const rlike = t.closest('[data-reply-like]');
   if (rlike) { await toggleReplyLike(rlike); return; }
   if (t.closest('[data-propose]')) { await proposeBoard(); return; }
@@ -531,6 +588,7 @@ document.addEventListener('click', async (e) => {
       b.followed = !b.followed;
       renderBoards();
       renderBoardInfo();
+      if (S.lane === 'following') await load();
       if (b.followed) pop($('[data-follow-board]'));
     } catch (err) { status(err.message); }
     return;
@@ -571,9 +629,29 @@ document.addEventListener('keydown', (e) => {
 $('#circle-compose').addEventListener('click', compose);
 $('#circle-more').addEventListener('click', () => load(true));
 $('#circle-campus').addEventListener('change', () => { load(); loadTrends(); loadHot(); });
-$('#circle-search').addEventListener('submit', (e) => { e.preventDefault(); load(); scrollToEl($('#cs-feed-section')); });
 let typing;
-$('#circle-q').addEventListener('input', () => { clearTimeout(typing); typing = setTimeout(() => load(), 220); });
+$('#circle-search').addEventListener('submit', (e) => { e.preventDefault(); clearTimeout(typing); load(); scrollToEl($('#cs-feed-section')); });
+const scheduleSearch = (e) => {
+  clearTimeout(typing);
+  if (!e.isComposing) typing = setTimeout(() => load(), 220);
+};
+$('#circle-q').addEventListener('input', scheduleSearch);
+$('#circle-q').addEventListener('compositionstart', () => clearTimeout(typing));
+$('#circle-q').addEventListener('compositionend', scheduleSearch);
+attachSearchSuggestions($('#circle-q'), {
+  getItems: () => [
+    ...S.boards.map((board) => ({ id: `board:${board.id}`, board: board.id, title: board.name, text: board.description, meta: '主题吧' })),
+    ...[...S.searchPosts.values()].map((post) => ({ id: post.id, title: post.data?.title || '', text: [post.data?.summary, post.data?.body, ...(post.data?.tags || [])].filter(Boolean).join(' '), meta: boardName(post.data?.circle?.board) })),
+  ],
+  getTitle: (item) => item.title,
+  getText: (item) => item.text,
+  getMeta: (item) => item.meta,
+  onSelect: (item) => {
+    clearTimeout(typing);
+    if (item.board) { $('#circle-q').value = ''; selectBoard(item.board); }
+    else { load(); scrollToEl($('#cs-feed-section')); }
+  },
+});
 $('#board-propose').addEventListener('click', proposeBoard);
 $('#board-review').addEventListener('click', () => { renderProposals(); $('#board-review-dialog').showModal(); });
 
@@ -590,15 +668,16 @@ async function init() {
   if (S.user) {
     const a = $('[data-circle-avatar]');
     a.classList.add('is-user');
-    a.textContent = [...(S.user.name || S.user.username)][0].toUpperCase();
+    a.innerHTML = face(S.user);
   }
   if (!s.online) throw new Error('offline');
   const params = new URLSearchParams(location.search);
   if (params.get('q')) $('#circle-q').value = params.get('q');
   await loadBoards();
+  if(S.boards.some(b=>b.id===params.get('board')))S.board=params.get('board');
   await load();
   if (params.has('compose')) compose();
-  if (params.get('post')) await openThread(params.get('post'));
+  if (params.get('post')) await openThread(params.get('post'), null, params.get('reply'));
   loadProposals();
 }
 

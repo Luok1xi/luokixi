@@ -1260,46 +1260,7 @@ a.card:hover {
   opacity: 1;
 }
 
-/* ---------- 全站搜索（⌘K / Ctrl K） ---------- */
-
-.spot {
-  width: min(640px, calc(100vw - 24px));
-  margin-top: 10vh;
-}
-
-.spot-field {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--line-soft);
-}
-
-.spot-field svg {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: var(--fg-2);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.spot-field input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: none;
-  color: var(--fg);
-  font: inherit;
-  font-size: 21px;
-  font-weight: 500;
-}
-
-.spot-field input::placeholder {
-  color: var(--fg-3);
-}
+/* ---------- 键帽（快捷键提示） ---------- */
 
 .kbd {
   padding: 2px 7px;
@@ -1309,92 +1270,6 @@ a.card:hover {
   font-family: var(--font-num);
   font-size: 12px;
   white-space: nowrap;
-}
-
-.spot-list {
-  max-height: min(56vh, 520px);
-  margin: 0;
-  padding: 8px;
-  overflow-y: auto;
-  list-style: none;
-  overscroll-behavior: contain;
-}
-
-.spot-group {
-  padding: 12px 12px 6px;
-  color: var(--fg-2);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.spot-item a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  color: var(--fg);
-}
-
-.spot-item a:hover {
-  text-decoration: none;
-  background: var(--fill);
-}
-
-.spot-item[aria-selected="true"] a {
-  background: var(--accent);
-  color: #fff;
-}
-
-.spot-item[aria-selected="true"] .spot-sub {
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.spot-icon {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: hsl(var(--h, 220) 75% 52%);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.spot-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.spot-title {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.spot-sub {
-  color: var(--fg-2);
-  font-size: 13px;
-}
-
-.spot-empty {
-  padding: 36px 20px;
-  color: var(--fg-2);
-  text-align: center;
-}
-
-.spot-foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  padding: 10px 20px;
-  border-top: 1px solid var(--line-soft);
-  color: var(--fg-2);
-  font-size: 12px;
 }
 
 .gn-search {

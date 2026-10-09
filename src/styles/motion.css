@@ -180,6 +180,40 @@
   .as-today:hover > img { transform: scale(1.03); }
 }
 
+/* ---------- 校圈头条卡：鼠标移动时整张卡微微倾斜，高光跟着走（fx.js 的 tilt） ---------- */
+
+.fx-tilt,
+.fx-tilt.is-tilting {
+  transform-style: preserve-3d;
+  /* 弹簧负责连续跟手；避免每帧重新启动 CSS transition 造成拖尾。 */
+  transition: none;
+}
+
+.fx-tilt.is-settling {
+  will-change: transform;
+}
+
+.fx-tilt.is-settling .fx-sheen { will-change: transform, opacity; }
+/* Keep the translucent buttons during rotation without re-sampling their
+   backdrop on every 3D frame; normal glass returns when the card rests. */
+.fx-tilt.is-settling .as-get { backdrop-filter: none; -webkit-backdrop-filter: none; background-image: linear-gradient(125deg, #ffffff1a, #ffffff08); }
+
+.fx-sheen {
+  position: absolute;
+  inset: -50%;
+  z-index: 3;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0) 42%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease-out;
+}
+
+.fx-tilt.is-tilting .fx-sheen { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+  .fx-tilt .fx-sheen { opacity: 0; transition: none; }
+}
+
 /* ---------- 滚动：大区块进入视口时浮上来 ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -264,39 +298,7 @@
 
 @keyframes fx-shimmer { to { transform: translateX(100%); } }
 
-/* ---------- 全站搜索：打开时边框流过一圈彩光（Apple 智能的光晕），随后停成淡淡的一圈 ---------- */
-/* 彩色是一块旋转的锥形渐变，外层用遮罩只露出 2px 的边；动的只有旋转（transform） */
-
-.spot { isolation: isolate; }
-
-.spot-glow {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  overflow: hidden;
-  border-radius: inherit;
-  padding: 2px;
-  pointer-events: none;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: 0.45;
-}
-
-.spot-glow i {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 140%;
-  aspect-ratio: 1;
-  background: conic-gradient(from 0deg, var(--g1), var(--g2), var(--g3), var(--g4), var(--g1));
-  transform: translate(-50%, -50%);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .spot[open] .spot-glow { animation: fx-glow-settle 1200ms ease-out both; }
-  .spot[open] .spot-glow i { animation: fx-glow-spin 1200ms var(--ease-ios) both; }
-}
+/* ---------- 全站搜索（spotlight.css 的 .sl-glow）用的彩光圈关键帧 ---------- */
 
 @keyframes fx-glow-spin {
   from { transform: translate(-50%, -50%) rotate(0deg); }

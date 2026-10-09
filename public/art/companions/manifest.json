@@ -1,0 +1,116 @@
+{
+  "identityConfirmedByOwner": true,
+  "codex": "white-haired dragon girl",
+  "beikuang": "black-red campus girl",
+  "files": [
+    {
+      "file": "beikuang-chibi.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "8c3f79a6c9d3720188c9c5a8585ab0acc725b1606a580218f29da4a46ce7bdad",
+      "bytes": 2550233
+    },
+    {
+      "file": "beikuang-neutral.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "731e3e927384813e5ca1f2b5020eeb00740e42e771d00b6fc2612a44476d897e",
+      "bytes": 2363012
+    },
+    {
+      "file": "codex-angry.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "6628bf62c7c3d3f867bf90d3dfa52dc65837cfca1641399f794c12513dd74e22",
+      "bytes": 2624208
+    },
+    {
+      "file": "codex-awkward.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "c7fe704acf8ff98db4a1006751b89abf6a6b9ccea44ee49e53cb5d6e5a1045d7",
+      "bytes": 2303999
+    },
+    {
+      "file": "codex-composed.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "9c8c193a7de8e40f02d462d45f69099bbe03cd9e343dc1bd97e900344ecd1464",
+      "bytes": 2175317
+    },
+    {
+      "file": "codex-happy.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "2663094e0055443afd4203d2d7e591620debe7469a116da171c0c6847c22b6b9",
+      "bytes": 1795509
+    },
+    {
+      "file": "codex-neutral.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "1ed3517a08d82588b2cf13588b318e4d038646873c0e6e6cbf7f81ff075b33ef",
+      "bytes": 2554057
+    },
+    {
+      "file": "codex-reference.jpg",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "9e0d519c409257d435868a2d40fa42305bb1274bf4459cb04617c9ffe8c92e86",
+      "bytes": 107236
+    },
+    {
+      "file": "codex-sad.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "4e77525fdb16318e39c36e7e5763bd9c24b8a6e5deb6a4d40e520380970f15eb",
+      "bytes": 2503710
+    },
+    {
+      "file": "codex-think.png",
+      "source": "owner-supplied 2026-10-08",
+      "sha256": "e3b40a3bf7e200b65eab1459dbf793e4b41bbdf3eb2a591418464766e9faec13",
+      "bytes": 2285720
+    },
+    {
+      "file": "beikuang-happy-v2.png",
+      "source": "Built-in imagegen edit of owner full-body reference CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG; 2026-10-08",
+      "reference": "beikuang-neutral.png",
+      "expression": "happy",
+      "sha256": "2c9d911fa0ca69e6e3f1c0e0d5de6a4bf9669acfbbc7835d9d0d9cdd3f86d1f9",
+      "bytes": 1939703
+    },
+    {
+      "file": "beikuang-angry-v2.png",
+      "source": "Built-in imagegen edit of owner full-body reference CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG; 2026-10-08",
+      "reference": "beikuang-neutral.png",
+      "expression": "angry",
+      "sha256": "30d30453d3ddd26f66a5f5a735189bbb0eaeba0e5598ecb25af96c0fa35757e4",
+      "bytes": 1939473
+    },
+    {
+      "file": "beikuang-think-v2.png",
+      "source": "Built-in imagegen edit of owner full-body reference CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG; 2026-10-08",
+      "reference": "beikuang-neutral.png",
+      "expression": "think",
+      "sha256": "ee452a6291a295d0bcbbc2e41ff2f0c07bc03441404dd6869ae7f91f8ce45043",
+      "bytes": 1942578
+    },
+    {
+      "file": "beikuang-sad-v2.png",
+      "source": "Built-in imagegen edit of owner full-body reference CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG; 2026-10-08",
+      "reference": "beikuang-neutral.png",
+      "expression": "sad",
+      "sha256": "bcc37fb9b4f49b224b503ef33a2907de9260826440151992338ab814dc965cbf",
+      "bytes": 1950765
+    },
+    {
+      "file": "beikuang-awkward-v2.png",
+      "source": "Built-in imagegen edit of owner full-body reference CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG; 2026-10-08",
+      "reference": "beikuang-neutral.png",
+      "expression": "awkward",
+      "sha256": "801594e2f4ee342e124ea418d7fdd26e4be552ce82e7289a26ac3270fae35f40",
+      "bytes": 1940383
+    },
+    {
+      "file": "beikuang-surprised-v2.png",
+      "source": "Built-in imagegen edit of owner full-body reference CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG; 2026-10-08",
+      "reference": "beikuang-neutral.png",
+      "expression": "surprised",
+      "sha256": "d75166104ef5eea7a9907d02251321321b7d1fece6aef3c587a5a2db2e214d82",
+      "bytes": 1949577
+    }
+  ],
+  "beikuangReference": "First supplied image is the full-body design reference; second is a separate chibi illustration, never a full-body pose."
+}

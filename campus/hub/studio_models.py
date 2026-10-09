@@ -43,6 +43,8 @@ class StudioMessage(models.Model):
     body = models.TextField()
     tasks = models.JSONField(default=list)
     usage = models.JSONField(default=dict)
+    expression = models.CharField(max_length=16, default='neutral')
+    messages = models.JSONField(default=list)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:

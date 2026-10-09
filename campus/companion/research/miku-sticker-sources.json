@@ -1,0 +1,124 @@
+{
+  "repo": "r48n34/sekai-sticker-v2",
+  "commit": "47afd1739d26970c28edb174e652e6fb26009dbc",
+  "checkedAt": "2026-09-21",
+  "assets": [
+    {
+      "id": "miku_01",
+      "label": "Miku 笑着挥手，打招呼",
+      "tags": "问候 在吗 再见",
+      "file": "public/stickers/miku_01.png",
+      "sha256": "5e9e057a2c763c168617835dd5458876042cffd2de5a8c299b2e86c1eedaeb33",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_01.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_02",
+      "label": "Miku 开心比耶，周围有音符",
+      "tags": "开心 音乐 庆祝",
+      "file": "public/stickers/miku_02.png",
+      "sha256": "3ef8e52a87045003cf5ef85e84d831a07670b326c0f52e820329de4832e86797",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_02.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_03",
+      "label": "Miku 握着小拳头，期待地看着你",
+      "tags": "期待 加油 认真",
+      "file": "public/stickers/miku_03.png",
+      "sha256": "3d3c76f264dbe71522b74091cafdf89f0d74b7506b9b472c3ee01c399ad9595c",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_03.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_04",
+      "label": "Miku 眨眼竖拇指",
+      "tags": "赞 认同 做到了",
+      "file": "public/stickers/miku_04.png",
+      "sha256": "f87c67fda8f538e7ad8c0366cbc1f8e010083a0fc12e019eda79145b8e918d40",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_04.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_06",
+      "label": "Miku 睁大眼睛，惊讶捂嘴",
+      "tags": "惊讶 不敢相信",
+      "file": "public/stickers/miku_06.png",
+      "sha256": "0c8d6d3a4b4fab122dddf88b8c4f6e3c803ecb1d544913aa9046d86db78abc35",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_06.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_07",
+      "label": "Miku 红着脸托腮，闭眼微笑",
+      "tags": "害羞 喜欢 温柔",
+      "file": "public/stickers/miku_07.png",
+      "sha256": "5b920f10926f78fb7e79b6b6771ef5c4c88f066c742ed0d33083871404380325",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_07.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_08",
+      "label": "Miku 皱眉闭眼，手抵下巴",
+      "tags": "困惑 思考 苦恼",
+      "file": "public/stickers/miku_08.png",
+      "sha256": "49a830884163aafd5c543bdd37cde8b0992821d9f0a157a5d91e0502b66d2e83",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_08.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_09",
+      "label": "Miku 双手合在脸旁，安静地笑",
+      "tags": "开心 感谢 温柔",
+      "file": "public/stickers/miku_09.png",
+      "sha256": "f8003e574b1bb1eb6e2b998a93a9b4d72a4de310bda8d912a13a64c753cc8e75",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_09.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_11",
+      "label": "Miku 流汗合掌，慌张为难",
+      "tags": "抱歉 尴尬 为难",
+      "file": "public/stickers/miku_11.png",
+      "sha256": "2dc5058700cc4ca27eec911589b4387ec3d3ecc25cf58d6ca10af36a7f17e2ce",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_11.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_12",
+      "label": "Miku 笑着眨眼，小幅挥手",
+      "tags": "招呼 俏皮",
+      "file": "public/stickers/miku_12.png",
+      "sha256": "86f1c21c59497c18190f3ef2f46b4b9fb0fe8f25b9b86666d10a4578c821b056",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_12.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_13",
+      "label": "Miku 把麦克风递过来",
+      "tags": "音乐 轮到你 听你说",
+      "file": "public/stickers/miku_13.png",
+      "sha256": "2b21b48ab2a96a7e21ef0d947ca7a2fe3ba099c3ec73a45bac486bbda84cbf3f",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_13.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_14",
+      "label": "Miku 红着脸大笑，张开手臂",
+      "tags": "欢迎 拥抱 开心",
+      "file": "public/stickers/miku_14.png",
+      "sha256": "eda3013dcdb19af1ec74f80e0d23674520a895be573863f2536989018601ee46",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_14.png",
+      "review": "visually inspected"
+    },
+    {
+      "id": "miku_16",
+      "label": "灰发异色瞳的 Miku，手边有爱心",
+      "tags": "爱心 喜欢 安静",
+      "file": "public/stickers/miku_16.png",
+      "sha256": "5a560aa6965998d8397586e5f5252910a773dcd1db8bd68abc2e28f2ea33c2ac",
+      "source": "https://raw.githubusercontent.com/r48n34/sekai-sticker-v2/47afd1739d26970c28edb174e652e6fb26009dbc/public/img/Miku/Miku_16.png",
+      "review": "visually inspected"
+    }
+  ]
+}

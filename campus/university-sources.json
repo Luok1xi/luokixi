@@ -1,0 +1,1091 @@
+{
+  "version": 1,
+  "verifiedAt": "2026-10-07",
+  "groups": {
+    "985": "985 高校",
+    "211": "211 高校",
+    "strong-non-211": "特色与优势高校"
+  },
+  "policy": {
+    "defaultVisibility": "private",
+    "publicIndex": "metadata-and-source-links",
+    "rightsScope": "file-overrides-source",
+    "thirdPartyContent": "Do not infer a teacher paper license from repository code license.",
+    "schoolGroups": "Historical 985/211 memberships; strong-non-211 is product grouping, not an official ranking."
+  },
+  "sources": [
+    {
+      "id": "zju-icicles",
+      "school": {
+        "id": "zju",
+        "name": "浙江大学",
+        "tier": "985",
+        "aliases": [
+          "浙大",
+          "ZJU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "浙江大学课程攻略共享计划",
+      "type": "github",
+      "repo": "QSCTech/zju-icicles",
+      "branch": "master",
+      "url": "https://github.com/QSCTech/zju-icicles",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/QSCTech/zju-icicles",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "CC-BY-NC-SA-4.0",
+        "licenseUrl": "https://github.com/QSCTech/zju-icicles#readme",
+        "scope": "mixed",
+        "basis": "README 仅将贡献者原创内容按 CC BY-NC-SA 授权，其他内容归各作者。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "高等数学",
+        "线性代数",
+        "数据结构",
+        "概率论与数理统计",
+        "数字逻辑设计"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "{course}/**"
+      ]
+    },
+    {
+      "id": "thu-course",
+      "school": {
+        "id": "thu",
+        "name": "清华大学",
+        "tier": "985",
+        "aliases": [
+          "清华",
+          "THU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "清华大学计算机系课程攻略",
+      "type": "github",
+      "repo": "PKUanonym/REKCARC-TSC-UHT",
+      "branch": "master",
+      "url": "https://github.com/PKUanonym/REKCARC-TSC-UHT",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/PKUanonym/REKCARC-TSC-UHT",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "CC-BY-SA-4.0",
+        "licenseUrl": "https://github.com/PKUanonym/REKCARC-TSC-UHT#readme",
+        "scope": "mixed",
+        "basis": "README 明确贡献者编写内容按 CC BY-SA 4.0 授权；其他内容归各作者。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "微积分",
+        "线性代数",
+        "数据结构",
+        "计算机组成原理",
+        "操作系统"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "大一上/{course}/**",
+        "大一下/{course}/**",
+        "大一小学期/{course}/**",
+        "大二上/{course}/**",
+        "大二下/{course}/**",
+        "大二小学期/{course}/**",
+        "大三上/{course}/**",
+        "大三下/{course}/**",
+        "大三小学期/{course}/**",
+        "大四上/{course}/**",
+        "大四下/{course}/**"
+      ]
+    },
+    {
+      "id": "pku-lib",
+      "school": {
+        "id": "pku",
+        "name": "北京大学",
+        "tier": "985",
+        "aliases": [
+          "北大",
+          "PKU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "北京大学课程资料民间整理",
+      "type": "github",
+      "repo": "lib-pku/libpku",
+      "branch": "master",
+      "url": "https://github.com/lib-pku/libpku",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/lib-pku/libpku",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "",
+        "licenseUrl": "https://github.com/lib-pku/libpku#readme",
+        "scope": "mixed",
+        "basis": "README 声明资料来自网络且权利归原作者；不是校方题库或统一开放许可。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "数学分析",
+        "高等代数",
+        "概率论",
+        "离散数学",
+        "通识选修"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "专业课/{course}/**",
+        "通选课/*/{course}/**",
+        "暑期课/{course}/**",
+        "英语课/{course}/**"
+      ]
+    },
+    {
+      "id": "ustc-course",
+      "school": {
+        "id": "ustc",
+        "name": "中国科学技术大学",
+        "tier": "985",
+        "aliases": [
+          "中科大",
+          "中国科大",
+          "USTC"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "中国科学技术大学学生原创课程资源",
+      "type": "github",
+      "repo": "USTC-Resource/USTC-Course",
+      "branch": "master",
+      "url": "https://github.com/USTC-Resource/USTC-Course",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/USTC-Resource/USTC-Course",
+      "rights": {
+        "mode": "download-allowed",
+        "access": "public",
+        "reuse": "open-license",
+        "license": "CC-BY-NC-SA-4.0",
+        "licenseUrl": "https://github.com/USTC-Resource/USTC-Course#readme",
+        "scope": "repository-default",
+        "basis": "README 仅接收学生原创或获授权资源，未另有声明的资料按 CC BY-NC-SA 4.0 授权。",
+        "privateStudy": "public-file-import",
+        "redistribution": "license-conditions"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "代数结构",
+        "计算机网络",
+        "数据结构",
+        "算法基础",
+        "数理逻辑"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "{course}/**"
+      ]
+    },
+    {
+      "id": "sjtu-courses",
+      "school": {
+        "id": "sjtu",
+        "name": "上海交通大学",
+        "tier": "985",
+        "aliases": [
+          "上海交大",
+          "上交",
+          "SJTU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "上海交通大学课程资料分享",
+      "type": "github",
+      "repo": "kxxwz/SJTU-Courses",
+      "branch": "master",
+      "url": "https://github.com/kxxwz/SJTU-Courses",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/kxxwz/SJTU-Courses",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "CC-BY-SA-4.0",
+        "licenseUrl": "https://github.com/kxxwz/SJTU-Courses#readme",
+        "scope": "mixed",
+        "basis": "README 将贡献者编写部分按 CC BY-SA 4.0 授权，其他部分归原作者；另声明禁止商业用途，保留原来源说明。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "数学分析",
+        "线性代数",
+        "数据结构",
+        "计算机系统工程",
+        "人工智能"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "{course}/**"
+      ],
+      "courseCodePrefix": true
+    },
+    {
+      "id": "sysu-exams",
+      "school": {
+        "id": "sysu",
+        "name": "中山大学",
+        "tier": "985",
+        "aliases": [
+          "中大",
+          "SYSU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "中山大学历年试卷与复习资料",
+      "type": "github",
+      "repo": "sysuexam/SYSU-Exam",
+      "branch": "master",
+      "url": "https://github.com/sysuexam/SYSU-Exam",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/sysuexam/SYSU-Exam",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "MIT",
+        "licenseUrl": "https://github.com/sysuexam/SYSU-Exam#readme",
+        "scope": "mixed",
+        "basis": "仓库 LICENSE/README 声明 MIT；教师真卷的权利仍需逐文件核实，不能把仓库许可当成校方授权。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "数学分析",
+        "高等数学",
+        "数据结构",
+        "操作系统",
+        "数据库系统原理"
+      ],
+      "sampleFiles": [
+        {
+          "path": "操作系统/2008：操作系统（A）.pdf",
+          "url": "https://github.com/sysuexam/SYSU-Exam/blob/master/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2008%EF%BC%9A%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%88A%EF%BC%89.pdf",
+          "downloadUrl": "https://raw.githubusercontent.com/sysuexam/SYSU-Exam/master/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2008%EF%BC%9A%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%88A%EF%BC%89.pdf",
+          "title": "2008 年操作系统 A 卷",
+          "course": "操作系统",
+          "format": "pdf",
+          "materialType": "exam",
+          "verifiedAt": "2026-10-07",
+          "year": "2008",
+          "paperVariant": "A",
+          "bundleKey": "sysu-os-2008-a",
+          "evidenceUrl": "https://github.com/sysuexam/SYSU-Exam/tree/master/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F"
+        },
+        {
+          "path": "操作系统/2008：操作系统（参考答案）.pdf",
+          "url": "https://github.com/sysuexam/SYSU-Exam/blob/master/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2008%EF%BC%9A%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%88%E5%8F%82%E8%80%83%E7%AD%94%E6%A1%88%EF%BC%89.pdf",
+          "downloadUrl": "https://raw.githubusercontent.com/sysuexam/SYSU-Exam/master/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/2008%EF%BC%9A%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%EF%BC%88%E5%8F%82%E8%80%83%E7%AD%94%E6%A1%88%EF%BC%89.pdf",
+          "title": "2008 年操作系统参考答案",
+          "course": "操作系统",
+          "format": "pdf",
+          "materialType": "answer",
+          "verifiedAt": "2026-10-07",
+          "year": "2008",
+          "bundleKey": "sysu-os-2008-a"
+        }
+      ],
+      "coursePathTemplates": [
+        "{course}/**"
+      ]
+    },
+    {
+      "id": "uestc-course",
+      "school": {
+        "id": "uestc",
+        "name": "电子科技大学",
+        "tier": "985",
+        "aliases": [
+          "成电",
+          "UESTC"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "电子科技大学课程资料共享",
+      "type": "github",
+      "repo": "Xovee/uestc-course",
+      "branch": "main",
+      "url": "https://github.com/Xovee/uestc-course",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/Xovee/uestc-course",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "CC-BY-NC-SA-4.0",
+        "licenseUrl": "https://github.com/Xovee/uestc-course#readme",
+        "scope": "mixed",
+        "basis": "仓库 LICENSE 为 CC BY-NC-SA 4.0；贡献内容与第三方课程文件混合，文件级来源优先。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**",
+        "课程目录/0-模板/**",
+        "课程目录/0-电子科技大学 PPT 模板/**"
+      ],
+      "courseHints": [
+        "高等数学",
+        "线性代数",
+        "概率论与数理统计",
+        "数字逻辑设计",
+        "电路分析"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "课程目录/{course}/**",
+        "考研目录/{course}/**"
+      ]
+    },
+    {
+      "id": "nju-review",
+      "school": {
+        "id": "nju",
+        "name": "南京大学",
+        "tier": "985",
+        "aliases": [
+          "南大",
+          "NJU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "南京大学课程复习资料",
+      "type": "github",
+      "repo": "idealclover/NJU-Review-Materials",
+      "branch": "master",
+      "url": "https://github.com/idealclover/NJU-Review-Materials",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/idealclover/NJU-Review-Materials",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "CC-BY-NC-SA-4.0",
+        "licenseUrl": "https://github.com/idealclover/NJU-Review-Materials#readme",
+        "scope": "mixed",
+        "basis": "README 仅对课程笔记按 CC BY-NC-SA 4.0 授权，课程课件权利归教师。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "数学分析",
+        "高等代数",
+        "概率论",
+        "运筹学",
+        "通识选修"
+      ],
+      "sampleFiles": [
+        {
+          "path": "数学系/数学分析一/数学分析期末试题.pdf",
+          "url": "https://github.com/idealclover/NJU-Review-Materials/blob/master/%E6%95%B0%E5%AD%A6%E7%B3%BB/%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90%E4%B8%80/%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90%E6%9C%9F%E6%9C%AB%E8%AF%95%E9%A2%98.pdf",
+          "downloadUrl": "https://raw.githubusercontent.com/idealclover/NJU-Review-Materials/master/%E6%95%B0%E5%AD%A6%E7%B3%BB/%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90%E4%B8%80/%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90%E6%9C%9F%E6%9C%AB%E8%AF%95%E9%A2%98.pdf",
+          "title": "数学分析一期末试题",
+          "course": "数学分析",
+          "format": "pdf",
+          "materialType": "exam",
+          "verifiedAt": "2026-10-07",
+          "evidenceUrl": "https://github.com/idealclover/NJU-Review-Materials/tree/master/%E6%95%B0%E5%AD%A6%E7%B3%BB/%E6%95%B0%E5%AD%A6%E5%88%86%E6%9E%90%E4%B8%80"
+        }
+      ],
+      "coursePathTemplates": [
+        "数学系/{course}/**",
+        "计算机科学与技术系/{course}/**",
+        "电子科学与工程学院/{course}/**",
+        "商学院/{course}/**",
+        "通修课/{course}/**",
+        "通识课/{course}/**"
+      ],
+      "collegeAliases": {
+        "数学系": [
+          "数学系"
+        ],
+        "计算机科学与技术系": [
+          "计算机科学与技术系"
+        ],
+        "电子科学与工程学院": [
+          "电子科学与工程学院"
+        ],
+        "商学院": [
+          "商学院"
+        ]
+      }
+    },
+    {
+      "id": "bupt-neowiki",
+      "school": {
+        "id": "bupt",
+        "name": "北京邮电大学",
+        "tier": "211",
+        "aliases": [
+          "北邮",
+          "BUPT",
+          "BYR"
+        ]
+      },
+      "groups": [
+        "211"
+      ],
+      "name": "北邮 BYR Docs 维基真题",
+      "type": "github",
+      "repo": "byrdocs/byrdocs-neowiki",
+      "branch": "master",
+      "url": "https://github.com/byrdocs/byrdocs-neowiki",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/byrdocs/byrdocs-neowiki",
+      "rights": {
+        "mode": "download-allowed",
+        "access": "public",
+        "reuse": "open-license",
+        "license": "CC-BY-NC-SA-4.0",
+        "licenseUrl": "https://github.com/byrdocs/byrdocs-neowiki#readme",
+        "scope": "repository-default",
+        "basis": "README 明确 exams/ 试卷内容采用 CC BY-NC-SA 4.0；代码采用 MIT，两者分开。",
+        "privateStudy": "public-file-import",
+        "redistribution": "license-conditions"
+      },
+      "include": [
+        "exams/**"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "数据结构与算法",
+        "高等数学",
+        "线性代数",
+        "大学物理",
+        "编译原理与技术"
+      ],
+      "sampleFiles": [
+        {
+          "path": "exams/25-26-2-数据结构与算法-期末/index.mdx",
+          "url": "https://github.com/byrdocs/byrdocs-neowiki/blob/master/exams/25-26-2-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%9C%9F%E6%9C%AB/index.mdx",
+          "downloadUrl": "https://raw.githubusercontent.com/byrdocs/byrdocs-neowiki/master/exams/25-26-2-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%9C%9F%E6%9C%AB/index.mdx",
+          "title": "2025—2026 第二学期数据结构与算法期末",
+          "course": "数据结构与算法",
+          "format": "mdx",
+          "materialType": "exam",
+          "verifiedAt": "2026-10-07",
+          "year": "2025-2026",
+          "term": "2",
+          "stage": "final",
+          "evidenceUrl": "https://wiki.byrdocs.org/exam/25-26-2-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95-%E6%9C%9F%E6%9C%AB/",
+          "rights": {
+            "reuse": "open-license",
+            "license": "CC-BY-NC-SA-4.0",
+            "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+          }
+        }
+      ],
+      "coursePathTemplates": [
+        "exams/{course}/**"
+      ],
+      "courseDirectoryFormat": "academic-exam"
+    },
+    {
+      "id": "xdu-cs",
+      "school": {
+        "id": "xdu",
+        "name": "西安电子科技大学",
+        "tier": "211",
+        "aliases": [
+          "西电",
+          "XDU"
+        ]
+      },
+      "groups": [
+        "211"
+      ],
+      "name": "西安电子科技大学计算机课程资源",
+      "type": "github",
+      "repo": "SincereXIA/XidianCS",
+      "branch": "master",
+      "url": "https://github.com/SincereXIA/XidianCS",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/SincereXIA/XidianCS",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "CC-BY-NC-SA-4.0",
+        "licenseUrl": "https://github.com/SincereXIA/XidianCS#readme",
+        "scope": "mixed",
+        "basis": "README 将原创笔记及上机作业按 CC BY-NC-SA 4.0 授权，讲义、PPT 和试卷归任课老师。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "线性代数",
+        "离散数学",
+        "数据结构",
+        "操作系统",
+        "数据库系统"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "专业选修课/{course}/**",
+        "专业核心课/{course}/**",
+        "专业平台基础课/{course}/**",
+        "基础课/{course}/**",
+        "集中实验环节/{course}/**"
+      ]
+    },
+    {
+      "id": "hdu-exams",
+      "school": {
+        "id": "hdu",
+        "name": "杭州电子科技大学",
+        "tier": "strong-non-211",
+        "aliases": [
+          "杭电",
+          "HDU"
+        ]
+      },
+      "groups": [
+        "strong-non-211"
+      ],
+      "name": "杭州电子科技大学期末试卷",
+      "type": "github",
+      "repo": "HDU-Course/HDU-FinalExamPaper",
+      "branch": "main",
+      "url": "https://github.com/HDU-Course/HDU-FinalExamPaper",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/HDU-Course/HDU-FinalExamPaper",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "",
+        "licenseUrl": "https://github.com/HDU-Course/HDU-FinalExamPaper#readme",
+        "scope": "mixed",
+        "basis": "README 说明为学生收集分享的计算机学院试卷，未给统一开放内容许可。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "**/*.pdf",
+        "**/*.doc",
+        "**/*.docx",
+        "**/*.md",
+        "**/*.markdown",
+        "**/*.mdx",
+        "**/*.tex",
+        "**/*.txt",
+        "**/*.png",
+        "**/*.jpg",
+        "**/*.jpeg"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**",
+        "itmo/**"
+      ],
+      "courseHints": [
+        "数据结构",
+        "计算机组成原理",
+        "计算机网络",
+        "编译原理",
+        "操作系统"
+      ],
+      "sampleFiles": [
+        {
+          "path": "数据结构/17-18第二学期A卷（有答案）.pdf",
+          "url": "https://github.com/HDU-Course/HDU-FinalExamPaper/blob/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/17-18%E7%AC%AC%E4%BA%8C%E5%AD%A6%E6%9C%9FA%E5%8D%B7%EF%BC%88%E6%9C%89%E7%AD%94%E6%A1%88%EF%BC%89.pdf",
+          "downloadUrl": "https://raw.githubusercontent.com/HDU-Course/HDU-FinalExamPaper/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/17-18%E7%AC%AC%E4%BA%8C%E5%AD%A6%E6%9C%9FA%E5%8D%B7%EF%BC%88%E6%9C%89%E7%AD%94%E6%A1%88%EF%BC%89.pdf",
+          "title": "2017—2018 第二学期数据结构 A 卷及答案",
+          "course": "数据结构",
+          "format": "pdf",
+          "materialType": "exam",
+          "verifiedAt": "2026-10-07",
+          "year": "2017-2018",
+          "term": "2",
+          "paperVariant": "A",
+          "hasAnswers": true,
+          "evidenceUrl": "https://github.com/HDU-Course/HDU-FinalExamPaper/tree/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"
+        },
+        {
+          "path": "数据结构/17-18-1试卷.doc",
+          "url": "https://github.com/HDU-Course/HDU-FinalExamPaper/blob/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/17-18-1%E8%AF%95%E5%8D%B7.doc",
+          "downloadUrl": "https://raw.githubusercontent.com/HDU-Course/HDU-FinalExamPaper/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/17-18-1%E8%AF%95%E5%8D%B7.doc",
+          "title": "2017—2018 第一学期数据结构原卷",
+          "course": "数据结构",
+          "format": "doc",
+          "materialType": "exam",
+          "verifiedAt": "2026-10-07",
+          "year": "2017-2018",
+          "term": "1",
+          "bundleKey": "hdu-data-structure-2017-2018-1"
+        },
+        {
+          "path": "数据结构/17-18-1-答案.doc",
+          "url": "https://github.com/HDU-Course/HDU-FinalExamPaper/blob/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/17-18-1-%E7%AD%94%E6%A1%88.doc",
+          "downloadUrl": "https://raw.githubusercontent.com/HDU-Course/HDU-FinalExamPaper/main/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/17-18-1-%E7%AD%94%E6%A1%88.doc",
+          "title": "2017—2018 第一学期数据结构答案",
+          "course": "数据结构",
+          "format": "doc",
+          "materialType": "answer",
+          "verifiedAt": "2026-10-07",
+          "year": "2017-2018",
+          "term": "1",
+          "bundleKey": "hdu-data-structure-2017-2018-1"
+        }
+      ],
+      "coursePathTemplates": [
+        "{course}/**"
+      ]
+    },
+    {
+      "id": "njupt-general",
+      "school": {
+        "id": "njupt",
+        "name": "南京邮电大学",
+        "tier": "strong-non-211",
+        "aliases": [
+          "南邮",
+          "NJUPT"
+        ]
+      },
+      "groups": [
+        "strong-non-211"
+      ],
+      "name": "南京邮电大学通识与基础课资料",
+      "type": "github",
+      "repo": "NJUPTFreeExams/NJUPT-General-Free-Exams",
+      "branch": "master",
+      "url": "https://github.com/NJUPTFreeExams/NJUPT-General-Free-Exams",
+      "provenance": "student-maintained",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://github.com/NJUPTFreeExams/NJUPT-General-Free-Exams",
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "",
+        "licenseUrl": "https://github.com/NJUPTFreeExams/NJUPT-General-Free-Exams#readme",
+        "scope": "mixed",
+        "basis": "项目自述为计算机学院学生建立的课程资料共享平台；当前主页未声明统一开放内容许可。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "include": [
+        "public/**"
+      ],
+      "exclude": [
+        ".git/**",
+        ".github/**",
+        "node_modules/**",
+        "**/node_modules/**",
+        "**/LICENSE*",
+        "**/README*",
+        "**/教材/**",
+        "**/电子书/**",
+        "**/books/**"
+      ],
+      "courseHints": [
+        "高等数学",
+        "大学物理",
+        "数据结构",
+        "离散数学",
+        "中国文化概论"
+      ],
+      "sampleFiles": [],
+      "coursePathTemplates": [
+        "public/{course}/**"
+      ]
+    },
+    {
+      "id": "pku-calculus-wang-2021",
+      "school": {
+        "id": "pku",
+        "name": "北京大学",
+        "tier": "985",
+        "aliases": [
+          "北大",
+          "PKU"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "北京大学王家军高等数学 A 公开作业",
+      "type": "official-page",
+      "url": "https://math.pku.edu.cn/teachers/wangjj/2021fall/index.html",
+      "provenance": "university-official",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://math.pku.edu.cn/teachers/wangjj/2021fall/index.html",
+      "courseHints": [
+        "高等数学A"
+      ],
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "",
+        "licenseUrl": "https://math.pku.edu.cn/teachers/wangjj/2021fall/index.html",
+        "scope": "public-teaching",
+        "basis": "公开教学资料直接链接，未声明开放再发布许可。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "sampleFiles": [
+        {
+          "path": "hw01.pdf",
+          "url": "https://math.pku.edu.cn/teachers/wangjj/2021fall/hw01.pdf",
+          "downloadUrl": "https://math.pku.edu.cn/teachers/wangjj/2021fall/hw01.pdf",
+          "title": "高等数学 A 2021 秋季作业 1",
+          "course": "高等数学A",
+          "format": "pdf",
+          "materialType": "exercise",
+          "year": "2021",
+          "questionCount": 8,
+          "verifiedAt": "2026-10-07",
+          "evidenceUrl": "https://math.pku.edu.cn/teachers/wangjj/2021fall/index.html",
+          "verification": "课程页链接与搜索引擎PDF正文已核实；web工具直接下载曾超时，应爬虫实测重试。"
+        }
+      ],
+      "status": "registered",
+      "reason": "html-collector-not-enabled"
+    },
+    {
+      "id": "ustc-qualification-samples",
+      "school": {
+        "id": "ustc",
+        "name": "中国科学技术大学",
+        "tier": "985",
+        "aliases": [
+          "中科大",
+          "中国科大",
+          "USTC"
+        ]
+      },
+      "groups": [
+        "985",
+        "211"
+      ],
+      "name": "中国科学技术大学数学博士资格考试公开样卷",
+      "type": "official-page",
+      "url": "https://math.ustc.edu.cn/2013/0409/c32583a393685/pagem.htm",
+      "provenance": "university-official",
+      "verifiedAt": "2026-10-07",
+      "evidenceUrl": "https://math.ustc.edu.cn/2013/0409/c32583a393685/pagem.htm",
+      "courseHints": [
+        "组合数学",
+        "图论",
+        "数值计算",
+        "分析学"
+      ],
+      "rights": {
+        "mode": "private-study",
+        "access": "public",
+        "reuse": "needs-review",
+        "license": "",
+        "licenseUrl": "https://math.ustc.edu.cn/2013/0409/c32583a393685/pagem.htm",
+        "scope": "public-teaching",
+        "basis": "公开教学资料直接链接，未声明开放再发布许可。",
+        "privateStudy": "public-file-import",
+        "redistribution": "file-level-review"
+      },
+      "sampleFiles": [
+        {
+          "path": "ad9573b9-8a57-4858-9288-120d5d04078b.pdf",
+          "url": "https://math.ustc.edu.cn/_upload/article/files/11/bf/a6749049470f9c0731bc2275a29b/ad9573b9-8a57-4858-9288-120d5d04078b.pdf",
+          "downloadUrl": "https://math.ustc.edu.cn/_upload/article/files/11/bf/a6749049470f9c0731bc2275a29b/ad9573b9-8a57-4858-9288-120d5d04078b.pdf",
+          "title": "中国科学技术大学组合与图论博士资格考试样题",
+          "course": "组合与图论",
+          "format": "pdf",
+          "materialType": "sample-exam",
+          "questionCount": 10,
+          "pages": 2,
+          "verifiedAt": "2026-10-07",
+          "verification": "web工具已成功读取2页PDF正文，确认10道编号题。"
+        }
+      ],
+      "status": "registered",
+      "reason": "html-collector-not-enabled"
+    }
+  ]
+}

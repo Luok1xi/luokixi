@@ -4,7 +4,8 @@ from datetime import timedelta
 from decimal import Decimal, ROUND_HALF_UP
 from urllib.parse import urlsplit
 from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Q, Value, When
+from .search_matching import text_score
 from django.utils import timezone
 from django.utils.crypto import salted_hmac
 from django.utils.dateparse import parse_date
@@ -159,6 +160,21 @@ def case_data(case):
             'body': case.body, 'state': case.state, 'resolution': case.resolution, 'created': case.created}
 
 
+def search_directory(query, term):
+    # Public directory fields only. Exact matches beyond the bounded fuzzy pool
+    # remain reachable; active/visibility predicates are applied by the caller.
+    fields = ('pk', 'name', 'faculty')
+    candidates = {str(row['pk']): row for row in query.values(*fields)[:2000]}
+    for row in query.filter(Q(name__icontains=term) | Q(faculty__icontains=term)).values(*fields)[:2000]:
+        candidates[str(row['pk'])] = row
+    scored = [(text_score(term,row['name'],keywords=row['faculty']),row['pk']) for row in candidates.values()]
+    matches = sorted(((score,key) for score,key in scored if score > 0),key=lambda row:(-row[0],str(row[1])))
+    if not matches:
+        return query.none()
+    return query.filter(pk__in=[key for _,key in matches]).annotate(search_order=Case(
+        *(When(pk=key,then=Value(i)) for i,(_,key) in enumerate(matches)),output_field=IntegerField())).order_by('search_order','name','pk')
+
+
 def get(request, route):
     user, q = request.user, request.GET
     parts = route.split('/')
@@ -166,7 +182,7 @@ def get(request, route):
         query = Teacher.objects.filter(active=True).order_by('name', 'id')
         term = text(q.get('q', ''), 100)
         if term:
-            query = query.filter(Q(name__icontains=term) | Q(faculty__icontains=term))
+            query = search_directory(query, term)
         return page(query, request, teacher_data)
     if parts[0] == 'teachers' and len(parts) == 2:
         t = one(Teacher, parts[1], active=True)
@@ -176,7 +192,7 @@ def get(request, route):
         query = GuideCourse.objects.order_by('name', 'id')
         term = text(q.get('q', ''), 100)
         if term:
-            query = query.filter(Q(name__icontains=term) | Q(faculty__icontains=term))
+            query = search_directory(query, term)
         return page(query, request, course_data)
     if parts[0] == 'courses' and len(parts) == 2:
         return course_data(one(GuideCourse, parts[1]), user, True)
@@ -306,6 +322,9 @@ def moderate(user, review, body):
     r.save()
     CourseReviewVersion.objects.filter(review=r, number=r.revision).update(state=r.state, note=note)
     Audit.objects.create(actor=user, action='review-' + decision, target=str(r.pk), detail={'revision': r.revision, 'note': note})
+    if decision == 'approve':
+        from .learning_follow import on_review_publish
+        on_review_publish(r)
     notification(r, 'review-result', r.revision, f'你的评价已{"通过" if decision == "approve" else "退回"}：{note}')
     return review_data(r, user, True)
 

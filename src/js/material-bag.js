@@ -1,6 +1,6 @@
 import { zip, strToU8 } from 'fflate';
 export const MAX_BYTES=100*1024*1024;
-export function localFileURL(value,base=location.href){const u=new URL(value,base);if(u.origin!==new URL(base).origin||!/^\/(?:api\/file\/[\w-]+|api\/hub\/uploads\/[\da-f-]+\/file|files\/[\w/.-]+)$/.test(u.pathname))throw Error('这份资料需前往原站，不能直接打包。');return u.href;}
+export function localFileURL(value,base=location.href){const u=new URL(value,base);if(u.origin!==new URL(base).origin||!/^\/(?:api\/file\/[\w-]+|api\/hub\/uploads\/[\da-f-]+\/file|api\/hub\/reader\/entry\/[\da-f-]+\/download|api\/hub\/question-papers\/(?:[\da-f-]+|collected\/(?:ub-[\da-f]{24}|openstax-psychology2e-ch1))\/(?:text|json)|files\/[\w/.-]+)$/.test(u.pathname))throw Error('这份资料需前往原站，不能直接打包。');return u.href;}
 export const fileName=s=>String(s).replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,115).replace(/[. ]+$/g,'')||'资料';
 export async function buildMaterialZip(items,{signal,onProgress=()=>{},fetcher=fetch}={}) {
  if(!items.length||items.length>30)throw Error('请选择 1 至 30 份资料。');
@@ -9,7 +9,7 @@ export async function buildMaterialZip(items,{signal,onProgress=()=>{},fetcher=f
   signal?.throwIfAborted();const url=localFileURL(item.url);if(seen.has(url))continue;seen.add(url);
   const r=await fetcher(url,{signal,credentials:'same-origin'});
   if(!r.ok)throw Error(`“${item.title}”下载失败 (${r.status})；没有生成不完整的压缩包。`);
-  if(/text\/html|application\/json/.test(r.headers.get('content-type')||''))throw Error(`“${item.title}”返回了网页，请先检查文件。`);
+  if(/text\/html/.test(r.headers.get('content-type')||'')||(/application\/json/.test(r.headers.get('content-type')||'')&&!(/\/question-papers\//.test(new URL(url).pathname)&&new URL(url).pathname.endsWith('/json')&&/attachment/i.test(r.headers.get('content-disposition')||''))))throw Error(`“${item.title}”返回了网页，请先检查文件。`);
   const size=Number(r.headers.get('content-length')||0);if(bytes+size>MAX_BYTES)throw Error('所选文件超过 100 MB，请分批下载。');
   const reader=r.body.getReader(),chunks=[];let count=0;
   try{while(true){signal?.throwIfAborted();const {done,value}=await reader.read();if(done)break;count+=value.length;bytes+=value.length;if(bytes>MAX_BYTES)throw Error('所选文件超过 100 MB，请分批下载。');chunks.push(value);onProgress({done:manifest.length,total:items.length,bytes,title:item.title});}}catch(e){await reader.cancel();throw e;}

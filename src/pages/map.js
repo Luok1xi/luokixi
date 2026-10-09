@@ -1,3 +1,5 @@
+import { fuzzySearch, scoreSearchItem } from '../js/fuzzy-search.js';
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
 // 校园探索：只画矿大的一张游戏地图。
 // - 只有插画一种底图：楼、路、操场按 OpenStreetMap 的真实轮廓画，校外留白；Codex 的迪士尼风格重绘审过后自动替换。
 // - 每个人的地图不一样：自己填的课表变成“今天的任务点”，到过的楼会点亮；这些只存在本机。
@@ -8,16 +10,23 @@
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { initShell, observeReveal, observeLive, reducedMotion } from '../js/shell.js';
-import { hubApi, hubState, loginURL } from '../js/hub.js';
+import { canParticipate, hubApi, hubState, loginURL } from '../js/hub.js';
 import { PLACE_TYPES, glyphSVG, fmtTime, timeLeft, toLocalInput, withOffset } from '../js/places.js';
 import { campusServiceHTML, campusServiceButtons } from '../js/campus-services.js';
 import { mapIcon } from '../js/map-icons.js';
 import { BUILDING_USE, createCampusMap, pointInFeature, buildingModelSVG } from '../js/campus-map.js';
-import { DAYS, classesOn, courseSuggestions, importMe, loadMe, newId, quests, saveMe, todayIndex, toggleVisited, visitedSet } from '../js/quests.js';
+import { DAYS, courseSuggestions, importMe, loadMe, newId, quests, readyMe, saveMe, todayIndex, toggleVisited, visitedSet } from '../js/quests.js';
 import { esc } from '../js/data.js';
+import { normalizePlan, dateOf, occurrences } from '../js/campus-plan.js';
+import { subscribePlan } from '../js/campus-store.js';
+import { campusRoute, datedActivity, localActivity } from '../js/campus-route.js';
+import { prepareCampusData } from '../js/campus-geometry.js';
 import '../styles/community.css';
 import '../styles/map.css';
 import '../styles/atlas.css';
+import '../styles/campus-workbench.css';
+import '../styles/campus-essential.css';
+import { depthSlides } from '../js/depth-slider.js';
 
 initShell();
 
@@ -28,15 +37,27 @@ const CAMPUS_SHORT = { xueyuanlu: '学院路', shahe: '沙河' };
 const safeURL = (u) => (typeof u === 'string' && /^https:\/\//.test(u) ? u : null);
 const mobile = matchMedia('(max-width: 760px)');
 const params = new URLSearchParams(location.search);
+if (params.get('embedded') === '1') document.body.classList.add('is-map-embedded');
+let routeDate = params.get('date') || dateOf();
+try { occurrences({version:1,courses:[]}, routeDate, routeDate); } catch { routeDate = dateOf(); }
+let routeEnabled = params.get('route') === 'today';
+let currentRoute = null;
+let directRoute={from:'',to:'',result:null};
+const buildingNames={};
+const plannerLink = extra => `planner.html?date=${encodeURIComponent(routeDate)}${extra || ''}`;
 const REPORTS_KEY = 'luokixi.map.reports';
 
-const me0 = loadMe();
+let planReadError;
+const initialPlan = await readyMe().catch(error=>{planReadError=error;return null;});
+let planCorrupt=Boolean(initialPlan?.corrupt);
+let recoveryRaw=initialPlan?.corrupt?initialPlan.raw:null;
+const me0 = initialPlan?.data || normalizePlan();
 const st = {
   online: false,
   user: null,
   me: me0,
   campus: CAMPUS_SHORT[params.get('campus')] ? params.get('campus') : CAMPUS_SHORT[me0.profile.campus] ? me0.profile.campus : 'xueyuanlu',
-  tab: ['quests', 'places', 'buildings'].includes(params.get('tab')) ? params.get('tab') : 'buildings',
+  tab: ['places', 'buildings', 'route'].includes(params.get('tab')) ? params.get('tab') : 'buildings',
   art: {}, // Codex 交付并审过的重绘插画：public/art/campus-map/manifest.json
   type: PLACE_TYPES[params.get('type')] ? params.get('type') : 'all',
   q: params.get('q') ?? '',
@@ -47,7 +68,7 @@ const st = {
   error: '',
   fetchedAt: 0,
   selected: params.get('place'), // 同学标注的地点 id
-  building: params.get('b'), // OSM 楼，例如 way/123
+  building: params.get('building') || params.get('b'), // OSM 楼，例如 way/123
   campuses: null,
   maps: {}, // 校区插画数据缓存
   mapError: '',
@@ -71,7 +92,7 @@ const centerOf = (b) => [b.properties.center[1], b.properties.center[0]];
 let toastTimer;
 function toast(msg, action) {
   const el = $('#cx-toast');
-  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : ''}`;
+  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}" target="_top">${esc(action.label)}</a>` : ''}`;
   el.hidden = false;
   requestAnimationFrame(() => el.classList.add('is-on'));
   clearTimeout(toastTimer);
@@ -85,7 +106,7 @@ function toast(msg, action) {
 function blocked(action) {
   if (!st.online) return toast(`社区服务没有连接，暂时不能${action}。`), true;
   if (!st.user) return toast(`登录之后才能${action}。`, { href: loginURL(), label: '去登录' }), true;
-  if (!st.user.emailVerified) return toast(`验证邮箱之后才能${action}。`, { href: 'me.html#account', label: '去验证' }), true;
+  if (!canParticipate(st.user)) return toast(`验证邮箱之后才能${action}。`, { href: 'me.html#account', label: '去验证' }), true;
   return false;
 }
 
@@ -95,8 +116,7 @@ const norm = (s) => String(s ?? '').toLowerCase();
 const terms = () => norm(st.q).split(/\s+/).filter(Boolean);
 function matches(f) {
   const d = f.properties.data;
-  const hay = norm([d.title, d.summary, d.addressHint, d.accessNotes, ...(d.tags ?? []), typeName(f.properties.placeType)].join(' '));
-  return terms().every((t) => hay.includes(t));
+  return scoreSearchItem(d, st.q, { getText: d => [d.summary,d.addressHint,d.accessNotes,typeName(f.properties.placeType)].join(' ') }) >= 0;
 }
 const inCampus = () => st.places.filter((f) => f.properties.campus === st.campus);
 const visible = () =>
@@ -150,6 +170,70 @@ const previewLayer = L.layerGroup();
 const markers = new Map();
 const panel = $('#cx-panel');
 const explore = $('#explore');
+const inspector = $('#cx-inspector'), inspectorBody = $('#cx-inspector-body');
+let inspectorKey = '', inspectorEpoch = 0, inspectorMotion = null, activation = null, inspectorOpener = null;
+const recentCards = [];
+function recordActivation(target, keyboard) {
+  activation = { keyboard, target, rect: target.getBoundingClientRect() };
+  explore.dataset.motion = keyboard ? 'instant' : 'smooth';
+}
+document.addEventListener('click', event => {
+  if (!event.target.closest('#explore')) return;
+  const target = event.target.closest('button,a,[role="button"],.cm-b');
+  if (target) recordActivation(target, event.detail === 0);
+}, true);
+// Native marker keys do not dispatch a DOM click; record them before Leaflet's handler.
+document.addEventListener('keydown', event => {
+  if (event.target.closest('#explore')) recordActivation(event.target, true);
+}, true);
+for (const type of ['pointerdown','wheel']) explore.addEventListener(type,()=>{explore.dataset.motion='smooth';},{capture:true,passive:true});
+function animateCard(element, entering, prior = false) {
+  const style = getComputedStyle(element);
+  const from = prior ? { opacity: style.opacity, transform: style.transform } : { opacity: 0, transform: 'translateY(12px) scale(.97)' };
+  inspectorMotion?.cancel();
+  if (reducedMotion() || activation?.keyboard || !activation) return null;
+  const easing = getComputedStyle(document.documentElement).getPropertyValue('--ease-ios').trim() || 'ease-out';
+  const box=element.getBoundingClientRect(), point=activation.rect;
+  element.style.transformOrigin=(point?Math.max(0,Math.min(box.width,point.x+point.width/2-box.x)):box.width/2)+'px '+(point?Math.max(0,Math.min(box.height,point.y+point.height/2-box.y)):box.height)+'px';
+  return element.animate([entering ? from : {opacity:style.opacity,transform:style.transform}, entering ? {opacity:1,transform:'none'} : {opacity:0,transform:'translateY(12px) scale(.97)'}], {duration:entering?250:180,easing});
+}
+function closeInspector() {
+  inspectorKey=''; const token=++inspectorEpoch;
+  panel.classList.remove('has-inspector');panel.inert=false;
+  if(inspector.hidden)return;
+  inspector.inert=true;
+  inspectorMotion=animateCard($('.cx-inspector-surface',inspector),false,true);
+  if(inspectorMotion)inspectorMotion.finished.catch(()=>{}).then(()=>{if(token===inspectorEpoch)inspector.hidden=true;});
+  else inspector.hidden=true;
+}
+function showInspector(html, kind) {
+  const key=st.campus+':'+kind+':'+(kind==='building'?st.building:st.selected);
+  const changed=key!==inspectorKey, prior=!inspector.hidden;
+  inspectorEpoch++;inspector.hidden=false;inspector.inert=false;
+  panel.classList.add('has-inspector');panel.inert=mobile.matches;
+  if(inspectorBody.innerHTML!==html)inspectorBody.innerHTML=html;
+  if(changed){
+    if(activation?.target && !inspector.contains(activation.target))inspectorOpener=activation.target;
+    const name=kind==='building'?cm.building(st.building)?.properties.name:find(st.selected)?.properties.data.title;
+    const item={key,kind,campus:st.campus,id:kind==='building'?st.building:st.selected,name:name||'未命名建筑'};
+    const i=recentCards.findIndex(x=>x.key===key);if(i>=0)recentCards.splice(i,1);recentCards.push(item);while(recentCards.length>4)recentCards.shift();
+    inspectorBody.scrollTop=0;
+    inspector.dataset.depth=String(Math.min(recentCards.length,3));
+    const recent=recentCards.filter(x=>x.key!==key).slice(-2).reverse();
+    $('#cx-recent').innerHTML=recent.map(x=>`<button type="button" data-recent-key="${esc(x.key)}">${esc(x.name)}</button>`).join('');$('#cx-recent').hidden=!recent.length;
+    inspectorMotion=animateCard($('.cx-inspector-surface',inspector),true,prior);
+  }
+  inspectorKey=key;
+}
+function restoreCanvasFocus(){
+  const opener=inspectorOpener,box=opener?.isConnected?opener.getBoundingClientRect():null;
+  const visible=box&&box.width&&box.height&&!(mobile.matches&&panel.contains(opener)&&!panel.classList.contains('is-open'));
+  (activation?.keyboard&&visible?opener:$('#cx-map')).focus({preventScroll:true});
+}
+$('#cx-inspector-close').addEventListener('click',()=>{back();setSheet(false);restoreCanvasFocus();});
+$('#cx-recent').addEventListener('click',async event=>{const key=event.target.closest('[data-recent-key]')?.dataset.recentKey,item=recentCards.find(x=>x.key===key);if(!item)return;await setCampus(item.campus,{fit:false});if(item.kind==='building')selectBuilding(item.id);else select(item.id);});
+$('#cx-reset').addEventListener('click',()=>{back();map.closePopup();setSheet(false);fitCampus(!reducedMotion()&&!activation?.keyboard);});
+
 
 function initMap() {
   const c = st.campuses?.campuses?.[st.campus];
@@ -158,7 +242,13 @@ function initMap() {
     scrollWheelZoom: true,
     minZoom: 14,
     maxZoom: 20,
-    zoomSnap: 0.5,
+    zoomSnap: 0.1,
+    zoomDelta: 0.5,
+    wheelPxPerZoomLevel: 120,
+    wheelDebounceTime: 30,
+    zoomAnimation: !reducedMotion(),
+    markerZoomAnimation: !reducedMotion(),
+    keyboard: false,
     // 校区范围文件没有加载出来时，先看北京北部（两个校区都在这一片）
     center: c?.center ?? [40.07, 116.3],
     zoom: c ? 16.5 : 12,
@@ -168,7 +258,7 @@ function initMap() {
   L.control.zoom({ position: 'bottomright', zoomInTitle: '放大', zoomOutTitle: '缩小' }).addTo(map);
   map.createPane('cx-quest').style.zIndex = '595';
   cm = createCampusMap(map, {
-    onBuilding: (f) => (bpick ? bpick(f) : openBuildingPop(f)),
+    onBuilding: (f) => (bpick ? bpick(f) : selectBuilding(f.properties.osm)),
   });
   pinLayer.addTo(map);
   questLayer.addTo(map);
@@ -176,6 +266,13 @@ function initMap() {
 
   // 页面能上下滚动，滚轮默认不缩放地图；点一下地图以后才接管滚轮
   const el = $('#cx-map');
+  el.tabIndex=0;
+  el.addEventListener('keydown',event=>{
+    if(event.target!==el)return;
+    const step={'ArrowLeft':[-80,0],'ArrowRight':[80,0],'ArrowUp':[0,-80],'ArrowDown':[0,80]}[event.key];
+    if(step){event.preventDefault();map.stop();map.panBy(step,{animate:false});}
+    else if(['+','=','-'].includes(event.key)){event.preventDefault();map.stop();map.setZoom(map.getZoom()+(event.key==='-'?-.5:.5),{animate:false});}
+  });
   map.on('click', () => map.scrollWheelZoom.enable());
   el.addEventListener('focus', () => map.scrollWheelZoom.enable());
 
@@ -201,7 +298,7 @@ async function loadCampusMap(campus) {
     try {
       const r = await fetch(`data/campus-map/${campus}.json`, { cache: 'no-cache' });
       if (!r.ok) throw new Error(`${r.status}`);
-      st.maps[campus] = await r.json();
+      st.maps[campus] = prepareCampusData(await r.json());
       st.mapError = '';
     } catch (e) {
       st.mapError = `${campusName(campus)}的楼宇数据没有加载出来（${e.message}）。`;
@@ -210,6 +307,7 @@ async function loadCampusMap(campus) {
   }
   if (campus !== st.campus) return;
   cm.load(st.maps[campus]);
+  void loadBuildingNames(campus);
   cm.setArt(st.art[campus] ?? null);
   if (st.building && !cm.building(st.building)) st.building = null;
   if (st.building) cm.select(st.building);
@@ -221,21 +319,22 @@ function covered() {
   const m = $('#cx-map').getBoundingClientRect();
   if (mobile.matches) {
     const h = panel.classList.contains('is-open') ? panel.offsetHeight : peek();
-    return { left: 0, bottom: Math.min(h, m.height * 0.8) };
+    return { left: 0, right: 0, bottom: Math.min(!inspector.hidden&&!inspector.inert?inspector.offsetHeight:h, m.height * 0.8) };
   }
   if (explore.classList.contains('is-picking')) return { left: 0, bottom: 0 };
-  return { left: Math.max(0, panel.getBoundingClientRect().right - m.left), bottom: 0 };
+  return { left: !inspector.hidden&&innerWidth<1100?0:Math.max(0, panel.getBoundingClientRect().right - m.left), right: !inspector.hidden&&!inspector.inert?inspector.offsetWidth+24:0, bottom: 0 };
 }
 
 function viewPad() {
   const c = covered();
-  return { paddingTopLeft: [c.left + 24, 24], paddingBottomRight: [24, c.bottom + 24] };
+  return { paddingTopLeft: [c.left + 24, 24], paddingBottomRight: [(c.right || 0) + 24, c.bottom + 24] };
 }
 
 function fitCampus(animate = !reducedMotion()) {
   const data = st.maps[st.campus];
   const b = data ? L.geoJSON(data.boundary).getBounds() : st.campuses?.campuses?.[st.campus]?.bounds;
   if (!map || !b) return;
+  map.stop();
   map.fitBounds(b, { ...viewPad(), maxZoom: 17.5, animate });
 }
 
@@ -245,7 +344,8 @@ function focusOn(latlng, zoom = Math.max(map.getZoom(), 17.5)) {
   const dx = (pad.paddingTopLeft[0] - pad.paddingBottomRight[0]) / 2;
   const dy = (pad.paddingTopLeft[1] - pad.paddingBottomRight[1]) / 2;
   const target = map.unproject(map.project(latlng, zoom).subtract([dx, dy]), zoom);
-  if (reducedMotion()) map.setView(target, zoom, { animate: false });
+  map.stop();
+  if (reducedMotion() || activation?.keyboard) map.setView(target, zoom, { animate: false });
   else map.flyTo(target, zoom, { duration: 0.28 });
 }
 
@@ -292,25 +392,42 @@ function refreshPin(id) {
 }
 
 // 今天的课：在楼上标出金色序号，按上课顺序连一条虚线（只是顺序，不是步行路线）
+function routeOccurrences() { return occurrences(st.me, routeDate, routeDate); }
 function drawToday() {
   questLayer.clearLayers();
   if (!cm?.data) return;
-  const today = classesOn(st.me, todayIndex()).filter((x) => x.course.building?.campus === st.campus && x.status !== 'done');
-  const pts = [];
-  today.forEach((x, i) => {
-    const b = cm.building(x.course.building.osm);
-    if (!b) return;
-    const ll = centerOf(b);
-    pts.push(ll);
-    L.marker(ll, {
-      pane: 'cx-quest',
-      keyboard: false,
-      icon: L.divIcon({ className: 'cx-pin-wrap', html: `<span class="cx-cls is-${x.status}" title="${esc(`${x.slot.start} ${x.course.name}`)}"><b>${i + 1}</b><em>${esc(x.slot.start)} ${esc(x.course.name.slice(0, 8))}</em></span>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
-    })
-      .on('click', () => selectBuilding(b.properties.osm))
-      .addTo(questLayer);
-  });
-  if (pts.length > 1) L.polyline(pts, { className: 'cx-route', interactive: false }).addTo(questLayer);
+  if(directRoute.result){for(const leg of directRoute.result.legs)L.polyline(leg.coordinates.map(([lng,lat])=>[lat,lng]),{className:'cx-route',color:'#0894ff',dashArray:leg.mode==='walkway'?null:'6 8',interactive:false}).addTo(questLayer);return;}
+  const prefs = st.me.routePrefs?.[st.campus] || {start:'',via:[]};
+  const stops = [], add = (id,title,time='') => {
+    const b=cm.building(id);if(!b)return;
+    const stop={osm:id,title,name:b.properties.name||id,center:b.properties.center,time};stops.push(stop);
+    L.marker(centerOf(b),{pane:'cx-quest',keyboard:false,icon:L.divIcon({className:'cx-pin-wrap',html:`<span class="cx-cls"><b>${stops.length}</b><em>${esc(time)} ${esc(title.slice(0,8))}</em></span>`,iconSize:[28,28],iconAnchor:[14,14]})}).on('click',()=>selectBuilding(id)).addTo(questLayer);
+  };
+  if(routeEnabled && prefs.start)add(prefs.start,'常用起点');
+  if(routeEnabled)for(const id of prefs.via || [])add(id,cm.building(id)?.properties.name || '途经地点');
+  for(const item of routeOccurrences())if(item.building?.campus===st.campus)add(item.building.osm,item.title,item.start);
+  currentRoute=campusRoute(stops,cm.data);
+  if(routeEnabled)for(const leg of currentRoute.legs)L.polyline(leg.coordinates.map(([lng,lat])=>[lat,lng]),{className:'cx-route',color:leg.mode==='walkway'?'#0894ff':'#b58b35',dashArray:leg.mode==='walkway'?null:'6 8',interactive:false}).addTo(questLayer);
+}
+function dayRouteHTML() {
+  const prefs=st.me.routePrefs?.[st.campus] || {start:'',via:[]};
+  const options=cm?.buildings() || [];
+  const option=(selected)=>options.map(b=>`<option value="${esc(b.properties.osm)}"${selected.includes(b.properties.osm)?' selected':''}>${esc(b.properties.name || `未命名建筑 ${b.properties.osm}`)}${(st.me.favorites || []).some(f=>f.campus===st.campus&&f.osm===b.properties.osm)?' · 常用':''}</option>`).join('');
+  const items=routeOccurrences(),missing=items.filter(x=>!x.building?.osm || x.building.campus===st.campus&&!cm?.building(x.building.osm));
+  return `<section class="cx-q cx-route-panel"><div class="cx-q-head"><h3>${esc(routeDate)} 路线</h3><a href="${plannerLink('&view=day')}" target="_top">完整计划 →</a></div>
+    <form data-form="route" class="cx-route-form"><label>日期<input type="date" name="date" value="${esc(routeDate)}" required></label><label>常用起点<select name="start"><option value="">从第一处已填写地点开始</option>${option([prefs.start])}</select></label><label>途经地点（可多选）<select name="via" multiple size="3">${option(prefs.via || [])}</select></label><button class="btn btn-primary btn-sm" type="submit">显示路线估算</button></form>
+    ${!items.length?'<p class="cx-quiet">这一天没有已排个人课程或活动。先在完整计划填写安排，再在地图选择真实建筑。</p>':''}
+    ${st.me.courses.length&&!st.me.term.starts?'<p class="cx-hint">周课程尚未填写学期开学日期，未猜测周次；请在完整计划补充学期。</p>':''}
+    ${currentRoute?.stops.length?`<ol class="cx-route-stops">${currentRoute.stops.map(stop=>`<li><button class="btn-link" data-osm="${esc(stop.osm)}">${esc(stop.time)} ${esc(stop.title)}${stop.name!==stop.title?` · ${esc(stop.name)}`:''}</button></li>`).join('')}</ol>`:''}
+    ${routeEnabled&&currentRoute?.legs.length?`<p class="cx-route-summary">约 ${Math.round(currentRoute.meters)} 米 · 约 ${currentRoute.minutes} 分钟（按 75 米/分钟估算）</p><p class="cx-hint">${currentRoute.mode==='mixed'?'含直线估算；步行路网尚未完整覆盖。':'根据已记录的 OSM 步行路网估算最短路线。'} 楼中心到路网为直线接入；未核对入口、开放时间、楼层或无障碍条件。</p>`:'<p class="cx-hint">请自行选择起点和途经地点；本站不会猜测你的宿舍或食堂。至少两个已知地点才能连线。</p>'}
+    ${missing.length?`<p class="cx-hint">尚未定位：${missing.map(x=>esc(x.title)).join('、')}。请在计划里填写本校区的真实建筑。</p>`:''}
+    ${items.some(x=>x.building?.campus&&x.building.campus!==st.campus)?'<p class="cx-hint">另有其他校区安排，本图只显示当前校区；校区间交通请自行核对。</p>':''}</section>`;
+}
+function classCountdown() {
+  const now=Date.now(),list=routeOccurrences().filter(x=>x.source==='course');
+  const current=list.find(x=>Date.parse(`${x.date}T${x.start}:00+08:00`)<=now&&Date.parse(`${x.date}T${x.end}:00+08:00`)>now);
+  const next=list.find(x=>Date.parse(`${x.date}T${x.start}:00+08:00`)>now);
+  return current?`正在上《${current.title}》，${current.end} 结束。`:next?`下一节《${next.title}》还有 ${Math.max(0,Math.ceil((Date.parse(`${next.date}T${next.start}:00+08:00`)-now)/60000))} 分钟。`:'这一天没有尚未开始的课程。';
 }
 
 function renderMarks() {
@@ -328,9 +445,9 @@ function renderLegend() {
   const el = $('#cx-legend');
   const data = st.maps[st.campus];
   const bits = [];
-  bits.push(st.art[st.campus] ? '插画按卫星截图和 OpenStreetMap 轮廓重绘，是概念插画，不是实拍' : '插画按 OpenStreetMap 的真实轮廓绘制，颜色表示用途');
+  bits.push(st.art[st.campus] ? '插画按卫星截图和 OpenStreetMap 轮廓重绘，是概念插画，不是实拍' : '楼与道路依据 OpenStreetMap 真实轮廓；点击图标查看用途与详情');
   if (data && data.counts.building < 20) bits.push(`${campusName(st.campus)}在 OpenStreetMap 上只画了 ${data.counts.building} 栋楼，地图会随着补充变完整`);
-  if (questLayer.getLayers().length > 1) bits.push('金色数字是今天的上课顺序，虚线不是步行路线');
+  if (questLayer.getLayers().length > 1) bits.push(routeEnabled ? '今日个人路线估算；蓝色为已记录步行路网，虚线为直线估算，非实测导航' : '数字来自本人这一天的课程和活动；点选可查看位置');
   el.innerHTML = bits.map(esc).join(' · ');
   el.hidden = !bits.length;
 }
@@ -341,6 +458,7 @@ const peek = () => $('.cx-panel-head', panel).offsetHeight + 26;
 
 function setSheet(open) {
   if (!mobile.matches) return;
+  if (!inspector.hidden && !inspector.inert) open = false;
   panel.classList.toggle('is-open', open);
   $('#cx-handle').setAttribute('aria-expanded', String(open));
   $('#cx-handle .sr-only').textContent = open ? '收起面板' : '展开面板';
@@ -355,6 +473,7 @@ $('#cx-handle').addEventListener('click', () => setSheet(!panel.classList.contai
 $('#cx-q').addEventListener('focus', () => setSheet(true));
 mobile.addEventListener('change', () => {
   panel.classList.remove('is-open');
+  panel.inert = mobile.matches && !inspector.hidden && !inspector.inert;
   syncPeek();
 });
 addEventListener('resize', syncPeek, { passive: true });
@@ -378,8 +497,14 @@ function playerHTML() {
 }
 
 function todayHTML() {
-  const day = todayIndex();
-  const list = classesOn(st.me, day);
+  const day=todayIndex(new Date(`${routeDate}T12:00:00+08:00`)),now=Date.now();
+  let nextGiven=false;
+  const list=routeOccurrences().filter(x=>x.source==='course').map(x=>{
+    const start=Date.parse(`${x.date}T${x.start}:00+08:00`),end=Date.parse(`${x.date}T${x.end}:00+08:00`);
+    const status=end<=now?'done':start<=now?'now':!nextGiven?'next':'later';
+    if(status==='now'||status==='next')nextGiven=true;
+    return {course:x.course,slot:x.slot,status};
+  });
   let body;
   if (!st.me.courses.length)
     body = `<div class="cx-empty cx-empty-sm"><p>还没有课表。把每周的课和上课的楼填进来，这里会出现今天的任务点。</p>
@@ -398,7 +523,7 @@ function todayHTML() {
         </button></li>`;
       })
       .join('')}</ol>`;
-  return `<section class="cx-q"><div class="cx-q-head"><h3>今天 · ${DAYS[day - 1]}</h3>${st.me.courses.length ? '<button class="btn-link" type="button" data-act="me">课表</button>' : ''}</div>${body}</section>`;
+  return `${routeHTML()}<p class="cx-count" data-class-countdown>${esc(classCountdown())}</p><section class="cx-q"><div class="cx-q-head"><h3>${esc(routeDate)} · ${DAYS[day - 1]}</h3>${st.me.courses.length ? '<button class="btn-link" type="button" data-act="me">课表</button>' : ''}</div>${body}</section>`;
 }
 
 function eventsHTML() {
@@ -433,17 +558,20 @@ const fmtMinutes = (m) => (m >= 60 ? `${Math.floor(m / 60)} 小时${m % 60 ? ` $
 // 空闲时间来自自己的课表；地点来自同学标注的学习空间和地图上的图书馆。空座、空教室没有接通学校数据，直接说明。
 function studyHTML() {
   const now = new Date();
-  const list = classesOn(st.me, todayIndex(now), now);
+  const timestamp=now.getTime();
+  const list=occurrences(st.me,dateOf(now),dateOf(now)).filter(x=>x.source==='course').map(x=>({course:x.course,slot:x.slot,status:timestamp>=new Date(`${x.date}T${x.start}:00+08:00`).getTime()&&timestamp<new Date(`${x.date}T${x.end}:00+08:00`).getTime()?'now':timestamp<new Date(`${x.date}T${x.start}:00+08:00`).getTime()?'next':'done'}));
   const current = list.find((x) => x.status === 'now');
   const next = list.find((x) => x.status === 'next');
   const mins = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const civil=new Date(now.getTime()+8*3600000);
+  const nowMin = civil.getUTCHours() * 60 + civil.getUTCMinutes();
   const want = st.study.hours * 60;
   let free = Infinity;
   let line;
   let from = null;
   let fromLabel = '';
   if (!st.me.courses.length) line = '还没有课表，按现在就能去算。填了课表，这里会算出你到下一节课之前有多久。';
+  else if (!st.me.term.starts) line='学期开始日还没填写，暂时不能确认今天的课程。请在完整计划设置后再查看空闲时间。';
   else if (current) {
     line = `现在在上《${current.course.name}》，${current.slot.end} 下课。下面是下课以后能去的地方。`;
     from = current.course.building;
@@ -454,7 +582,7 @@ function studyHTML() {
     line = `下一节 ${next.slot.start}《${next.course.name}》，离上课还有 ${fmtMinutes(free)}。`;
     from = next.course.building;
     fromLabel = next.course.building?.name;
-  } else line = '今天的课都上完了。';
+  } else line = list.length?'今天的课都上完了。':'今天没有已排课程。';
   const short = free < want;
   const origin = from?.campus === st.campus && from.center ? [from.center[1], from.center[0]] : null;
   const center = cm?.data ? L.geoJSON(cm.data.boundary).getBounds().getCenter() : null;
@@ -677,7 +805,7 @@ function buildingsHTML() {
     .map((use) => [use, named.filter((b) => b.properties.use === use)])
     .filter(([, list]) => list.length);
   const sparse = all.length < 20;
-  return `${servicesHTML()}${sparse ? `<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>${esc(campusName(st.campus))}的楼还没画全。</strong>OpenStreetMap 上目前只有 ${all.length} 栋楼。可以在 OpenStreetMap 上补画，本站更新数据后就会出现在这里。</span></p>` : ''}
+  return `${sparse ? `<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>${esc(campusName(st.campus))}的楼还没画全。</strong>OpenStreetMap 上目前只有 ${all.length} 栋楼。可以在 OpenStreetMap 上补画，本站更新数据后就会出现在这里。</span></p>` : ''}
     <p class="cx-count">${named.length} 栋有名字${all.length > named.length ? `，另有 ${all.length - named.length} 栋还没有名字（地图上能点，卡片里没有名称）` : ''}</p>
     ${groups
       .map(([use, list]) => `<h3 class="cx-group-h"><i class="cm-swatch cm-sw-${use}" aria-hidden="true"></i>${BUILDING_USE[use].name}</h3>
@@ -685,14 +813,13 @@ function buildingsHTML() {
           .map((b) => `<li><button class="cx-row cx-brow" type="button" data-osm="${esc(b.properties.osm)}"><span class="cx-row-main"><span class="cx-row-title">${esc(b.properties.name)}</span>
             <span class="cx-row-sub">${b.properties.levels ? `${b.properties.levels} 层` : '层数未知'}</span></span>${visited.has(b.properties.osm) ? '<span class="tag tag-ok">到过</span>' : ''}</button></li>`)
           .join('')}</ul>`)
-      .join('')}`;
+      .join('')}<details class="cx-service-folder"><summary>校园服务与官方入口</summary>${servicesHTML()}</details>`;
 }
 
 // ---------- 渲染：搜索 ----------
 
 function searchHTML() {
-  const t = terms();
-  const bs = (cm?.buildings() ?? []).filter((b) => b.properties.name && t.every((x) => norm(b.properties.name).includes(x))).slice(0, 12);
+  const bs = fuzzySearch((cm?.buildings() ?? []).filter(b => b.properties.name), st.q, { getTitle:b => b.properties.name, getKeywords:b => [BUILDING_USE[b.properties.use]?.name,...(b.properties.aliases || [])].join(' '), limit:12 });
   const ps = inCampus().filter(matches).slice(0, 20);
   if (!bs.length && !ps.length)
     return `<div class="cx-empty"><p class="cx-empty-title">${esc(campusName(st.campus))}里没有找到“${esc(st.q.trim())}”。</p>
@@ -707,42 +834,67 @@ function searchHTML() {
 
 const fact = (k, v) => (v ? `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>` : '');
 
-function baiduMarker(lat, lng, title, content = '') {
-  // 和服务端地点导航用同一种百度官方调起链接，明确声明坐标是 WGS84
-  return `https://api.map.baidu.com/marker?${new URLSearchParams({ location: `${lat},${lng}`, title, content, coord_type: 'wgs84', output: 'html', src: 'webapp.luokixi.campus' })}`;
+function namingHTML(p){
+ const value=buildingNames[st.campus]?.[p.osm];
+ return `<section class="cx-name-panel"><h3>大家怎么叫这栋楼</h3><p class="cx-name-original">${p.official_name?'官方名称：'+esc(p.official_name):'地图名称（OSM）：'+esc((p.mapName??p.name)||'尚未命名')}</p><div class="cx-name-options">${(value?.names||[]).slice(0,6).map(n=>`<button type="button" data-name-vote="${esc(n.name)}" data-name-osm="${esc(p.osm)}" aria-pressed="${n.name===value.mine}"><b>${esc(n.name)}</b><span>${n.votes} 人支持</span></button>`).join('')}</div><form class="cx-name-form" data-form="building-name" data-osm="${esc(p.osm)}"><input name="name" maxlength="40" required aria-label="建筑常用名称" placeholder="写下你熟悉的名称"><button type="submit" class="btn btn-primary btn-sm">提名</button></form>${value?.mine?`<button class="btn-link" data-name-vote="" data-name-osm="${esc(p.osm)}">撤回我的支持</button>`:''}<p class="cx-name-note">登录并验证邮箱后可参与，每个账号每栋一票。学生常用名不替代官方名称。</p></section>`;
 }
+async function loadBuildingNames(campus){
+ try{const result=await hubApi.request('map/names?campus='+encodeURIComponent(campus));buildingNames[campus]=result.buildings;
+ for(const feature of st.maps[campus]?.features||[]){const p=feature.properties;if(!p?.osm)continue;p.mapName??=p.name||'';p.studentName=result.buildings[p.osm]?.preferred||'';p.name=p.studentName||p.mapName;}
+ if(st.campus===campus&&st.maps[campus]){cm.load(st.maps[campus]);cm.select(st.building);renderAll();}
+ }catch{/* The map remains usable when the optional community service is offline. */}
+}
+async function voteBuildingName(osm,name){
+ if(!st.user){location.href=loginURL();return;}
+ await hubApi.request('map/names',{campus:st.campus,osm,name});await loadBuildingNames(st.campus);toast(name?'已记录你的名称选择。':'已撤回你的支持。');
+}
+function navPoints(){return [...(cm?.buildings()||[]).map(b=>({id:'b|'+b.properties.osm,name:b.properties.name||'未命名建筑 '+b.properties.osm,center:b.properties.center})),...inCampus().filter(f=>!f.properties.expired).map(f=>({id:'p|'+f.id,name:f.properties.data.title,center:f.geometry.coordinates}))];}
+function routeHTML(){
+ const points=navPoints(),options=selected=>points.map(p=>`<option value="${esc(p.id)}"${p.id===selected?' selected':''}>${esc(p.name)}</option>`).join('');
+ const r=directRoute.result;
+ return `<section class="cx-navigation"><h3>去哪里</h3><form data-form="navigation"><label>起点<select name="from" required><option value="">选择出发地点</option>${options(directRoute.from)}</select></label><label>终点<select name="to" required><option value="">选择目的地</option>${options(directRoute.to)}</select></label><button class="btn btn-primary" type="submit">在地图上规划路线</button></form>${r?`<div class="cx-route-result"><b>约 ${r.minutes} 分钟</b><p>${Math.round(r.meters)} 米 · 校园步行</p><small>${r.mode==='mixed'?'部分路段为直线估算，请现场核对通行。':'依据已有步行路网估算，入口和开放情况请现场核对。'}</small></div>`:''}<details class="cx-service-folder"><summary>这一天的课程路线</summary>${dayRouteHTML()}</details></section>`;
+}
+function beginNavigation(target){directRoute.to=target;setTab('route');setSheet(true);map.closePopup();}
+function activitiesHTML(){return placesHTML()+`<details class="cx-service-folder"><summary>探索校园</summary>${currentQuests().map(questHTML).join('')||'<p class="cx-quiet">此校区暂无探索任务。</p>'}</details>`;}
 
 function buildingHTML(b) {
   const p = b.properties;
   const use = BUILDING_USE[p.use];
   const visited = visitedSet(st.me, st.campus).has(p.osm);
-  const courses = st.me.courses.filter((c) => c.building?.osm === p.osm);
+  const courses = st.me.courses.filter((c) => c.building?.osm === p.osm && c.building.campus === st.campus);
+  const here = routeOccurrences().filter(x => x.building?.osm === p.osm && x.building.campus === st.campus);
+  const favorite=(st.me.favorites || []).some(x=>x.campus===st.campus&&x.osm===p.osm);
   const inside = inCampus().filter((f) => pointInFeature(f.geometry.coordinates, b));
   const [lat, lng] = centerOf(b);
+  const photo=inside.flatMap(f=>f.properties.photos||[]).find(p=>p.previewUrl);
   return `<article class="bc cm-tone-${p.use}" aria-labelledby="bc-title">
     <button class="cx-back" type="button" data-act="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></svg>返回</button>
     <p class="bc-eyebrow">${esc(campusName(st.campus))} · ${esc(use.name)}</p>
     <h2 class="bc-title" id="bc-title" tabindex="-1">${esc(p.name || '一栋还没有名字的楼')}</h2>
-    ${campusServiceHTML(p.use, st.campus)}
-    <figure class="bc-hero">${buildingModelSVG(b)}
-      <figcaption>按 OpenStreetMap 的轮廓${p.levels ? `和 ${p.levels} 层` : '绘制；层数未知，按 3 层示意'}${p.levels ? '绘制' : ''}</figcaption></figure>
-    <p class="bc-lead">${inside.length ? `同学在这里标了 ${inside.length} 个地点。` : '还没有同学为这栋楼写介绍。去过的话，拍张照标一个地点吧。'}</p>
+    ${p.studentName?'<p class="cx-name-original">学生常用名 · '+esc(p.mapName||'原地图未命名')+'</p>':''}
+    <figure class="bc-hero">${photo?`<img class="cx-building-photo" src="${esc(photo.previewUrl)}" alt="${esc(p.name||'建筑')}的同学投稿照片">`:buildingModelSVG(b)}
+      <figcaption>${photo?'同学公开投稿照片':`按 OpenStreetMap 轮廓绘制 · ${p.levels?`${p.levels} 层`:'层数未知，按 3 层示意'}`}</figcaption></figure>
+
     <div class="bc-cta">
-      <button class="btn ${visited ? 'btn-secondary' : 'btn-primary'}" type="button" data-act="visit" aria-pressed="${visited}">${visited ? '✓ 到过这里' : '我到过这里'}</button>
-      <a class="btn btn-outline" href="${esc(baiduMarker(lat.toFixed(6), lng.toFixed(6), p.name || '矿大校园内的楼', `${campusName(st.campus)}`))}" target="_blank" rel="noopener noreferrer">在百度地图中查看位置</a>
+      <button class="btn btn-primary" data-act="navigate-building">导航到这里</button>
+      <button class="btn btn-secondary" data-act="favorite-building" aria-pressed="${favorite}">${favorite?'已收藏':'收藏地点'}</button>
     </div>
-    <p class="cx-hint">这栋楼的入口还没有核对，打开的是楼的中心点，不是可以直接导航过去的入口。</p>
+    <p class="cx-hint">路线以楼宇中心为端点，入口请现场核对。</p>
+    ${campusServiceHTML(p.use,st.campus)?`<details class="cx-service-folder"><summary>预约与官方服务</summary>${campusServiceHTML(p.use,st.campus)}</details>`:''}
+    <p class="cx-visit-note"><button class="btn-link" type="button" data-act="visit" aria-pressed="${visited}">${visited?'✓ 到过这里':'标记到过这里'}</button></p>
     <dl class="bc-rows">
+      <div><dt>${esc(routeDate)} 到这里</dt><dd>${here.length?here.map(x=>`<p>${esc(x.start)}—${esc(x.end)} ${esc(x.title)}${x.course?.floor || x.event?.floor ? ` · 楼层 ${esc(x.course?.floor || x.event?.floor)}`:''}</p>`).join(''):'这一天没有已填写到此楼的安排。'}</dd></div>
       <div><dt>你的课</dt><dd>${courses.length
         ? `<ul role="list">${courses.map((c) => `<li><b>${esc(c.name)}</b>${c.room ? ` · ${esc(c.room)}` : ''}<span>${c.slots.map((s) => `${DAYS[s.day - 1]} ${s.start}`).join('、')}</span></li>`).join('')}</ul>`
         : `<button class="btn-link" type="button" data-act="course-here">把一门课放在这里</button>`}</dd></div>
+      <div><dt>相关活动</dt><dd>${inside.filter(f=>f.properties.placeType==='event'&&!f.properties.expired).length?`<ul role="list">${inside.filter(f=>f.properties.placeType==='event'&&!f.properties.expired).map(f=>`<li><button class="btn-link" data-id="${esc(f.id)}">${esc(f.properties.data.title)}</button></li>`).join('')}</ul>`:'暂无已公开活动'}</dd></div>
       <div><dt>同学标注</dt><dd>${inside.length
         ? `<ul role="list">${inside.map((f) => `<li><button class="btn-link" type="button" data-id="${esc(f.id)}">${esc(f.properties.data.title)}</button></li>`).join('')}</ul>`
         : `<button class="btn-link" type="button" data-act="add-here">在这栋楼标一个地点</button>`}</dd></div>
       <div><dt>楼层</dt><dd>${p.levels ? `${p.levels} 层` : '未知'}</dd></div>
       <div><dt>数据</dt><dd><a href="https://www.openstreetmap.org/${esc(p.osm)}" target="_blank" rel="noopener">在 OpenStreetMap 上查看或修正</a></dd></div>
     </dl>
-    <p class="cx-hint">“到过这里”只保存在这个浏览器里，本站不读取你的位置。</p>
+    ${namingHTML(p)}
   </article>`;
 }
 
@@ -768,24 +920,43 @@ function obsHTML(p) {
   </section>`;
 }
 
+function activityDetailsHTML(f) {
+  const p=f.properties,d=p.data,event=localActivity(f,new URL(`map.html?place=${encodeURIComponent(f.id)}&campus=${encodeURIComponent(p.campus)}`,location.href).href);
+  const source=activityURL(d.links?.source);
+  const registration=activityURL(d.registrationURL);
+  const joined=event&&st.me.events.some(e=>e.id===event.id);
+  const explicitTimes=d.startsAt&&d.endsAt&&Number.isFinite(Date.parse(d.startsAt))&&Number.isFinite(Date.parse(d.endsAt));
+  const dates=datedActivity(d);
+  return `<section class="cx-activity-details" aria-label="活动日程">
+    ${explicitTimes?`<p><b>活动时间（北京时间）</b><br>${esc(activityTime(d.startsAt))} → ${esc(activityTime(d.endsAt))}</p>`:dates?`<p><b>活动时间（北京时间）</b><br>${esc(dates.date)} ${esc(dates.start)}–${esc(dates.end)}</p>`:''}
+    <p>${d.building?`所在楼宇：${esc(d.building.name||d.building.osm)} · ${esc(campusName(d.building.campus))}<br>`:''}本地提醒：${d.reminderMinutes?`提前 ${esc(d.reminderMinutes)} 分钟（需要打开本站）`:'不提醒'}</p>
+    <p>${source?`<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">查看活动原来源 ↗</a>`:'来源：这条已审核的同学投稿，参加前请向发布者核对。'}${registration?` · <a href="${esc(registration)}" target="_blank" rel="noopener noreferrer">报名入口 ↗</a>`:''}</p>
+    ${event?`<button class="btn btn-outline btn-sm" data-act="add-local-event" ${joined?'disabled':''}>${joined?'已加入本地日程':'加入本地日程'}</button>`:explicitTimes?'<p class="cx-hint">这是跨日或不足一分钟的活动。当前本地日程按天记录，请打开完整计划按真实时间分天填写；不会自动截断活动。</p>':'<p class="cx-hint">这条发现没有明确的活动起止日期与时间，暂不能加入日程；看到时间和有效期不作为活动时间。</p>'}
+  </section>`;
+}
+const activityURL=value=>{try{if(typeof value!=='string'||/[\s\u0000-\u001f\u007f]/.test(value))return null;const u=new URL(value);return ['http:','https:'].includes(u.protocol)&&!u.username&&!u.password?u.href:null;}catch{return null;}};
+const activityTime=value=>new Intl.DateTimeFormat('zh-CN',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(value));
+
 function detailHTML(f) {
   const p = f.properties;
   const d = p.data;
   const temp = d.duration === 'temporary';
-  const nav = !p.expired && safeURL(p.navigation?.url);
+  const nav = !p.expired;
   const photos = p.photos ?? [];
   const watching = (p.watch ?? []).includes('revision');
   return `<article class="cx-detail" style="--h:${PLACE_TYPES[p.placeType].hue}" aria-labelledby="cx-detail-title">
     <button class="cx-back" type="button" data-act="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></svg>返回</button>
-    ${photos.length ? `<div class="cx-photos${photos.length > 1 ? ' is-multi' : ''}">${photos.map((ph, i) => `<img src="${esc(ph.previewUrl)}" alt="${esc(d.title)}，第 ${i + 1} 张照片" loading="lazy" decoding="async">`).join('')}</div>` : `<div class="cx-photo-empty">${glyphSVG(p.placeType)}</div>`}
+    ${photos.length ? `<div class="cx-photos${photos.length > 1 ? ' is-multi' : ''}">${photos.length > 1 ? depthSlides(photos.map((ph) => ph.previewUrl), `${d.title}的照片`) : photos.map((ph, i) => `<img src="${esc(ph.previewUrl)}" alt="${esc(d.title)}，第 ${i + 1} 张照片" loading="lazy" decoding="async">`).join('')}</div>` : `<div class="cx-photo-empty">${glyphSVG(p.placeType)}</div>`}
     ${d.photoCredit || d.license ? `<p class="cx-credit">照片 ${esc(d.photoCredit || '')}${d.license ? ` · ${esc(d.license)}` : ''}</p>` : ''}
     <p class="bc-eyebrow">${esc(CAMPUS_SHORT[p.campus] ?? '')} · ${esc(typeName(p.placeType))}${p.expired ? ' · 已过期' : temp ? ` · 限时 · ${esc(timeLeft(d.expiresAt))}` : ''}</p>
     <h2 class="bc-title" id="cx-detail-title" tabindex="-1">${esc(d.title)}</h2>
     ${d.summary ? `<p class="bc-lead">${esc(d.summary)}</p>` : ''}
+    ${p.placeType==='event'?activityDetailsHTML(f):''}
+    <p><a href="planner.html?date=${encodeURIComponent(p.placeType==='event'?(datedActivity(d)?.date||routeDate):routeDate)}&view=day" target="_top">打开我的计划 →</a></p>
     <div class="bc-cta">
-      ${nav ? `<a class="btn btn-primary" href="${esc(nav)}" target="_blank" rel="noopener noreferrer">${esc(p.navigation.label || '在地图中查看并导航')}</a>` : `<p class="cx-nonav">${p.expired ? '已经过期，不再提供前往导航。' : '暂时没有导航链接。'}</p>`}
+      ${nav ? `<button class="btn btn-primary" data-act="navigate-place">导航到这里</button>` : `<p class="cx-nonav">${p.expired ? '已经过期，不再提供前往导航。' : '暂时没有导航链接。'}</p>`}
     </div>
-    ${nav && p.navigation.notice ? `<p class="cx-hint">${esc(p.navigation.notice)}</p>` : ''}
+    
     <dl class="bc-rows">
       ${fact('详细位置', d.addressHint)}
       ${fact('开放和通行', d.accessNotes)}
@@ -830,21 +1001,15 @@ function view() {
 
 function renderBody() {
   const body = $('#cx-body');
-  // 正在输入时，后台刷新不要把输入框冲掉
-  if (body.contains(document.activeElement) && /^(TEXTAREA|INPUT)$/.test(document.activeElement.tagName)) return;
-  const v = view();
-  const html = {
-    search: searchHTML,
-    place: () => detailHTML(find(st.selected)),
-    building: () => buildingHTML(cm.building(st.building)),
-    quests: questsHTML,
-    places: placesHTML,
-    buildings: buildingsHTML,
-  }[v]();
-  body.innerHTML = html;
-  body.dataset.view = v;
-  panel.classList.toggle('is-detail', v === 'place' || v === 'building');
-  $$('#cx-tabs [data-tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === st.tab && !['place', 'building', 'search'].includes(v))));
+  if ([body,inspectorBody].some(el=>el.contains(document.activeElement)) && /^(TEXTAREA|INPUT|SELECT)$/.test(document.activeElement.tagName)) return;
+  const v = view(), detail = v === 'place' || v === 'building';
+  const renderers={search:searchHTML,place:()=>detailHTML(find(st.selected)),building:()=>buildingHTML(cm.building(st.building)),quests:activitiesHTML,places:activitiesHTML,buildings:buildingsHTML,route:routeHTML};
+  const html=renderers[detail?st.tab:v]();
+  if(body.innerHTML!==html)body.innerHTML=html;
+  body.dataset.view=detail?st.tab:v;
+  panel.classList.remove('is-detail');
+  if(detail)showInspector(renderers[v](),v);else closeInspector();
+  $$('#cx-tabs [data-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===st.tab&&v!=='search')));
   $('#cx-expired-wrap').hidden = st.tab !== 'places';
 }
 
@@ -875,11 +1040,13 @@ function renderAll() {
 
 function syncURL() {
   const q = new URLSearchParams();
-  if (st.campus !== 'xueyuanlu') q.set('campus', st.campus);
-  if (st.tab !== 'quests') q.set('tab', st.tab);
+  q.set('campus', st.campus);
+  if(params.get('embedded')==='1')q.set('embedded','1');
+  if(routeEnabled){q.set('route','today');q.set('date',routeDate);}
+  if (st.tab !== 'buildings') q.set('tab', st.tab);
   if (st.type !== 'all') q.set('type', st.type);
   if (st.selected) q.set('place', st.selected);
-  else if (st.building) q.set('b', st.building);
+  else if (st.building) q.set('building', st.building);
   const qs = q.toString();
   history.replaceState(null, '', `${location.pathname}${qs ? `?${qs}` : ''}${location.hash}`);
 }
@@ -888,6 +1055,7 @@ function syncURL() {
 
 // 返回楼宇数据加载完成的 Promise，需要接着选楼的地方可以等它
 function setCampus(c, { fit = true } = {}) {
+  if(c!==st.campus)directRoute={from:'',to:'',result:null};
   if (!CAMPUS_SHORT[c] || c === st.campus) return Promise.resolve();
   st.campus = c;
   $$('#cx-campus [data-campus]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.campus === c)));
@@ -896,11 +1064,11 @@ function setCampus(c, { fit = true } = {}) {
   st.openQuest = null;
   renderAll();
   syncURL();
-  return loadCampusMap(c).then(() => fit && fitCampus());
+  return loadCampusMap(c).then(() => c === st.campus && fit && fitCampus(!reducedMotion()&&!activation?.keyboard));
 }
 
 function setTab(t) {
-  st.tab = t;
+  st.tab = t==='quests'?'places':t;
   st.selected = null;
   st.building = null;
   cm?.select(null);
@@ -926,7 +1094,7 @@ function select(id, { zoom = true } = {}) {
   refreshPin(id);
   renderBody();
   setSheet(true);
-  $('#cx-body').scrollTop = 0;
+  inspectorBody.scrollTop = 0;
   syncURL();
   // 等手机面板展开以后再算可见区域
   requestAnimationFrame(() => focusOn(latlngOf(f), zoom ? Math.max(map.getZoom(), 17.5) : map.getZoom()));
@@ -950,7 +1118,8 @@ function buildingPopHTML(b) {
   const p = b.properties;
   const use = BUILDING_USE[p.use] ?? BUILDING_USE.other;
   const inside = inCampus().filter((f) => pointInFeature(f.geometry.coordinates, b));
-  const today = classesOn(st.me, todayIndex()).filter((x) => x.course.building?.osm === p.osm);
+  const now=Date.now();
+  const today = routeOccurrences().filter(x=>x.source==='course'&&x.building?.campus===st.campus&&x.building?.osm===p.osm).map(x=>({course:x.course,slot:x.slot,status:now>=new Date(`${x.date}T${x.start}:00+08:00`).getTime()&&now<new Date(`${x.date}T${x.end}:00+08:00`).getTime()?'now':''}));
   const visited = visitedSet(st.me, st.campus).has(p.osm);
   const [lat, lng] = centerOf(b);
   return `<div class="mp-pop" data-osm="${esc(p.osm)}">
@@ -962,7 +1131,7 @@ function buildingPopHTML(b) {
     ${popNoticeHTML(p.use)}
     <div class="mp-pop-foot">
       <button type="button" data-pop="detail">详情</button>
-      <a href="${esc(baiduMarker(lat.toFixed(6), lng.toFixed(6), p.name || '矿大校园内的楼', campusName(st.campus)))}" target="_blank" rel="noopener noreferrer">导航 ↗</a>
+      <button type="button" data-pop="navigate">导航</button>
       <button type="button" data-pop="visit" aria-pressed="${visited}">${visited ? '✓ 到过' : '我到过'}</button>
       <button type="button" data-pop="course">放一门课</button>
     </div>
@@ -970,6 +1139,7 @@ function buildingPopHTML(b) {
 }
 
 function openBuildingPop(f) {
+  if(st.selected||st.building)back();
   const osm = f.properties.osm;
   if (!svc.loaded) loadServices().then(() => pop?.isOpen() && pop.setContent(buildingPopHTML(f)));
   cm.select(osm);
@@ -978,30 +1148,34 @@ function openBuildingPop(f) {
     .setLatLng(centerOf(f))
     .setContent(buildingPopHTML(f))
     .openOn(map);
+  const popup=pop;
+  const wrapper=popup.getElement()?.querySelector('.leaflet-popup-content-wrapper');
+  if(wrapper)animateCard(wrapper,true);
   pop.once('remove', () => {
     if (st.building !== osm) cm.select(st.building);
-    pop = null;
+    if(pop === popup)pop = null;
   });
 }
 
 // 小窗里的按钮
-document.addEventListener('click', (e) => {
+document.addEventListener('click', async (e) => {
   const b = e.target.closest('.mp-pop [data-pop]');
   if (!b) return;
   const osm = b.closest('.mp-pop').dataset.osm;
   const f = cm.building(osm);
   if (!f) return;
+  if (b.dataset.pop === 'navigate') {beginNavigation('b|'+osm);return;}
   if (b.dataset.pop === 'detail') {
     map.closePopup();
     selectBuilding(osm);
   } else if (b.dataset.pop === 'visit') {
-    const on = toggleVisited(st.me, st.campus, osm);
-    saveAndRender();
+    const campus=st.campus;let on;
+    if(!await saveAndRender(latest=>{on=toggleVisited(latest,campus,osm);}))return;
     toast(on ? '点亮了这栋楼。' : '已取消“到过”。');
     pop?.setContent(buildingPopHTML(f));
   } else if (b.dataset.pop === 'course') {
     map.closePopup();
-    openMe({ building: f });
+    location.assign(plannerLink('&building='+encodeURIComponent(osm)+'&campus='+st.campus));
   }
 });
 
@@ -1017,7 +1191,7 @@ function selectBuilding(osm, { zoom = true } = {}) {
   cm.select(osm);
   renderBody();
   setSheet(true);
-  $('#cx-body').scrollTop = 0;
+  inspectorBody.scrollTop = 0;
   syncURL();
   requestAnimationFrame(() => focusOn(centerOf(b), zoom ? Math.max(map.getZoom(), 18) : map.getZoom()));
   $('#bc-title')?.focus({ preventScroll: true });
@@ -1060,10 +1234,20 @@ $('#cx-themes').addEventListener('click', (e) => {
 let qTimer;
 $('#cx-q').addEventListener('input', (e) => {
   clearTimeout(qTimer);
+  if (e.isComposing) return;
   qTimer = setTimeout(() => {
     st.q = e.target.value;
     renderBody();
   }, 160);
+});
+
+$('#cx-q').addEventListener('compositionend', () => { clearTimeout(qTimer); st.q = $('#cx-q').value; renderBody(); });
+attachSearchSuggestions($('#cx-q'), {
+  getItems: () => [
+    ...(cm?.buildings() || []).filter(b => b.properties.name).map(b => ({title:b.properties.name,keywords:BUILDING_USE[b.properties.use]?.name,kind:'建筑'})),
+    ...inCampus().filter(f => st.expired || !f.properties.expired).map(f => ({...f.properties.data,kind:typeName(f.properties.placeType)})),
+  ],
+  onSelect: () => { clearTimeout(qTimer); st.q = $('#cx-q').value; renderBody(); },
 });
 
 $('#cx-expired').addEventListener('change', (e) => {
@@ -1071,25 +1255,39 @@ $('#cx-expired').addEventListener('change', (e) => {
   loadPlaces();
 });
 
-function saveAndRender() {
-  if (!saveMe(st.me)) toast('这个浏览器不能保存数据（可能是隐私模式），刷新后会丢失。');
-  renderMarks();
-  renderBody();
+async function saveAndRender(patch, revision) {
+  try {
+    if(planCorrupt && typeof patch==='function')throw new Error('本地计划原内容需要修复，请先导出原备份再显式导入；未覆盖原记录。');
+    if(!await saveMe(patch, revision))throw new Error('浏览器没有保存成功，请保留备份后再试。');
+    st.me=loadMe();renderMarks();renderBody();return true;
+  } catch(error) {
+    try{const snapshot=await readyMe();st.me=snapshot.data;planCorrupt=Boolean(snapshot.corrupt);}catch{}
+    renderMarks();renderBody();
+    toast(error.code==='conflict'?'另一个页面已更新计划，本次修改没有覆盖它；请核对后重试。':error.message);return false;
+  }
 }
+
+subscribePlan(snapshot => { planCorrupt=Boolean(snapshot.corrupt);recoveryRaw=snapshot.corrupt?snapshot.raw:null;if(snapshot.corrupt)return toast('本地计划需要修复，原内容已保留。'); st.me=snapshot.data;renderMarks();renderBody(); });
 
 async function act(btn) {
   const a = btn.dataset.act;
   if (a === 'back') return back();
   if (a === 'refresh') return loadPlaces();
-  if (a === 'me') return openMe();
+  if (a === 'me') return location.assign(plannerLink(''));
+  if(a==='navigate-building'&&st.building)return beginNavigation('b|'+st.building);
+  if(a==='navigate-place'&&st.selected)return beginNavigation('p|'+st.selected);
   if (a === 'visit' && st.building) {
     const before = currentQuests().filter((q) => q.total && q.done === q.total).map((q) => q.id);
-    const on = toggleVisited(st.me, st.campus, st.building);
-    saveAndRender();
+    const campus=st.campus,osm=st.building;let on;
+    if(!await saveAndRender(latest=>{on=toggleVisited(latest,campus,osm);}))return;
     const finished = currentQuests().find((q) => q.total && q.done === q.total && !before.includes(q.id));
     return toast(finished ? `任务完成：${finished.title}。` : on ? '点亮了这栋楼。' : '已取消“到过”。');
   }
-  if (a === 'course-here' && st.building) return openMe({ building: cm.building(st.building) });
+  if(a==='favorite-building' && st.building){
+    const b=cm.building(st.building),favorite={campus:st.campus,osm:b.properties.osm,name:b.properties.name,center:b.properties.center};
+    await saveAndRender(latest=>{latest.favorites??=[];const i=latest.favorites.findIndex(x=>x.campus===favorite.campus&&x.osm===favorite.osm);if(i<0)latest.favorites.push(favorite);else latest.favorites.splice(i,1);});return;
+  }
+  if (a === 'course-here' && st.building) return location.assign(plannerLink('&building='+encodeURIComponent(st.building)+'&campus='+st.campus));
   if (a === 'add-here' && st.building) {
     const b = cm.building(st.building);
     const [lng, lat] = b.properties.center;
@@ -1098,6 +1296,16 @@ async function act(btn) {
   const f = st.selected && find(st.selected);
   const p = f?.properties;
   if (!p) return;
+  if(a==='add-local-event'){
+    const event=localActivity(f,new URL(`map.html?place=${encodeURIComponent(f.id)}&campus=${encodeURIComponent(p.campus)}`,location.href).href);
+    if(!event)return toast('没有可直接记录的单日活动起止时间，请在完整计划核对填写。');
+    let added=false;
+    if(await saveAndRender(latest=>{if(!latest.events.some(e=>e.id===event.id)){latest.events.push(event);added=true;}})){
+      routeDate=event.date;renderMarks();renderBody();syncURL();
+      toast(added?'已加入本地日程，来源与提醒已保留。':'这条活动已在本地日程中，保留你已有的修改。',{href:plannerLink('&view=day'),label:'查看日程'});
+    }
+    return;
+  }
   if (a === 'share') {
     const url = `${location.origin}${location.pathname}?place=${encodeURIComponent(p.id)}`;
     try {
@@ -1131,7 +1339,8 @@ async function act(btn) {
   renderBody();
 }
 
-$('#cx-body').addEventListener('click', async (e) => {
+explore.addEventListener('click', async (e) => {
+  if(!e.target.closest('#cx-body,#cx-inspector-body'))return;
   const hours = e.target.closest('[data-study-hours]');
   if (hours) {
     st.study.hours = Number(hours.dataset.studyHours);
@@ -1177,7 +1386,25 @@ $('#cx-body').addEventListener('click', async (e) => {
 
 $('#cx-fetched').addEventListener('click', (e) => e.target.closest('[data-act="refresh"]') && loadPlaces());
 
-$('#cx-body').addEventListener('submit', async (e) => {
+explore.addEventListener('submit', async (e) => {
+  if(e.target.dataset.form==='building-name'){e.preventDefault();const button=e.target.querySelector('[type=submit]');button.disabled=true;try{await voteBuildingName(e.target.dataset.osm,e.target.elements.name.value);}catch(error){toast(error.message);}finally{button.disabled=false;}return;}
+  if(e.target.dataset.form==='navigation'){
+    e.preventDefault();const points=navPoints(),from=points.find(p=>p.id===e.target.elements.from.value),to=points.find(p=>p.id===e.target.elements.to.value);
+    if(!from||!to||from.id===to.id)return toast('请选择两个不同的地点。');
+    directRoute={from:from.id,to:to.id,result:campusRoute([from,to],cm.data)};renderMarks();renderBody();
+    map.stop();map.fitBounds(directRoute.result.legs.flatMap(l=>l.coordinates.map(([lng,lat])=>[lat,lng])),{...viewPad(),maxZoom:18,animate:!reducedMotion(),duration:.28});return;
+  }
+
+  if(e.target.dataset.form==='route'){
+    e.preventDefault();const form=e.target,date=form.date.value;
+    try {occurrences(st.me,date,date);}catch(error){return toast(error.message);}
+    const campus=st.campus,prefs={start:form.start.value,via:[...form.via.selectedOptions].map(o=>o.value)};
+    if(prefs.via.length>10)return toast('途经地点最多选择 10 处。');
+    if(!await saveAndRender(latest=>{latest.routePrefs??={};latest.routePrefs[campus]=prefs;}))return;
+    directRoute.result=null;routeDate=date;routeEnabled=true;renderMarks();renderBody();syncURL();
+    const points=currentRoute?.stops.map(stop=>[stop.center[1],stop.center[0]]);
+    if(points?.length>1)map.fitBounds(points,{padding:[50,50],maxZoom:18});return;
+  }
   if (e.target.dataset.form !== 'report') return;
   e.preventDefault();
   const p = find(st.selected)?.properties;
@@ -1201,7 +1428,7 @@ addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || document.querySelector('dialog[open]')) return;
   if (picking) endPick(false);
   else if (bpick) bpick(null);
-  else if ((st.selected || st.building) && $('#cx-body').contains(document.activeElement)) back();
+  else if ((!inspector.hidden&&!inspector.inert) || ((st.selected || st.building) && [panel,inspector].some(el=>el.contains(document.activeElement)))) {activation={keyboard:true,target:document.activeElement,rect:document.activeElement.getBoundingClientRect()};back();setSheet(false);restoreCanvasFocus();}
 });
 
 // 只在页面可见时刷新；切回来时如果超过两分钟没更新，就静默刷新一次
@@ -1265,12 +1492,10 @@ let suggestLoaded = false;
 async function openMe({ building } = {}) {
   const f = $('#cx-profile').elements;
   const p = st.me.profile;
-  const prefs = st.user?.preferences ?? {};
-  f.faculty.value = p.faculty || prefs.faculty || '';
-  f.major.value = p.major || st.user?.major || '';
-  f.year.value = p.year || prefs.year || '';
+  f.faculty.value = p.faculty || '';
+  f.major.value = p.major || '';
+  f.year.value = p.year || '';
   f.campus.value = p.campus || st.campus;
-  $('#cx-sync-wrap').hidden = !(st.online && st.user);
   if (building) setCourseBuilding(building);
   else renderBuildingSelect();
   if (!$('#cx-slots').childElementCount) $('#cx-slots').innerHTML = slotRow();
@@ -1289,18 +1514,8 @@ $('#cx-profile').addEventListener('submit', async (e) => {
   const f = e.target.elements;
   const year = f.year.value.trim();
   if (year && !/^20\d{2}$/.test(year)) return toast('入学年份写四位数字，比如 2026。');
-  st.me.profile = { faculty: f.faculty.value.trim(), major: f.major.value.trim(), year, campus: f.campus.value };
-  saveAndRender();
-  if (f.sync.checked && st.user) {
-    try {
-      const prefs = { ...(st.user.preferences ?? {}), faculty: st.me.profile.faculty, year, campus: CAMPUS_SHORT[st.me.profile.campus] ?? '' };
-      const r = await hubApi.updateProfile({ major: st.me.profile.major, preferences: prefs });
-      if (r?.user) st.user = r.user;
-      return toast('已保存，也存到了你的账号里。');
-    } catch (err) {
-      return toast(`本机已保存；存到账号没有成功：${err.message}`);
-    }
-  }
+  const profile = { faculty: f.faculty.value.trim(), major: f.major.value.trim(), year, campus: f.campus.value };
+  if(!await saveAndRender(latest=>{Object.assign(latest.profile,profile);}))return;
   toast('已保存在这个浏览器里。');
 });
 
@@ -1310,7 +1525,7 @@ $('#cx-slots').addEventListener('click', (e) => {
 });
 $('#cx-building-select').addEventListener('change', (e) => setCourseBuilding(cm.building(e.target.value)));
 
-courseForm.addEventListener('submit', (e) => {
+courseForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const err = $('#cx-course-err');
   const name = courseForm.elements.name.value.trim();
@@ -1322,9 +1537,8 @@ courseForm.addEventListener('submit', (e) => {
   err.hidden = !problems.length;
   err.innerHTML = problems.map(esc).join('<br>');
   if (problems.length) return;
-  st.me.courses.push({ id: newId(), name, courseId: '', room: courseForm.elements.room.value.trim(), building: courseBuilding, slots });
-  if (!st.me.profile.campus) st.me.profile.campus = courseBuilding.campus;
-  saveAndRender();
+  const added={ id: newId(), name, courseId: '', room: courseForm.elements.room.value.trim(), building: structuredClone(courseBuilding), slots };
+  if(!await saveAndRender(latest=>{latest.courses.push(added);if(!latest.profile.campus)latest.profile.campus=added.building.campus;}))return;
   renderCourses();
   courseForm.reset();
   setCourseBuilding(null);
@@ -1332,16 +1546,17 @@ courseForm.addEventListener('submit', (e) => {
   toast(`已添加《${name}》。`);
 });
 
-$('#cx-courses').addEventListener('click', (e) => {
+$('#cx-courses').addEventListener('click', async (e) => {
   const li = e.target.closest('[data-course]');
   if (!li || !e.target.closest('[data-course-x]')) return;
-  st.me.courses = st.me.courses.filter((c) => c.id !== li.dataset.course);
-  saveAndRender();
+  const id=li.dataset.course;
+  if(!await saveAndRender(latest=>{latest.courses=latest.courses.filter(c=>c.id!==id);}))return;
   renderCourses();
 });
 
 $('#cx-me-export').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify(st.me, null, 2)], { type: 'application/json' });
+  const exported=planCorrupt&&recoveryRaw!=null?typeof recoveryRaw==='string'?recoveryRaw:JSON.stringify(recoveryRaw,null,2):JSON.stringify(st.me,null,2);
+  const blob = new Blob([exported], { type: 'application/json' });
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `luokixi-我的校园-${new Date().toISOString().slice(0, 10)}.json` });
   a.click();
   URL.revokeObjectURL(a.href);
@@ -1349,8 +1564,9 @@ $('#cx-me-export').addEventListener('click', () => {
 
 $('#cx-me-import').addEventListener('change', async (e) => {
   try {
-    st.me = importMe(JSON.parse(await e.target.files[0].text()));
-    saveAndRender();
+    const snapshot=await readyMe();
+    const imported=importMe(JSON.parse(await e.target.files[0].text()));
+    if(!await saveAndRender(imported,snapshot.revision))return;
     openMe();
     toast('已导入。');
   } catch (err) {
@@ -1360,10 +1576,10 @@ $('#cx-me-import').addEventListener('change', async (e) => {
   }
 });
 
-$('#cx-me-clear').addEventListener('click', () => {
+$('#cx-me-clear').addEventListener('click', async () => {
+  const snapshot=await readyMe().catch(error=>{toast(error.message);return null;});if(!snapshot)return;
   if (!confirm('清空这个浏览器里的学院、课表和“到过”的记录？清空前可以先导出备份。')) return;
-  st.me = importMe({ version: 1, courses: [] });
-  saveAndRender();
+  if(!await saveAndRender(importMe({ version: 1, courses: [] }),snapshot.revision))return;
   openMe();
 });
 
@@ -1401,11 +1617,30 @@ function renderGate() {
   let html = '';
   if (!st.online) html = '<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>社区服务没有连接。</strong>现在不能投稿，可以先看看要填哪些内容。</span></p>';
   else if (!st.user) html = `<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>登录之后才能投稿。</strong>投稿会记在你的账号下，审核结果也会通知你。</span></p><a class="btn btn-primary btn-sm" href="${esc(loginURL())}">登录或注册</a>`;
-  else if (!st.user.emailVerified) html = '<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>邮箱还没验证。</strong>验证之后才能上传照片和投稿。</span></p><a class="btn btn-primary btn-sm" href="me.html#account">去验证</a>';
+  else if (!canParticipate(st.user)) html = '<p class="notice"><span class="notice-dot" aria-hidden="true"></span><span><strong>邮箱还没验证。</strong>验证之后才能上传照片和投稿。</span></p><a class="btn btn-primary btn-sm" href="me.html#account">去验证</a>';
   $('#cx-gate').innerHTML = html;
   const locked = Boolean(html);
   form.inert = locked;
   form.classList.toggle('is-locked', locked);
+}
+
+const activityBuildings=new Map();
+let activityBuildingEpoch=0;
+async function syncActivityFields() {
+  const isActivity=form.elements.placeType.value==='event';
+  $('#cx-activity-fields').hidden=!isActivity;
+  if(!isActivity)return;
+  const campus=form.elements.campus.value,epoch=++activityBuildingEpoch,select=$('#cx-event-building');
+  const prior=select.dataset.campus===campus?select.value:'';
+  select.disabled=true;
+  if(!st.maps[campus]&&!activityBuildings.has(campus)){
+    activityBuildings.set(campus,fetch(`data/campus-map/${campus}.json`).then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{st.maps[campus]=data;return data;}).catch(()=>null));
+  }
+  const data=st.maps[campus]||await activityBuildings.get(campus);
+  if(epoch!==activityBuildingEpoch||campus!==form.elements.campus.value)return;
+  const buildings=(data?.features??[]).filter(f=>f.properties?.kind==='building');
+  select.innerHTML='<option value="">不指定楼宇</option>'+buildings.map(f=>`<option value="${esc(f.properties.osm)}">${esc(f.properties.name||f.properties.osm)}</option>`).join('');
+  select.dataset.campus=campus;select.value=prior;select.disabled=!buildings.length;
 }
 
 function syncDuration() {
@@ -1477,6 +1712,7 @@ function openAdd(preset = {}) {
   if (!f.observedAt.value) f.observedAt.value = toLocalInput(new Date());
   if (!f.photoCredit.value && st.user) f.photoCredit.value = st.user.name ?? st.user.username ?? '';
   syncDuration();
+  syncActivityFields();
   renderLoc();
   $('#cx-add').showModal();
 }
@@ -1498,7 +1734,8 @@ document.addEventListener('click', (e) => {
 
 form.addEventListener('change', (e) => {
   if (e.target.name === 'duration') syncDuration();
-  if (e.target.name === 'campus') renderLoc();
+  if (e.target.name === 'campus') {renderLoc();syncActivityFields();}
+  if (e.target.name === 'placeType') syncActivityFields();
 });
 
 $('.cx-quick', form).addEventListener('click', (e) => {
@@ -1556,6 +1793,12 @@ function collect() {
     campus: f.campus.value,
     placeType: f.placeType.value,
     duration: f.duration.value,
+    ...(f.placeType.value==='event'?{
+      ...(f.startsAt.value||f.endsAt.value?{startsAt:f.startsAt.value?f.startsAt.value+':00+08:00':'',endsAt:f.endsAt.value?f.endsAt.value+':00+08:00':''}:{}),
+      links:f.activitySourceURL.value.trim()?{source:f.activitySourceURL.value.trim()}:{},
+      registrationURL:f.registrationURL.value.trim(),reminderMinutes:Number(f.reminderMinutes.value),
+      building:(()=>{const b=st.maps[f.campus.value]?.features.find(b=>b.properties?.kind==='building'&&b.properties.osm===f.eventBuilding.value);return b?{campus:f.campus.value,osm:b.properties.osm,name:b.properties.name||'',center:b.properties.center||null}:null;})(),
+    }:{}),
     location: draft.location
       ? { ...draft.location, coordinateSystem: 'wgs84', ...(draft.accuracy != null ? { accuracyMeters: Math.min(10000, Math.round(draft.accuracy)) } : {}) }
       : null,
@@ -1572,6 +1815,12 @@ function problems(d, submit) {
   const out = [];
   if (!d.placeType) out.push('选一个分类。');
   if (!d.title) out.push('写一个名称。');
+  if(d.placeType==='event'){
+    if((d.startsAt||d.endsAt)&&(!d.startsAt||!d.endsAt))out.push('活动开始和结束时间需要一起填写。');
+    else if(d.startsAt&&(!Number.isFinite(Date.parse(d.startsAt))||!Number.isFinite(Date.parse(d.endsAt))||Date.parse(d.endsAt)<=Date.parse(d.startsAt)))out.push('活动结束时间需要晚于开始时间。');
+    if([d.startsAt,d.endsAt].some(t=>t&&Date.parse(t)>Date.now()+730*86400e3))out.push('活动时间最多填写到未来两年。');
+    for(const [label,url] of [['活动原来源',d.links?.source],['报名链接',d.registrationURL]])if(url&&!activityURL(url))out.push(`${label}需要完整的 HTTP 或 HTTPS 链接。`);
+  }
   if (draft.photos.some((p) => p.state === 'uploading')) out.push('等照片上传完。');
   if (!submit) return out;
   if (!d.location) out.push('在地图上选一个点。');
@@ -1755,6 +2004,11 @@ function reviewHTML(e) {
       ${fact('开放和通行', d.accessNotes)}
       ${d.observedAt ? fact('看到的时间', fmtTime(d.observedAt)) : ''}
       ${temp && d.expiresAt ? fact('大概待到', fmtTime(d.expiresAt)) : ''}
+      ${d.placeType==='event'&&d.startsAt?fact('活动起止（北京时间）',`${activityTime(d.startsAt)} → ${activityTime(d.endsAt)}`):''}
+      ${d.placeType==='event'?fact('日程楼宇',d.building?`${d.building.name||d.building.osm} · ${campusName(d.building.campus)}`:'未指定，不从坐标或教室号推测'):''}
+      ${d.placeType==='event'?fact('本地提醒',d.reminderMinutes?`提前 ${d.reminderMinutes} 分钟`:'不提醒'):''}
+      ${d.placeType==='event'&&activityURL(d.links?.source)?`<div><dt>活动原来源</dt><dd><a href="${esc(activityURL(d.links.source))}" target="_blank" rel="noopener noreferrer">核对原来源 ↗</a></dd></div>`:''}
+      ${d.placeType==='event'&&activityURL(d.registrationURL)?`<div><dt>报名</dt><dd><a href="${esc(activityURL(d.registrationURL))}" target="_blank" rel="noopener noreferrer">核对报名入口 ↗</a></dd></div>`:''}
       ${fact('照片', `${d.photoCredit || '未署名'} · ${d.license || '未选许可'}`)}
     </dl>
     ${d.uploads?.length ? `<div class="cx-rv-photos">${d.uploads.map((u) => `<a href="/api/hub/uploads/${esc(u)}/photo" target="_blank" rel="noopener"><img src="/api/hub/uploads/${esc(u)}/photo" alt="投稿照片" loading="lazy"></a>`).join('')}</div>` : '<p class="cx-warn">没有照片。</p>'}
@@ -1867,6 +2121,10 @@ async function loadArt() {
 // ---------- 启动 ----------
 
 async function init() {
+  try{const snapshot=await readyMe();st.me=snapshot.data;planCorrupt=Boolean(snapshot.corrupt);}catch(error){planReadError=error;}
+  if(planReadError)toast(planReadError.message);
+  if(planCorrupt)toast('本地计划需要修复，原内容已保留；校园地图仍可查看。');
+  if(routeEnabled)st.tab='route';
   const accountReady = hubState();
   $('#cx-q').value = st.q;
   $$('#cx-campus [data-campus]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.campus === st.campus)));
@@ -1908,8 +2166,19 @@ async function init() {
     explore.scrollIntoView({ block: 'start' });
     selectBuilding(st.building);
   }
+  if(params.get('building')&&!cm.building(params.get('building')))toast('这栋楼不在当前校区已核对的地图目录中，请核对链接或切换校区。');
   // 顶栏“＋发布 → 标一个地点”直达投稿
   if (params.get('add') === 'place') openAdd();
 }
 
-init();
+init().catch(error=>toast(`校园地图暂时无法载入：${error.message}`));
+setInterval(()=>{$$('[data-class-countdown]').forEach(el=>el.textContent=classCountdown());},30000);
+
+// Cache only the public campus shell; personal plans stay in IndexedDB.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['127.0.0.1','localhost','[::1]'].includes(location.hostname))) {
+  navigator.serviceWorker.register('campus-worker.js', { updateViaCache: 'none' }).catch(() => {
+    toast('离线页面缓存未启用；课程仍仅存在此设备，可从课表与日程中导出。');
+  });
+}
+
+explore.addEventListener('click',async e=>{const button=e.target.closest('[data-name-vote]');if(!button)return;button.disabled=true;try{await voteBuildingName(button.dataset.nameOsm,button.dataset.nameVote);}catch(error){toast(error.message);}finally{button.disabled=false;}});

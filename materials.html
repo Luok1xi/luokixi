@@ -3,19 +3,19 @@
 <head>
 <!-- @include head -->
 <title>资料 · Luokixi</title>
-<meta name="description" content="矿大课程资料、试卷与笔记：按分类逛、搜索、预览，一份份放进资料袋，再一次打包下载；也可以上传自己的资料。">
+<meta name="description" content="矿大课程资料、试卷与笔记按册整理；一套试卷里的原卷、答案与听力在同一本书里翻阅，也可以整册放进资料袋。">
 <script type="module" src="/src/pages/materials.js"></script>
 </head>
 <body data-page="materials" class="ap-page">
 <!-- @include nav -->
 
 <main id="main" class="mt">
-  <!-- 页头：和校圈一样的 App Store 大标题（往下滚时滚走，下面的搜索栏吸顶） -->
-  <div class="ap-wrap">
-    <header class="as-head mt-head">
-      <div class="as-head-text"><p class="as-date">矿大课程资料 · 试卷 · 笔记</p><h1 class="as-largetitle" data-vt-title>资料</h1></div>
-    </header>
-  </div>
+  <header class="ap-wrap mt-hero">
+    <div class="mt-hero-copy"><p class="mt-eyebrow">LUOKIXI / 资料书架</p><h1 data-vt-title>课程资料库。</h1>
+      <p class="mt-hero-meta" id="library-total">课程、试卷与笔记。</p>
+      <a class="mt-hero-link" href="search.html">查课程与经验 ↗</a> · <a class="mt-hero-link" href="collect.html">收集资源 ↗</a><br><a class="mt-hero-link" href="#mt-results">开始浏览 <span aria-hidden="true">↓</span></a></div>
+    <div class="mt-hero-art" id="library-covers" aria-label="资料选读"></div>
+  </header>
 
   <!-- 顶部：搜索 + 醒目的上传入口（超市 App 的搜索栏） -->
   <div class="mt-top">
@@ -23,12 +23,13 @@
       <form id="library-search" class="mt-search" role="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
         <label class="sr-only" for="library-q">搜索资料</label>
-        <input id="library-q" type="search" placeholder="搜课程、年份、知识点，例如“线代 2023”" autocomplete="off" enterkeyhint="search">
+        <input id="library-q" type="search" placeholder="搜索课程、资料或年份" autocomplete="off" enterkeyhint="search">
         <button type="submit" class="sr-only">搜索</button>
       </form>
+      <a class="mt-workshop-link" href="question-workshop.html">题目工坊 ↗</a>
       <button class="mt-upload-btn" id="upload-open" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5M5 19h14"/></svg>
-        <span><b>上传资料</b><small>试卷、答案、笔记都可以</small></span>
+        <span><b>上传资料</b></span>
       </button>
     </div>
   </div>
@@ -37,18 +38,17 @@
     <!-- 左边：竖排的分类栏（超市 App 的左侧分类） -->
     <nav class="mt-rail" aria-label="资料分类">
       <div id="library-subjects" class="mt-rail-list"></div>
-      <button class="mt-rail-upload" type="button" data-upload>
-        <span>＋</span>没找到？<br>传一份
-      </button>
+
     </nav>
 
     <!-- 右边：竖排的资料列表 -->
     <section class="mt-results" id="mt-results" aria-labelledby="library-heading">
       <div class="mt-results-head">
-        <h2 class="mt-heading-wrap"><span id="library-heading" class="mt-heading">全校资料库</span><span class="mt-count" id="library-count" role="status">正在整理目录…</span></h2>
+        <h2 class="mt-heading-wrap"><span id="library-heading" class="mt-heading">全部资料</span><span class="mt-count" id="library-count" role="status">正在整理目录…</span></h2>
         <div class="mt-filters">
           <label><span class="sr-only">类型</span><select id="library-kind">
             <option value="">全部类型</option>
+            <option>套卷</option>
             <option>试卷</option>
             <option>答案</option>
             <option>听力</option>
@@ -67,6 +67,11 @@
           </select></label>
         </div>
       </div>
+      <div class="mt-filters" id="library-classification">
+        <label><span class="sr-only">大学</span><select id="library-university"><option value="">全部大学</option></select></label>
+        <label><span class="sr-only">学科</span><select id="library-discipline"><option value="">全部学科</option></select></label>
+        <label><span class="sr-only">使用优先级</span><select id="library-priority"><option value="">全部优先级</option><option>优先练习</option><option>待核对</option><option>补充阅读</option></select></label>
+      </div>
       <div id="library-list" class="mt-list" aria-live="polite"></div>
       <div class="mt-more"><button class="btn btn-outline" id="library-more" type="button" hidden>再看一些</button></div>
       <p class="ap-sub mt-status" id="library-status"></p>
@@ -84,9 +89,9 @@
   <button class="mt-bagbar-go" id="bag-dock-open" type="button">去打包 <b class="num" id="bag-dock-count">0</b></button>
 </aside>
 
-<dialog id="bag-dialog" class="mt-sheet" aria-labelledby="bag-title">
+<dialog id="bag-dialog" data-motion="flip" class="mt-sheet" aria-labelledby="bag-title">
   <div class="mt-sheet-head">
-    <h2 class="ap-h2" id="bag-title">你的资料袋。<span>一次带走。</span></h2>
+    <h2 class="ap-h2" id="bag-title">你的资料袋</h2>
     <button class="mt-sheet-close" type="button" data-close aria-label="关闭资料袋"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
   </div>
   <div id="bag-list" class="mt-bag-list"></div>
@@ -103,7 +108,7 @@
 <!-- 上传：先把文件拖进来，按文件名自动填好课程、年份和类型，再补来源和许可 -->
 <dialog id="upload-dialog" class="mt-sheet mt-upload" aria-labelledby="upload-title">
   <div class="mt-sheet-head">
-    <h2 class="ap-h2" id="upload-title">上传资料。<span>让好资料被找到。</span></h2>
+    <h2 class="ap-h2" id="upload-title">上传资料</h2>
     <button class="mt-sheet-close" type="button" data-close aria-label="关闭上传"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
   </div>
   <div id="upload-gate"></div>

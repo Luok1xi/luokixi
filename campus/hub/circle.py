@@ -18,6 +18,8 @@ from .models import (CampusBoard, BoardFollow, CreatorFollow, CirclePreference, 
                      CircleFeedback, CircleSelection, Entry, ExternalCache, Member, Reply, ReplyLike,
                      Upload, Audit, Contribution)
 
+from .search_matching import text_score
+
 VERSION = 'campus-explicit-v1'
 PAGE_SIZE = 12
 DEFAULT_BOARDS = [
@@ -82,7 +84,9 @@ def preference(user):
     if not user.is_authenticated:
         return {'personalized': False, 'interests': [], 'mutedCreators': [], 'mutedBoards': []}
     p = CirclePreference.objects.filter(user=user).first()
-    return {'personalized': p.personalized if p else True, 'interests': p.interests if p else [],
+    from .interests import read_interests
+    interests = read_interests(user, p)
+    return {'personalized': p.personalized if p else True, 'interests': interests,
             'mutedCreators': p.muted_creators if p else [], 'mutedBoards': p.muted_boards if p else []}
 
 
@@ -116,9 +120,14 @@ def card(entry, user, reasons=None):
     result.update(likes=entry.circle_likes.filter(revision=entry.public_revision).count(),
         liked=user.is_authenticated and entry.circle_likes.filter(user=user, revision=entry.public_revision).exists(),
         replies=entry.reply_set.filter(state='published').count(),
-        photos=[f'/api/hub/uploads/{uid}/photo' for uid in entry.published.get('uploads', [])],
+        photos=([f'/api/hub/uploads/{uid}/photo' for uid in entry.published.get('uploads', [])] or
+                ([entry.published['autoMedia']['url']] if entry.published.get('autoMedia',{}).get('url','').startswith(('/art/','/api/hub/illustration/')) else [])),
+        photoCredit=entry.published.get('autoMedia',{}).get('credit','') if not entry.published.get('uploads') else '',
         selection={'reason': chosen.reason, 'checkedAt': chosen.checked_at, 'revision': chosen.revision} if chosen else None,
-        recommendationReasons=reasons or [])
+        recommendationReasons=reasons or [],
+        authorFollowed=bool(user.is_authenticated and entry.owner_id and CreatorFollow.objects.filter(user=user, creator_id=entry.owner_id).exists()),
+        canFollowAuthor=bool(user.is_authenticated and entry.owner_id and entry.owner_id != user.pk),
+        canAccept=bool(user.is_authenticated and (entry.owner_id == user.pk or user.is_staff)))
     # Link authors and site submitters remain distinct.
     result['contentType'] = entry.published['circle']['format']
     return result
@@ -217,6 +226,25 @@ def rank(entries, pref, creators, boards):
     return result, reasons_by_id
 
 
+def matching_post_ids(query, q):
+    """Bounded fuzzy candidates AFTER visibility, mute, campus and lane filters."""
+    exact = query.filter(Q(published__title__icontains=q) | Q(published__body__icontains=q))
+    rows = list(exact.order_by('-published__circle__publishedAt', 'id').values('pk', 'published')[:200])
+    rows += list(query.order_by('-published__circle__publishedAt', 'id').values('pk', 'published')[:500])
+    names = dict(CampusBoard.objects.filter(active=True).values_list('id', 'name'))
+    scores = {}
+    for row in rows:
+        identifier = str(row['pk'])
+        if identifier in scores:
+            continue
+        data = row['published'] or {}
+        score = text_score(q, data.get('title', ''), data.get('body', '') + ' ' + data.get('summary', ''),
+            ' '.join(data.get('tags', [])) + ' ' + names.get(data.get('circle', {}).get('board'), ''))
+        if score > 0:
+            scores[identifier] = score
+    return scores
+
+
 def feed(request):
     lane = request.GET.get('lane', 'recommended')
     if lane not in ('recommended', 'latest', 'following', 'boards', 'reading'):
@@ -234,14 +262,15 @@ def feed(request):
         query = query.filter(published__circle__board=board)
     if campus != 'all':
         query = query.filter(published__circle__campus__in=[campus, 'all'])
-    if q:
-        query = query.filter(search_text__icontains=q)
     if lane == 'following':
-        query = query.filter(owner_id__in=creators)
+        query = query.filter(Q(owner_id__in=creators) | Q(published__circle__board__in=boards))
     if lane == 'boards':
         query = query.filter(published__circle__board__in=boards)
     if lane == 'reading':
         query = query.filter(published__circle__format='link', circle_selection__revision=F('public_revision'))
+    search_scores = matching_post_ids(query, q) if q else {}
+    if q:
+        query = query.filter(pk__in=search_scores)
     mode = 'latest' if lane == 'recommended' and request.user.is_authenticated and not pref['personalized'] else lane
     stamp = hashlib.sha256(json.dumps([getattr(request.user, 'pk', None), lane, board, campus, q, pref,
         sorted(creators), sorted(boards), sorted(map(str, ignored))], sort_keys=True).encode()).hexdigest()
@@ -268,6 +297,8 @@ def feed(request):
         else:
             keys = list(map(str, query.order_by('-published__circle__publishedAt', 'id').values_list('pk', flat=True)[:200]))
             reasons = {}
+        if q and mode == 'recommended':
+            keys.sort(key=lambda key: -search_scores.get(str(key), 0))
         revisions = {str(key): version for key, version in query.filter(pk__in=keys).values_list('pk', 'public_revision')}
         snapshot = {'id': secrets.token_urlsafe(16), 'stamp': stamp, 'keys': keys, 'reasons': reasons, 'revisions': revisions}
         request.session['circle_snapshot'] = snapshot
@@ -283,6 +314,14 @@ def feed(request):
         if snapshot.get('revisions', {}).get(identifier) != entry.public_revision:
             continue
         reasons = snapshot['reasons'].get(identifier, [])
+        if mode == 'following':
+            reasons = []
+            if entry.owner_id in creators:
+                reasons.append('来自你关注的创作者')
+            if entry.published['circle']['board'] in boards:
+                followed_board = CampusBoard.objects.filter(pk=entry.published['circle']['board']).first()
+                name = followed_board.name if followed_board else '话题吧'
+                reasons.append('来自你订阅的' + (name if name.endswith('吧') else name + '吧'))
         if mode == 'recommended':
             _, live_reasons = rank([entry], pref, creators, boards)
             reasons = live_reasons.get(identifier, []) + [r for r in reasons if r.startswith('探索：')]
@@ -375,8 +414,16 @@ def thread(request, entry):
     user = request.user
     query = Reply.objects.filter(entry=entry, state='published')
     if user.is_authenticated:
-        query = Reply.objects.filter(entry=entry).filter(Q(state='published') | Q(author=user))
+        query = Reply.objects.filter(entry=entry).filter(Q(state='published') | Q(author=user, state='pending') | (Q(state='pending') if user.is_staff else Q(pk__in=[])))
     replies = list(query.select_related('author').annotate(like_n=Count('likes')).order_by('created', 'id')[:300])
+    target = request.GET.get('reply', '')
+    if re.fullmatch(r'[0-9a-f-]{36}', target) and not any(str(r.pk) == target for r in replies):
+        extra = query.filter(pk=target).select_related('author').annotate(like_n=Count('likes')).first()
+        if extra:
+            if extra.state == 'published':
+                extra.notice_floor = 1 + Reply.objects.filter(entry=entry, state='published').filter(Q(created__lt=extra.created) | Q(created=extra.created, pk__lte=extra.pk)).count()
+            replies.append(extra)
+            replies.sort(key=lambda r: (r.created, str(r.pk)))
     liked = set(ReplyLike.objects.filter(user=user, reply__in=replies).values_list('reply_id', flat=True)) if user.is_authenticated else set()
     floor, items = 1, []
     for r in replies:
@@ -384,8 +431,10 @@ def thread(request, entry):
         if published:
             floor += 1
         items.append({'id': str(r.pk), 'body': r.body, 'author': member_data(r.author), 'state': r.state,
-                      'floor': floor if published else None, 'likes': r.like_n, 'liked': r.pk in liked,
+                      'floor': getattr(r, 'notice_floor', floor) if published else None, 'likes': r.like_n, 'liked': r.pk in liked,
                       'own': user.is_authenticated and r.author_id == user.pk, 'isOwner': r.author_id == entry.owner_id,
+                      'accepted': r.accepted if published else False,
+                      'canAccept': bool(published and user.is_authenticated and r.author_id != user.pk and (entry.owner_id == user.pk or user.is_staff)),
                       'created': r.created.isoformat()})
     lit = sorted((i for i in items if i['state'] == 'published' and i['likes'] >= 1), key=lambda i: (-i['likes'], i['floor']))[:LIT_MAX]
     return {'post': card(entry, user), 'replies': items, 'lit': [i['id'] for i in lit],
@@ -475,7 +524,7 @@ def post(request, route, body):
             if type(body['personalized']) is not bool:
                 raise Problem('请明确是否启用个性化。')
             p.personalized = body['personalized']
-        for field, attr, count, limit in [('interests', 'interests', 20, 80),
+        for field, attr, count, limit in [('interests', 'interests', 12, 80),
                 ('mutedCreators', 'muted_creators', 100, 30), ('mutedBoards', 'muted_boards', 50, 60)]:
             if field in body:
                 values = string_list(body[field], count, limit)
@@ -485,11 +534,15 @@ def post(request, route, body):
                     raise Problem('包含不存在的话题吧。')
                 setattr(p, attr, values)
         p.save()
+        if 'interests' in body:
+            from .interests import save_interests
+            save_interests(user, p.interests)
         request.session.pop('circle_snapshot', None)
         return preference(user)
     if route == 'circle/reset':
         # Clear algorithm state only; keep deliberate subscriptions and mute choices.
-        CirclePreference.objects.filter(user=user).update(interests=[])
+        from .interests import save_interests
+        save_interests(user, [])
         CircleFeedback.objects.filter(user=user).delete()
         request.session.pop('circle_snapshot', None)
         return {'ok': True, 'preserved': ['follows', 'mutes', 'personalized']}

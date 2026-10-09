@@ -1,0 +1,86 @@
+{
+  "checkedOn": "2026-09-22",
+  "readScope": "原论文的方法、评估与相关限制，以及关键源码；不是完整基准复现",
+  "items": [
+    {
+      "experimentId": "P2A",
+      "name": "Paper2Agent",
+      "paper": "https://www.nature.com/articles/s41586-026-11044-y",
+      "repo": "https://github.com/jmiao24/Paper2Agent",
+      "codeStatus": "author_linked",
+      "sha": "8c2d059165ef8cdcb70dbea76655b9c2b55b38e6",
+      "license": "MIT",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "TM",
+      "name": "ToolMaker",
+      "paper": "https://aclanthology.org/2025.acl-long.1266.pdf",
+      "repo": "https://github.com/KatherLab/ToolMaker",
+      "codeStatus": "author_linked_license_unverified",
+      "sha": "b0d883d9d6d047e01f4142d402491d109edabe02",
+      "license": "unverified",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "RM",
+      "name": "ReMe",
+      "paper": "https://aclanthology.org/2026.findings-acl.829.pdf",
+      "repo": "https://github.com/agentscope-ai/ReMe",
+      "codeStatus": "author_linked_experiment_version_unverified",
+      "sha": "873bcee220c97e7ab6311c7b03af98a8ad849553",
+      "license": "Apache-2.0",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "PS",
+      "name": "PolySkill",
+      "paper": "https://arxiv.org/html/2510.15863v1",
+      "repo": "https://github.com/simonucl/PolySkill",
+      "codeStatus": "author_linked",
+      "sha": "fff8807d7501d93188f9f658f4d0af2f29f35c23",
+      "license": "MIT",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "SP",
+      "name": "Sentipolis",
+      "paper": "https://aclanthology.org/2026.findings-acl.368.pdf",
+      "repo": null,
+      "codeStatus": "official_code_not_verified",
+      "sha": null,
+      "license": "unverified",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "D2A",
+      "name": "D2A",
+      "paper": "https://arxiv.org/html/2412.06435v2",
+      "repo": "https://github.com/zfw1226/D2A",
+      "codeStatus": "author_linked",
+      "sha": "0d194782b5eaed9311a210f950b8061064ea4d92",
+      "license": "MIT",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "DPC",
+      "name": "Dynamic Persona Coherence",
+      "paper": "https://aclanthology.org/2026.acl-long.1336.pdf",
+      "repo": "https://github.com/lululu896/DPC",
+      "codeStatus": "candidate_identity_unverified_incomplete",
+      "sha": "7ce28f68f2883d8eb31b511377a4c194af0cfa8e",
+      "license": "MIT (nested LICENSE)",
+      "experimentStatus": "designed_not_run"
+    },
+    {
+      "experimentId": "PF",
+      "name": "PersonaForge",
+      "paper": "https://aclanthology.org/2026.findings-acl.386.pdf",
+      "repo": "https://github.com/fQwQf/PersonaForge",
+      "codeStatus": "author_linked",
+      "sha": "10363f65b9649ae258854568608da7add1d6cc98",
+      "license": "Apache-2.0",
+      "experimentStatus": "designed_not_run"
+    }
+  ]
+}

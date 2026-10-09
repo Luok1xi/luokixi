@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>课程资料与经验 · Luokixi</title>
+<meta name="description" content="搜索矿大课程、资料与同学经验，核对适用学期和来源，带着上下文继续提问。">
+<script type="module" src="/src/pages/search.js"></script>
+</head>
+<body data-page="search" class="ap-page">
+<!-- @include nav -->
+<main id="main" class="learning-search learning-wrap">
+  <header class="learning-hero">
+    <div class="learning-hero-copy">
+    <p class="learning-eyebrow">LUOKIXI / 学习索引</p>
+    <h1>查找课程<br>与学习资料。</h1>
+    <p class="learning-intro">课程资料、学习经验与问答，在这里一起找。</p>
+    </div>
+    <div class="learning-index-object" aria-hidden="true"><span class="learning-object-caption">COURSE / RESOURCE / EXPERIENCE</span><i class="learning-index-back"></i><i class="learning-index-mid"></i><div class="learning-index-front"><small>LUOKIXI — 学习索引</small><b>从课程<br>找到线索。</b><span class="learning-index-rule"></span><span>资料 / 经验 / 问答 <em>↗</em></span></div></div>
+    <form id="learning-search-form" class="learning-search-form" role="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+      <label class="sr-only" for="learning-q">搜索课程资料与经验</label>
+      <input id="learning-q" name="q" type="search" autocomplete="off" enterkeyhint="search" placeholder="课程名、简称、编号，或你遇到的问题" maxlength="160">
+      <button class="btn btn-primary" type="submit">搜索</button>
+    </form>
+    <div class="learning-starters"><span>可以这样找</span><button type="button" data-query="线代">线代</button><button type="button" data-query="高数">高数</button><button type="button" data-query="大学物理">大学物理</button><a href="materials.html">逛资料库与资料袋 <span aria-hidden="true">↗</span></a></div>
+  </header>
+
+  <section class="learning-browser" aria-label="学习搜索结果">
+    <nav class="learning-types" id="learning-types" aria-label="结果类型"></nav>
+    <div class="learning-filterbar">
+      <label>课程<select id="learning-course"><option value="">全部课程</option></select></label>
+      <label>学期<select id="learning-term"><option value="">全部学期</option></select></label>
+      <label>学院<select id="learning-faculty"><option value="">全部学院</option></select></label>
+      <label>获取方式<select id="learning-access"><option value="">全部方式</option></select></label>
+      <button type="button" class="learning-reset" id="learning-reset" hidden>清除筛选</button>
+    </div>
+    <label id="learning-local-toggle" class="learning-local-toggle" hidden><input id="learning-local-text" type="checkbox"><span>检索本机文件正文<small>开启后，关键词只用于本机检索。</small></span></label>
+    <div class="learning-results-head"><h2 id="learning-results-heading">探索课程与资料</h2><p id="learning-result-status" role="status" aria-live="polite">正在读取目录…</p></div>
+    <div id="learning-notices" class="learning-notices" aria-live="polite"></div>
+    <div id="learning-results" class="learning-results" aria-busy="true"><p class="learning-loading">正在读取课程、资料与公开经验…</p></div>
+    <div class="learning-more"><button type="button" class="btn btn-outline" id="learning-more" hidden>继续查看</button></div>
+  </section>
+
+  <aside class="learning-help" aria-labelledby="learning-help-title">
+    <div><p class="learning-eyebrow">把问题留给后来的人</p><h2 id="learning-help-title">还差一个具体的答案？</h2><p>带上课程和已查找的关键词，继续向同学提问。</p></div>
+    <a class="btn btn-outline" id="learning-ask" href="course.html?ask=1">带着问题继续 <span aria-hidden="true">↗</span></a>
+  </aside>
+</main>
+<!-- @include footer -->
+</body>
+</html>

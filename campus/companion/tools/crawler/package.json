@@ -1,0 +1,7 @@
+{
+  "name": "miku-crawler-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Isolated Crawlee runtime for Miku bounded public reading",
+  "dependencies": { "@crawlee/basic": "3.18.1" }
+}

@@ -1,0 +1,28 @@
+北矿娘立绘纠正（2026-10-08）
+
+用户指定
+第一张 CC1C4A0F-5FBC-4F14-9628-2CF150569570.PNG 是全身立绘基准。
+第二张 66E45DFE-CD2F-4256-9577-561B0BFFB629.PNG 是单独配图。
+此前混用旧黑白服装表情属于理解错误，本轮取消相关舞台映射。
+
+本轮产物
+使用内置 imagegen，以同一张完整原图分别编辑六种面部表情：happy、angry、think、sad、awkward、surprised。
+保持黑红金服装、红金花饰与流苏、束腰金扣/链条、矿灯、书本、裙摆、白袜花纹和鞋、原姿势与构图。
+六张均1086×1448 PNG，原样复制生成结果到 public/art/companions/beikuang-{expression}-v2.png；原中性立绘不改像素，Q版仍单独作为 reaction 配图。未生成新服装或挪用 Codex 素材。
+完整英文提示词存 public/art/companions/beikuang-expression-prompts.json；核心要求是 only change facial expression; preserve original costume, pose, proportions and framing。工具为内置 imagegen，不是 CLI 或本机付费模型。
+manifest.json 记录引用原图、生成来源、每张哈希和字节数。生成结果原件仍保留在 Codex generated_images，网站不依赖该目录。
+
+接入与核验
+campus/stage-catalog.js 的六个表情直接指向上述 v2 图片。聊天和工作室继续使用同一显示组件、原消息及情绪标签。
+已逐张目视比较发饰、服装、矿灯、书本、手部及站姿，表情与源图设计一致；没有声称像素级除脸以外完全相同。
+现有3项舞台检查通过，Vite构建通过；桌面1280/手机390浏览器原场景验收通过。六表情专项证据在 C:/Users/user/Documents/Codex/2026-10-07/cha/verification/north-costume/result.json。
+无正式聊天写入、模型对话、数据库迁移、GitHub推送或公网部署。
+
+语音跟进（尚未完成）
+作者发布介绍明确列七海千秋：https://www.bilibili.com/video/BV1V4H7z5Ez7/
+作者主页：https://rachelforster.github.io/Shinsekai/
+主页 Google Drive 镜像：https://drive.google.com/file/d/1ilPvQr9eQ0g5Scd4VQ08wGDHvs20Yjwt/view
+该镜像为 Shinsekai 1.6.4.zip，146610136字节。本轮只通过HTTP Range读取ZIP目录（2762项），未下载或执行整合包。目录没有七海模型/角色包/参考音频，只有系统提示音和语音程序。
+主页社区资源：https://shinsekai.end0rph1n.icu/resources ，目前内容前有验证码或登录门槛，没有绕过。
+因此当前语音engine仍off，七海没有合成或试听。已向用户请求角色包本地路径或确认尚未下载。不能把图片修正/播放接口当成声音交付。
+研究目录：C:/Users/user/Documents/Codex/2026-10-07/cha/research/voice-work-20261008/shinsekai-archive-list.json。

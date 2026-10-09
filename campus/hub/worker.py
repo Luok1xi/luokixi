@@ -2,6 +2,7 @@
 import logging
 import threading
 import time
+from contextlib import contextmanager
 from datetime import timedelta
 from django.conf import settings
 from django.core import signing
@@ -21,9 +22,14 @@ def digest(user_id):
     selected = []
     for n in records[:200]:
         if n.subscription:
-            watch = Watch.objects.filter(user=member,entry=n.entry).first()
-            if not watch or n.event not in watch.events:
-                continue
+            if n.event in ('learning', 'learning-review'):
+                from .learning_follow import subscription_active
+                if not subscription_active(n, member):
+                    continue
+            else:
+                watch = Watch.objects.filter(user=member,entry=n.entry).first()
+                if not watch or n.event not in watch.events:
+                    continue
         selected.append(n)
     if not selected:
         return {'sent':False,'reason':'empty'}
@@ -55,8 +61,28 @@ def schedule():
 INTERACTIVE = ('beikuang-chat','beikuang-report')
 
 
+@contextmanager
+def job_lease(job):
+    """Long downloads/model calls keep their claim; another worker must not replay them."""
+    stop = threading.Event()
+    def renew():
+        while not stop.wait(30):
+            try:
+                close_old_connections()
+                if not Job.objects.filter(pk=job.pk, state='running', attempts=job.attempts).update(updated=timezone.now()): break
+            except Exception:
+                logging.getLogger('hub.worker').warning('Could not renew job lease %s', job.pk)
+            finally: close_old_connections()
+    thread = threading.Thread(target=renew, daemon=True); thread.start()
+    try: yield
+    finally: stop.set(); thread.join(timeout=1)
+
+
 def run_one(kinds=None):
     close_old_connections()
+    if kinds is None or 'question-process' in kinds:
+        from .question_robot import recover_stale_jobs
+        recover_stale_jobs()
     with transaction.atomic():
         queued = Job.objects.filter(state='queued',due__lte=timezone.now())
         if kinds:
@@ -67,63 +93,105 @@ def run_one(kinds=None):
             return False
         job.state,job.attempts = 'running',job.attempts+1
         job.save(update_fields=['state','attempts','updated'])
-    try:
-        if job.kind=='extract':
-            from .files import extract
-            result = extract(job.payload['sha'])
-        elif job.kind=='source':
-            from .discovery import refresh_source
-            result = refresh_source(job.payload['id'])
-        elif job.kind=='github-inspect':
-            from .github_guides import inspect
-            result = inspect(job.payload['repository'],refresh=True)
-        elif job.kind=='github-summary':
-            from .github_guides import generate_guide
-            from .project_summaries import authorize
-            authorize(job.owner)
-            result = generate_guide(job.payload['repository'],str(job.pk))
-            from .maintenance import staff_notice
-            staff_notice('github-guides:'+str(job.pk),'中文导读机器人：详细说明已完成，请打开通知逐章核对。')
-            from .supervisor import inspect_all
-            inspect_all()
-        elif job.kind=='supervisor-draft':
-            from .supervisor import draft_announcement
-            from .project_summaries import authorize
-            authorize(job.owner)
-            result=draft_announcement(str(job.pk))
-        elif job.kind=='digest':
-            result = digest(job.payload['user'])
-        elif job.kind=='beikuang-chat':
-            from .beikuang import reply
-            result = reply(job.payload['message'])
-        elif job.kind=='beikuang-report':
-            from .beikuang import report_job
-            result = report_job(job.payload['owner'])
-        elif job.kind.startswith('maint-'):
-            from .maintenance import run
-            result = run(job.kind.removeprefix('maint-'))
-        elif job.kind=='mirror-repo':
-            from .mirror import mirror_repository
-            from .maintenance import save_cache
-            from .models import ExternalCache as Cache
-            result = mirror_repository(job.payload['repository'])
-            previous = Cache.objects.filter(pk='maint:mirror').first()
-            repos = dict(previous.data.get('repositories', {}) if previous else {})
-            repos[result['repository']] = result
-            save_cache('maint:mirror', {'repositories': repos})
-        else:
-            raise ValueError('未知任务类型。')
-        job.result,job.state,job.error = result,'done',''
-        if job.kind.startswith('maint-') and isinstance(result,dict) and result.get('errors'):
-            job.state,job.error = 'partial','；'.join(result['errors'])[:300]
-    except Exception as exc:
-        job.error = str(exc)[:300]
-        job.state = 'failed' if job.kind in ('github-summary','maint-summaries','supervisor-draft') or job.attempts>=3 else 'queued'
-        job.due = timezone.now()+timedelta(seconds=60*job.attempts)
-        logging.getLogger('hub.worker').warning('Job %s failed (%s)',job.pk,type(exc).__name__)
-    job.save(update_fields=['result','state','error','due','updated'])
-    close_old_connections()
-    return True
+    with job_lease(job):
+        begun, started_at = time.monotonic(), timezone.now()
+        try:
+            from .robot_workbench import reload_robot
+            reload_robot(job.kind)
+            if job.kind.startswith('pipeline-'):
+                from .content_pipeline import run
+                result = run(job.kind.removeprefix('pipeline-'), job.payload)
+            elif job.kind=='site-browser-audit':
+                from .site_browser_audit import run
+                result = run()
+            elif job.kind=='question-process':
+                from .question_robot import run_paper
+                result = run_paper(job.payload['paperId'])
+                if result.get('superseded'):
+                    # A newer worker owns this paper/job; do not overwrite its queue state.
+                    close_old_connections()
+                    return True
+            elif job.kind=='extract':
+                from .files import extract
+                result = extract(job.payload['sha'])
+            elif job.kind=='source':
+                from .discovery import refresh_source
+                result = refresh_source(job.payload['id'])
+            elif job.kind=='github-inspect':
+                from .github_guides import inspect
+                result = inspect(job.payload['repository'],refresh=True)
+            elif job.kind=='github-summary':
+                from .github_guides import generate_guide
+                from .project_summaries import authorize
+                authorize(job.owner)
+                result = generate_guide(job.payload['repository'],str(job.pk))
+                from .maintenance import staff_notice
+                staff_notice('github-guides:'+str(job.pk),'中文导读机器人：详细说明已完成，请打开通知逐章核对。')
+                from .supervisor import inspect_all
+                inspect_all()
+            elif job.kind=='supervisor-draft':
+                from .supervisor import draft_announcement
+                from .project_summaries import authorize
+                authorize(job.owner)
+                result=draft_announcement(str(job.pk))
+            elif job.kind=='digest':
+                result = digest(job.payload['user'])
+            elif job.kind=='beikuang-chat':
+                from .beikuang import reply
+                result = reply(job.payload['message'])
+                if result.get('deferred'):
+                    job.result, job.state = result, 'queued'
+                    job.due = timezone.now() + timedelta(seconds=1)
+                    job.save(update_fields=['result', 'state', 'due', 'updated'])
+                    close_old_connections()
+                    return True
+            elif job.kind=='beikuang-report':
+                from .beikuang import report_job
+                result = report_job(job.payload['owner'], job.key, job.payload.get('automatic', False))
+            elif job.kind=='site-backup':
+                from .backup import create_backup
+                result = create_backup()
+            elif job.kind=='site-backup-check':
+                from .backup import check_backup
+                result = check_backup(job.payload['id'])
+            elif job.kind == 'maint-beikuang':
+                from .beikuang import review_all
+                result = review_all(decided=bool(job.payload.get('companionDecision') or job.payload.get('ownerRequested')), seat=job.payload.get('actorSeat','beikuang'))
+            elif job.kind.startswith('maint-'):
+                from .maintenance import run
+                result = run(job.kind.removeprefix('maint-'))
+            elif job.kind=='mirror-repo':
+                from .mirror import mirror_repository
+                from .maintenance import save_cache
+                from .models import ExternalCache as Cache
+                import os
+                if job.key.startswith('mirror-after-curate:') and os.environ.get('HUB_MIRROR_AUTO') != '1':
+                    job.result, job.state, job.error = {'skipped': 'automatic-mirror-disabled'}, 'done', ''
+                    job.save(update_fields=['result', 'state', 'error', 'updated'])
+                    close_old_connections()
+                    return True
+                result = mirror_repository(job.payload['repository'])
+                previous = Cache.objects.filter(pk='maint:mirror').first()
+                repos = dict(previous.data.get('repositories', {}) if previous else {})
+                repos[result['repository']] = result
+                save_cache('maint:mirror', {'repositories': repos})
+            else:
+                raise ValueError('未知任务类型。')
+            job.result,job.state,job.error = result,'done',''
+            if job.kind=='question-process' and isinstance(result,dict) and result.get('state')=='failed':
+                job.state,job.error = 'failed',str(result.get('error','本机识别未完成。'))[:300]
+            if job.kind.startswith(('maint-', 'pipeline-')) and isinstance(result,dict) and result.get('errors'):
+                job.state,job.error = 'partial','；'.join(result['errors'])[:300]
+        except Exception as exc:
+            job.error = str(exc)[:300]
+            job.state = 'failed' if job.kind in ('github-summary','maint-summaries','supervisor-draft') + INTERACTIVE or job.attempts>=3 else 'queued'
+            job.due = timezone.now()+timedelta(seconds=60*job.attempts)
+            logging.getLogger('hub.worker').warning('Job %s failed (%s)',job.pk,type(exc).__name__)
+        job.save(update_fields=['result','state','error','due','updated'])
+        from .robot_inventory import record_run
+        record_run(job, started_at, (time.monotonic()-begun)*1000)
+        close_old_connections()
+        return True
 
 
 def loop(stop=None):
@@ -132,6 +200,8 @@ def loop(stop=None):
     while not stop.is_set():
         try:
             if time.monotonic()-last_schedule>60:
+                from .operations import heartbeat
+                heartbeat()
                 from .bookings import advance
                 advance()
                 schedule()
@@ -140,6 +210,23 @@ def loop(stop=None):
                 stop.wait(2)
         except Exception:
             logging.getLogger('hub.worker').exception('Worker iteration failed')
+            stop.wait(5)
+
+
+def loop_review(stop=None):
+    """Drain website moderation separately from model chat, crawlers and backups."""
+    from .beikuang import enabled, queue_review
+    stop = stop or threading.Event()
+    last_schedule = 0
+    while not stop.is_set():
+        try:
+            if enabled() and time.monotonic() - last_schedule > 60:
+                queue_review()
+                last_schedule = time.monotonic()
+            if not run_one(('maint-beikuang',)):
+                stop.wait(1)
+        except Exception:
+            logging.getLogger('hub.worker').exception('Moderation worker iteration failed')
             stop.wait(5)
 
 

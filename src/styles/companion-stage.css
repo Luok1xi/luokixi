@@ -1,0 +1,104 @@
+/* Original owner art on a light stage; expression changes follow conversation data. */
+.companion-stage { --cs-ink: #322b3d; --cs-muted: #766b80; --cs-paper: #fff; --cs-line: #e8e2ed; border: 1px solid var(--line-soft); border-radius: var(--r-l); overflow: hidden; background: var(--cs-paper); color: var(--cs-ink); min-width: 0; }
+.cs-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; border-bottom:1px solid var(--cs-line); }
+.cs-title { font-size:var(--fs-small); letter-spacing:.04em; }
+.cs-toolbar>div { display:flex; gap:14px; }
+.companion-stage button { font:inherit; font-size:12px; color:var(--cs-muted); border:0; background:none; cursor:pointer; padding:5px 0; }
+.companion-stage button:disabled { opacity:.45; cursor:default; }
+.companion-stage button:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:4px; }
+.cs-scene { position:relative; height:440px; isolation:isolate; overflow:hidden; }
+.cs-scene[hidden] { display:none; }
+.cs-light { position:absolute; inset:0; background:radial-gradient(ellipse at 75% 35%,#f2eafc 0,transparent 65%),radial-gradient(ellipse at 12% 75%,#fff0ed 0,transparent 60%); opacity:.65; pointer-events:none; }
+.cs-floor { position:absolute; width:70%; height:8%; bottom:6%; left:15%; border-radius:50%; background:radial-gradient(ellipse,#e8e0ee,transparent 70%); }
+.cs-cast { position:absolute; inset:10px 0 0; display:flex; justify-content:center; align-items:end; }
+.cs-actor { position:relative; margin:0; height:100%; width:min(70%,400px); flex:none; opacity:.9; transform:translateY(4px) scale(.985); transform-origin:50% 100%; transition:transform var(--dur-2) var(--ease-out),opacity var(--dur-2) var(--ease-out); mix-blend-mode:multiply; }
+.companion-stage[data-cast="2"] .cs-actor { width:52%; max-width:420px; }
+.companion-stage[data-cast="2"] .cs-actor + .cs-actor { margin-left:-7%; }
+.cs-actor[data-active="true"],.companion-stage[data-cast="1"] .cs-actor { opacity:1; transform:translateY(0) scale(1); }
+.cs-portrait { position:absolute; inset:0; transform-origin:50% 90%; }
+.cs-sprite { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; object-position:center bottom; opacity:0; transition:opacity var(--dur-2) var(--ease-in-out); mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent),linear-gradient(to bottom,transparent,#000 3%,#000 98%,transparent); mask-composite:intersect; }
+.cs-sprite.is-visible { opacity:1; }
+.cs-actor figcaption { position:absolute; top:14px; left:12px; font-size:11px; color:var(--cs-muted); opacity:0; }
+.cs-actor:not([data-ready="true"]) figcaption { opacity:1; }
+.cs-reaction { position:absolute; right:18px; top:18px; width:100px; height:100px; object-fit:contain; border-radius:var(--r-m); mix-blend-mode:multiply; }
+.cs-reaction[hidden] { display:none; }
+.cs-caption { position:absolute; z-index:2; bottom:14px; left:18px; right:18px; padding:13px 18px; border:1px solid #ede7f0; border-radius:var(--r-m); background:rgba(255,255,255,.93); box-shadow:0 8px 28px #3322440b; }
+.cs-caption-heading { display:flex; align-items:baseline; gap:10px; font-size:var(--fs-small); }
+.cs-caption-heading span { font-size:11px; color:var(--cs-muted); }
+.cs-caption p { font-size:14px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; max-height:5.1em; overflow:auto; margin:6px 0 0; overscroll-behavior:contain; scrollbar-width:thin; }
+.cs-controls { display:flex; gap:15px; align-items:center; margin-top:8px; font-size:11px; color:var(--cs-muted); }
+.cs-controls[hidden] { display:none; }
+.cs-controls button { min-width:24px; }
+.cs-error { margin:0; padding:8px 18px; font-size:12px; color:var(--cs-muted); }
+@media (prefers-reduced-motion:no-preference) {
+ .cs-portrait { animation:cs-breath 4s ease-in-out infinite; }
+ .cs-actor[data-speaking="true"] .cs-portrait { animation:cs-speak 1.8s ease-in-out infinite alternate; }
+ .cs-actor[data-thinking="true"] .cs-portrait { animation:cs-think 3.4s var(--ease-in-out) infinite alternate; }
+ .companion-stage[data-paused="true"] .cs-portrait { animation-play-state:paused; }
+}
+@keyframes cs-speak { from { transform:translateY(0); } to { transform:translateY(-3px); } }
+/* Breath amplitude from the owner's game css/ui.css; GPU transform only. */
+@keyframes cs-breath { 50% { transform:scaleY(1.006) translateY(-1px); } }
+@keyframes cs-think { from { transform:rotate(0); } to { transform:rotate(-.4deg); } }
+@media (prefers-reduced-motion:reduce) { .cs-actor { transform:none; transition:opacity var(--dur-1) var(--ease-out); } .cs-sprite { transition-duration:var(--dur-1); } }
+@media (max-width:760px) {
+ .cs-toolbar { padding:10px 12px; }.cs-toolbar>div { gap:10px; }
+ .cs-scene { height:350px; }.cs-caption { left:10px;right:10px;bottom:10px;padding:10px 12px; }
+ .cs-caption p { max-height:3.4em; font-size:13px; }.cs-title { font-size:12px; }
+ .cs-actor { width:86%; }.companion-stage[data-cast="2"] .cs-actor { width:64%; }
+ .companion-stage[data-cast="2"] .cs-actor + .cs-actor { margin-left:-27%; }
+ .cs-cast { inset:8px 0 25px; }
+}
+
+/* Paper, margin rule, tape and handwriting from the owner's 请不要攻略我 dialogue.css.
+   Scoped to the stage; original OFL font payloads and licences live under fonts/companions. */
+@font-face {font-family:"Companion WenKai";src:url('/fonts/companions/lxgw-wenkai.woff2') format('woff2');font-display:swap;}
+@font-face {font-family:"Companion LongCang";src:url('/fonts/companions/long-cang.woff2') format('woff2');font-display:swap;}
+.cs-scene {height:560px;background:linear-gradient(160deg,#fffdfa,#f3eff8);}
+.cs-cast {inset:0;align-items:start;}
+.cs-actor {width: min(90%,660px);transform-origin:50% 35%;}
+.cs-portrait {inset:0;transform-origin:50% 28%;}
+.cs-sprite {top:-12px;left:50%;width:auto;max-width:none;height:990px;object-fit:contain;object-position:center top;transform:translateX(-50%);mask-image:linear-gradient(to bottom,#000 80%,transparent);mask-composite:add;}
+.companion-stage[data-cast="2"] .cs-actor {width:48%;max-width:580px;}
+.companion-stage[data-cast="2"] .cs-actor + .cs-actor {margin-left:0;}
+.companion-stage[data-cast="2"] .cs-sprite {height:890px;}
+/* Codex's full illustration has a longer lower body; align her face/bust with Beikuang. */
+.companion-stage[data-cast="1"] .cs-actor[data-actor="codex"] .cs-sprite {height:1100px;top:-26px;}
+.cs-caption {--spk:#c996a5;--tape:rgba(232,158,177,.68);left:32px;right:32px;bottom:23px;padding:28px 30px 10px 43px;border:0;border-radius:6px;box-shadow:0 6px 20px #4a342b18;
+ background:linear-gradient(90deg,transparent 27px,var(--spk) 27px,var(--spk) 29px,transparent 29px),repeating-linear-gradient(180deg,transparent 0,transparent 30px,#8cafe142 30px,#8cafe142 31px),linear-gradient(180deg,#fffcf5,#fbf4e8);background-position:0 0,0 17px,0 0;}
+.companion-stage[data-speaker="codex"] .cs-caption {--spk:#aaa0c8;--tape:rgba(174,163,205,.7);}
+.cs-caption::before,.cs-caption::after {content:'';position:absolute;top:-12px;width:76px;height:23px;background:repeating-linear-gradient(125deg,#ffffff30 0 5px,transparent 5px 10px),var(--tape);pointer-events:none;}
+.cs-caption::before {left:-13px;transform:rotate(-9deg);}.cs-caption::after {right:-13px;transform:rotate(7deg);}
+.cs-caption-heading {position:absolute;top:-23px;left:42px;right:34px;gap:16px;align-items:center;}
+.cs-caption-heading b {font:28px/1.2 "Companion LongCang","Companion WenKai",serif;letter-spacing:.1em;background:var(--spk);color:#fff;border:3px solid #fff;padding:3px 19px;box-shadow:0 2px 4px #44334415;transform:rotate(-2deg);}
+.cs-caption-heading span {background:#fffcf5d9;padding:3px 7px;border-radius:5px;}
+.cs-caption p {font:19px/31px "Companion WenKai","Kaiti SC","KaiTi",serif;letter-spacing:.035em;height:124px;max-height:124px;min-height:0;margin:0;color:#3a2a2c;cursor:pointer;}
+.cs-ink-run {animation:cs-ink 180ms var(--ease-out) both;animation-delay:var(--delay);}
+.cs-caption p.is-complete .cs-ink-run {animation:none;}
+.cs-controls {margin-top:7px;min-height:24px;}.cs-controls button {min-width:32px;min-height:28px;}
+/* One physical paper surface moves; text remains inline, without per-glyph GPU layers. */
+@keyframes cs-ink {from{opacity:0}to{opacity:1}}
+@media(max-width:760px){
+ .cs-scene{height:470px;}.cs-cast{inset:0;}.cs-sprite{height:800px;top:-7px;}
+ .companion-stage[data-cast="2"] .cs-actor{width:49%;}.companion-stage[data-cast="2"] .cs-actor + .cs-actor{margin-left:0;}.companion-stage[data-cast="2"] .cs-sprite{height:670px;}
+ .companion-stage[data-cast="1"] .cs-actor[data-actor="codex"] .cs-sprite{height:890px;top:-19px;}
+ .cs-caption{left:20px;right:20px;bottom:18px;padding:26px 15px 7px 34px;}.cs-caption-heading{left:30px;right:8px;}.cs-caption-heading b{font-size:25px;padding:4px 14px;}
+ .cs-caption p{font-size:17px;line-height:31px;height:93px;max-height:93px;}.cs-toolbar>div{gap:10px;}.cs-toolbar button{font-size:11px;}.cs-title{font-size:11px;}
+}
+@media(prefers-reduced-motion:reduce){.cs-ink-run{animation:none;}.cs-portrait{animation:none!important;}.cs-sprite,.cs-actor{transition-duration:.01ms;}}
+
+.cs-toolbar { flex-wrap:wrap; }
+.cs-toolbar>div { flex-wrap:wrap; gap:6px 14px; }
+.cs-emote { position:absolute; top:55px; right:calc(50% - 148px); width:64px; height:64px; opacity:0; pointer-events:none; }
+.cs-emote svg { display:block; width:100%; height:100%; }
+@media(prefers-reduced-motion:reduce){.cs-emote{opacity:1;}}
+.cs-backlog { position:absolute; z-index:4; inset:0; background:#fffcf5fa; padding:20px; display:flex; flex-direction:column; }
+.cs-backlog[hidden] { display:none; }
+.cs-backlog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:12px; border-bottom:1px solid var(--cs-line); }
+.cs-backlog ol { overflow:auto; overscroll-behavior:contain; margin:0; padding:0; list-style:none; flex:1; scrollbar-width:thin; }
+.cs-backlog li { padding:16px 4px; border-bottom:1px solid var(--cs-line); }
+.cs-backlog li b { font-size:12px; color:var(--cs-muted); }
+.cs-backlog li p { font:17px/1.8 "Companion WenKai",serif; margin:6px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+[data-cs-next] { margin-left:auto; color:var(--cs-ink)!important; }
+.cs-caption p:focus-visible { outline:2px solid var(--accent); outline-offset:5px; }
+@media(max-width:760px){.cs-emote{right:calc(50% - 103px);top:44px;width:48px;height:48px;}.cs-title{display:none;}.cs-toolbar>div{width:100%;justify-content:space-between;}.companion-stage[data-cast="2"] .cs-emote{right:4px;top:32px;}}

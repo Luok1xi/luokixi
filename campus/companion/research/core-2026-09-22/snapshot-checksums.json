@@ -1,0 +1,122 @@
+{
+  "algorithm": "sha256",
+  "purpose": "核对本轮已下载研究资料的本地内容；不是上游签名或运行验证",
+  "files": [
+    {
+      "file": "upstream/D2A-LICENSE.txt",
+      "sha256": "484233edb68ed2cce628994b4d88b5d8a1e5bd1b988f44a60f917499404c0e87"
+    },
+    {
+      "file": "upstream/D2A-paths.json",
+      "sha256": "5b8df71e5cd447b505fb2d949c8dba13dc216229aca2625353aab7bc43850f2d"
+    },
+    {
+      "file": "upstream/D2A-README.md",
+      "sha256": "f5503408feb7d896c9f175b9371e94c5499b2d4d4e02c2389054677ab521676a"
+    },
+    {
+      "file": "upstream/D2A-Value_ActComp.py.txt",
+      "sha256": "e39756172f0764c79f16971236b79115888ccf5742144d961304514a678a27c9"
+    },
+    {
+      "file": "upstream/DPC-LICENSE.txt",
+      "sha256": "0aadca21706ffa5430d4947401a782e56d23304c15fddf7bdc355181e46f7c65"
+    },
+    {
+      "file": "upstream/DPC-paths.json",
+      "sha256": "b0820c8073715f6b1f3fb8423863747dc31319bac7a8d5a988bed571a671c056"
+    },
+    {
+      "file": "upstream/DPC-state_tracker.py.txt",
+      "sha256": "60d8f5434ee1040899eaf27d0f94f8997c226d4517db9fb641d974602f1b09a1"
+    },
+    {
+      "file": "upstream/Paper2Agent-LICENSE.txt",
+      "sha256": "1075df19ebaccda19b4b7498ce113ef920368dd6db679b4eb041d7b774d499da"
+    },
+    {
+      "file": "upstream/Paper2Agent-paths.json",
+      "sha256": "38b46e0261b4e8c9c7f7be3acabf19f5cfb46c777fd088199333fb9707623dd3"
+    },
+    {
+      "file": "upstream/Paper2Agent-README.md",
+      "sha256": "703474e9e7c3ef1e19fc705ad5333cf11b805d2efd9717967bdc1e8355797f16"
+    },
+    {
+      "file": "upstream/Paper2Agent-verify_mcp_server.py.txt",
+      "sha256": "e73e2d9efa0c88162616bde51950128d3dab50df104be6344e8c87edd9622d24"
+    },
+    {
+      "file": "upstream/PersonaForge-dual_process_agent.py.txt",
+      "sha256": "2ec082ad7ad9b01ca87122120a8ed896cf724eea2250140e12c1037555d74dd2"
+    },
+    {
+      "file": "upstream/PersonaForge-dynamic_state_manager.py.txt",
+      "sha256": "3d081a6ba178697c948226ee314f5473e46cdef5ce94f103109a3fd4304ab62a"
+    },
+    {
+      "file": "upstream/PersonaForge-LICENSE.txt",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "file": "upstream/PersonaForge-paths.json",
+      "sha256": "42c4d2aa4db0d8c013036a61c3e682a8e56a3254f4ba3737c654b540325c8f7a"
+    },
+    {
+      "file": "upstream/PersonaForge-README.md",
+      "sha256": "b575ca48938ad5a226041a7b160da91f3b66a9a0924b7e2c7b239e18148eb410"
+    },
+    {
+      "file": "upstream/PolySkill-LICENSE.txt",
+      "sha256": "f18db842e1be88abfd59585697a42b0fe075b07be39018c2960a7432b3201d53"
+    },
+    {
+      "file": "upstream/PolySkill-paths.json",
+      "sha256": "2264122c4b553f36ab7b8010d14a26ed87b75dc60d6b1ce338b439aafed9aa00"
+    },
+    {
+      "file": "upstream/PolySkill-README.md",
+      "sha256": "282cfdc7c42580f38f81f87902a83fcec210252e93a9464eca8067123f521a5e"
+    },
+    {
+      "file": "upstream/PolySkill-skill_types.py.txt",
+      "sha256": "efc60dc2b71a0ee31afa4faaf329a2dac7f1c13f1684247b1be5a4c6afc8c2de"
+    },
+    {
+      "file": "upstream/ReMe-auto_memory.py.txt",
+      "sha256": "dc22ca239a8789049afdd7e8e5f1e104b1acf515ddd17d58de547a48da3e22be"
+    },
+    {
+      "file": "upstream/ReMe-LICENSE.txt",
+      "sha256": "cc54d679aaced751c096f120b666355c106d9394d28f93f6df353973f6cd7dbe"
+    },
+    {
+      "file": "upstream/ReMe-paths.json",
+      "sha256": "5588cf57ff95e2a85e0a8a7bb7ea2ae918341e2d5ae671ba7dca91f1bd2f63a7"
+    },
+    {
+      "file": "upstream/ReMe-README.md",
+      "sha256": "960ed62a78fe73f5b1bd7421b191510cb0817b4b046b4dc4e505a130d327324e"
+    },
+    {
+      "file": "upstream/ReMe-tool_memory.py.txt",
+      "sha256": "1ea9cdc218fb842c97e7930d2f52ee047d373b1a51c166908e6941e1733020cf"
+    },
+    {
+      "file": "upstream/ToolMaker-make_tool.py.txt",
+      "sha256": "2030834d39f73b07523f9d3b0ff2ad1549e82ba37014fb5c520b03fae58b4b0c"
+    },
+    {
+      "file": "upstream/ToolMaker-paths.json",
+      "sha256": "5d7178ee8c82ac0f0f32bdb8d3e52f6dd30ac625d2012d36df1f1d703a38dfe0"
+    },
+    {
+      "file": "upstream/ToolMaker-pyproject.toml.txt",
+      "sha256": "178a7097676e665da82a6358c905b8f0f6ed84d4d9edacc4d5278727b4e1f13c"
+    },
+    {
+      "file": "upstream/ToolMaker-README.md",
+      "sha256": "f0424ddb7b44f342db1f3f44b9315f3ba9d3f1a5eb483066901f2129f4e6daec"
+    }
+  ]
+}

@@ -28,7 +28,7 @@ def safe_path(value):
         raise Problem('该目录不提供给 AI 工作室。')
     if any(x.endswith((' ', '.')) or x.split('.')[0].upper() in {'CON','PRN','AUX','NUL',*[f'COM{i}' for i in range(1,10)],*[f'LPT{i}' for i in range(1,10)]} for x in p.parts):
         raise Problem('文件名不受支持。')
-    if 'studio' in value.lower() or p.name.lower() in {'settings.py', 'auth.json', 'config.json'}:
+    if ('studio' in value.lower() and value != 'campus/hub/studio_workflow.py') or p.name.lower() in {'settings.py', 'auth.json', 'config.json'}:
         raise Problem('工作室不能修改自身权限、配置或凭据。')
     return p
 

@@ -1,8 +1,11 @@
 import uuid
+from .club_models import Club, ClubMembership, ClubEvent, ClubMutationReceipt
 from .booking_models import SeatPlan
 from .studio_models import StudioRoom, StudioRun, StudioMessage, StudioDay, StudioCall
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from .learning_models import CourseFollow
+from .question_models import QuestionPaper, QuestionRevision
 from django.db.models.functions import Lower
 
 
@@ -83,6 +86,16 @@ class Star(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'entry'], name='hub_star_unique')]
+
+
+class EntryView(models.Model):
+    """浏览量：同一个人（登录账号或浏览器会话）同一天看同一条内容只算一次。只存加盐摘要，不存账号或会话号。"""
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE)
+    viewer = models.CharField(max_length=64)
+    day = models.DateField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['entry', 'viewer', 'day'], name='hub_entry_view_unique')]
 
 
 class Watch(models.Model):
@@ -170,6 +183,7 @@ class Report(models.Model):
 
 
 class Source(models.Model):
+    metadata = models.JSONField(default=dict, blank=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=160)
     url = models.URLField(max_length=500, unique=True)

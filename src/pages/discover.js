@@ -1,15 +1,21 @@
 // 项目发现流：一次一个项目，上下切换。
-// 有社区服务时读 /api/hub/feed（维护者精选 + AI 中文导读）；没有时读 community.json，只读预览。
+// 全部：人工目录 + 已公开投稿 + 维护者精选；分类：精选分页；离线保留人工目录。
 import { initShell, reducedMotion } from '../js/shell.js';
 import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { loadCommunity, fmtNum, timeAgo } from '../js/community.js';
+import { allCuratedProjects, mergeDiscoveryCards, mergeProjects, publicProjectEntries } from '../js/project-catalogue.js';
 import { coverMediaHTML as coverSVG } from '../js/cover.js';
 import { CATEGORIES, ORIGINS } from '../js/schema.js';
 import { createNotebook } from '../js/community-notebook.js';
 import { esc } from '../js/data.js';
+import { mountRack, swapLines, webglAvailable } from '../js/disc-rack.js';
+import { DISC_TOPICS, filterDiscovery, projectSearchOptions } from '../js/discover-filters.js';
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
+import '../styles/discover-search.css';
 import '../styles/community.css';
 import '../styles/discover.css';
 import '../styles/feed-redesign.css';
+import '../styles/disc-rack.css';
 
 initShell();
 
@@ -36,6 +42,9 @@ const st = {
   items: [],
   index: 0,
   shelf: 'all',
+  query: '',
+  catalogue: [],
+  loaded: false,
   cursor: null,
   loading: false,
   ranking: '',
@@ -50,7 +59,12 @@ try { notebook = createNotebook(); } catch { /* 浏览器存储不可用 */ }
 let toastTimer;
 function toast(msg, action) {
   const el = $('#dc-toast');
-  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : ''}`;
+  el.innerHTML = `${esc(msg)}${action?.href ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : action?.onClick ? ' <button type="button" class="btn-link" data-toast-act></button>' : ''}`;
+  if (action?.onClick) {
+    const b = el.querySelector('[data-toast-act]');
+    b.textContent = action.label;
+    b.addEventListener('click', () => { el.classList.remove('is-on'); el.hidden = true; action.onClick(); }, { once: true });
+  }
   el.hidden = false;
   el.classList.add('is-on');
   clearTimeout(toastTimer);
@@ -66,48 +80,77 @@ function toast(msg, action) {
 function fromCatalogue(p) {
   const cat = CATEGORIES[p.category];
   return {
-    repository: p.repo?.fullName ?? p.slug, entryId: null, title: p.title,
+    repository: p.repo?.fullName ?? p.slug, repositoryUrl: p.links.repo || p.links.demo || p.links.site || p.links.hardware, entryId: p.entryId ?? null, publicRevision: p.publicRevision, title: p.title,
     idea: p.summary, ideaLanguage: 'zh', guideState: 'static', sections: [{heading:'这个项目能做什么',text:p.summary,evidenceIds:[]},{heading:'如何开始',text:'先查看原仓库的 README，核对硬件、系统版本和依赖要求，再按官方步骤安装。本站尚未完成独立运行验证。',evidenceIds:[]}], unknowns: ['运行环境、安装步骤与下载版本请以原仓库为准；人工目录卡不等于已核对的 AI 完整导读。'],
-    whyRecommended: `${cat?.name ?? ''} · ${ORIGINS[p.origin] ?? ''}${p.origin === 'external' ? ` · 原作者 ${p.credit}` : ''}`,
-    shelf: null, repositoryUrl: p.links.repo || p.links.site || p.links.hardware, downloads: [], readmeUrl: p.links.repo ? `${p.links.repo}#readme` : null, videoUrl: p.links.video || null,
+    whyRecommended: `${cat?.name ?? ''} · ${p.originLabel || ORIGINS[p.origin] || ''}${p.credit ? ` · ${p.credit}` : ''}`,
+    shelf: null, downloads: [], readmeUrl: p.links.repo ? `${p.links.repo}#readme` : null, videoUrl: p.links.video || null,
     license: p.repo ? p.repo.license ?? '许可待核' : null, credit: p.credit, githubStars: p.repo?.stars ?? null,
-    siteStars: null, starred: false, media: { type: 'project-card', notice: '项目卡片 · 不是实机演示视频' },
-    evidence: [], verifiedAt: p.repo?.checkedAt ?? null, tested: false, category: p.category, slug: p.slug, cover: p.cover, coverCredit: p.coverCredit,
+    siteStars: p.siteStars ?? null, starred: Boolean(p.starred), media: { type: 'project-card', notice: '项目卡片 · 不是实机演示视频' },
+    evidence: [], verifiedAt: p.repo?.checkedAt ?? null, tested: false, category: p.category, tags: p.tags || [], language: p.repo?.language || '', slug: p.slug, cover: p.cover, coverCredit: p.coverCredit,
   };
 }
 
+let cataloguePending;
+let fetchGeneration = 0;
+function publicCatalogue() {
+  cataloguePending ??= (async () => {
+    const [data, entries] = await Promise.all([
+      loadCommunity().catch(err => { toast('静态目录暂时读不到，仍显示可用项目。'); return { projects: [] }; }),
+      st.online ? publicProjectEntries(hubApi, err => toast('部分本站项目暂时读不到，仍显示可用目录。')) : [],
+    ]);
+    return mergeProjects(data.projects, entries).map(fromCatalogue);
+  })();
+  return cataloguePending;
+}
+
 async function fetchMore() {
-  if (st.loading) return;
-  if (st.items.length && !st.cursor) return;
+  if (st.loading || st.loaded) return;
   st.loading = true;
+  const generation = ++fetchGeneration;
   try {
-    let batch = [];
-    if (st.online) {
-      const r = await hubApi.feed({ shelf: st.shelf, cursor: st.cursor });
-      batch = r.items;
-      st.cursor = r.nextCursor;
-      st.ranking = r.ranking ?? '';
-    }
-    if (!batch.length && !st.items.length && st.shelf === 'all') {
-      const data = await loadCommunity();
-      batch = data.projects
-        .map(fromCatalogue)
-        .filter((x) => !st.hidden.has(x.repository))
-        .sort((a, b) => (b.githubStars ?? 0) - (a.githubStars ?? 0));
-      st.cursor = null;
-      st.ranking = '项目目录 · 人工整理的开源项目。当前没有已核对的个性化精选；点击导读核对用途和原始链接。';
-    }
-    const start = st.items.length;
-    st.items.push(...batch);
-    renderSlides(batch, start);
-    if (!st.items.length) renderEmpty();
-    status();
+    const [catalogue, selected] = await Promise.all([
+      publicCatalogue(),
+      st.online ? allCuratedProjects(hubApi, () => toast('部分精选暂时读不到，仍显示已公开目录。')) : { items: [], ignoredRepositories: [] },
+    ]);
+    if (generation !== fetchGeneration) return;
+    st.catalogue = mergeDiscoveryCards(catalogue, selected.items, selected.ignoredRepositories);
+    st.loaded = true;
+    st.cursor = null;
+    await applyDiscoveryFilter();
+    const project = new URLSearchParams(location.search).get('project');
+    if (project && rack && st.items.some(it => [it.repository,it.slug,it.title].includes(project))) openDetail();
   } catch (err) {
+    if (generation !== fetchGeneration) return;
     toast(err.message ?? '加载失败，请稍后再试。');
     if (!st.items.length) renderEmpty(err.message);
   } finally {
-    st.loading = false;
+    if (generation === fetchGeneration) st.loading = false;
   }
+}
+
+function saveDiscoveryURL() {
+  const url = new URL(location.href);
+  for (const [key,value] of [['shelf',st.shelf === 'all' ? '' : st.shelf],['q',st.query]]) value ? url.searchParams.set(key,value) : url.searchParams.delete(key);
+  url.searchParams.delete('project');
+  history.replaceState(null, '', url);
+}
+
+async function applyDiscoveryFilter() {
+  if (!st.loaded) return;
+  const selected = new URLSearchParams(location.search).get('project') || st.items[st.index]?.repository;
+  closeDetail(true);
+  setIndex(false);
+  st.items = filterDiscovery(st.catalogue, { shelf: st.shelf, query: st.query, hidden: [...st.hidden] });
+  const index = st.items.findIndex(it => [it.repository,it.slug,it.title].includes(selected));
+  st.index = Math.max(0,index);
+  st.ranking = `${DISC_TOPICS[st.shelf]} · ${st.items.length} 个项目${st.query ? ` · “${st.query}”` : ''}`;
+  feed.innerHTML = '';
+  feed.scrollTop = 0;
+  if (!st.items.length) renderEmpty();
+  else if (rackMode) await rackAdd(st.items, 0);
+  else { const desired = st.index; renderSlides(st.items,0); slideEl(desired)?.scrollIntoView({block:'start',behavior:'instant'}); activate(desired); }
+  $('#dc-search-count').textContent = `${st.items.length} 个项目`;
+  status();
 }
 
 // ---------- 渲染 ----------
@@ -131,6 +174,9 @@ function slideHTML(it, i) {
     ['许可', it.license ? esc(it.license) : '<span class="lic-unknown">许可待核</span>'],
     ['GitHub ★', it.githubStars != null ? fmtNum(it.githubStars) : '—'],
     ['本站收藏', it.entryId && st.online ? fmtNum(it.siteStars ?? 0) : '<span class="muted">未收录统计</span>'],
+    ['收录时间', it.uploadedAt ? new Date(it.uploadedAt).toLocaleString('zh-CN') : '历史记录未注明'],
+    ['上传者', esc(it.uploadedBy || it.credit || '历史记录未注明')],
+    ['审核者', esc(it.reviewedBy || '历史记录未注明')],
     ['核对于', it.verifiedAt ? timeAgo(it.verifiedAt) : '—'],
   ];
   const saved = isSaved(it);
@@ -191,9 +237,10 @@ function renderSlides(batch, start) {
 }
 
 function renderEmpty(reason) {
+  if (rackMode) { rack?.setItems([]); dg.hidden = true; $('.dc').classList.remove('dg-on'); }
   feed.innerHTML = `<section class="slide slide-empty"><div class="empty-card">
-    <p class="empty-title">${reason ? '暂时加载不出来。' : '这一类还没有精选项目。'}</p>
-    <p>${esc(reason ?? '维护者核对完的项目会出现在这里。可以先看看别的分类，或者推荐一个你觉得好的项目。')}</p>
+    <p class="empty-title">${reason ? '暂时加载不出来。' : st.query ? '没有匹配的项目。' : '这一类还没有项目。'}</p>
+    <p>${esc(reason ?? (st.query ? '试试简称或技术关键词，也可以清空搜索后继续浏览。' : '可以看看别的分类，或推荐你喜欢的开源项目。'))}</p>
     <a class="btn btn-primary" href="contribute.html#project">推荐项目</a></div></section>`;
 }
 
@@ -261,7 +308,7 @@ async function save(it, btn) {
 }
 
 async function hide(it, slide) {
-  if (st.online && st.user) {
+  if (st.online && st.user && it.shelf) {
     try {
       await hubApi.feedback(it.repository, 'not-interested');
     } catch (e) {
@@ -278,14 +325,14 @@ async function hide(it, slide) {
     slide.classList.add('is-hidden');
     slide.querySelector('.slide-stage').insertAdjacentHTML(
       'afterend',
-      `<div class="slide-hidden"><p>${st.online && st.user ? '以后不再推荐这个项目。' : '已在本机隐藏这个项目。'}</p><button class="btn btn-outline btn-sm" type="button" data-act="unhide">撤销</button></div>`,
+      `<div class="slide-hidden"><p>${st.online && st.user && it.shelf ? '以后不再推荐这个项目。' : '已在本机隐藏这个项目。'}</p><button class="btn btn-outline btn-sm" type="button" data-act="unhide">撤销</button></div>`,
     );
     go(1);
   }, reducedMotion() ? 0 : 320);
 }
 
 async function unhide(it, slide) {
-  if (st.online && st.user) {
+  if (st.online && st.user && it.shelf) {
     try {
       await hubApi.feedback(it.repository, 'clear');
     } catch (e) {
@@ -362,7 +409,7 @@ function openGuide(it) {
       ? `<a class="dl" href="${esc(d.url)}" target="_blank" rel="noopener"><b>${esc(d.name)}</b><span>${[d.version, d.bytes ? `${(d.bytes / 1048576).toFixed(1)} MB` : ''].filter(Boolean).map(esc).join(' · ')}</span></a>`
       : '';
   $('#dc-guide-body').innerHTML = `
-    <p class="eyebrow">${it.guideState === 'reviewed' ? '中文导读 · 维护者已核对' : it.guideState === 'static' ? '项目目录 · 人工整理' : 'AI 导读 · 尚未核对，请以原文为准'}</p>
+    <p class="eyebrow">${it.guideState === 'reviewed' ? '中文导读 · 已按记录核对' : it.guideState === 'static' ? '项目目录 · 人工整理' : 'AI 导读 · 尚未核对，请以原文为准'}</p>
     <h2 id="dc-guide-title" class="sheet-title">${esc(it.title)}</h2>
     <p class="sheet-lead">${esc(it.idea)}</p>
     ${it.sections
@@ -445,21 +492,42 @@ $$('dialog').forEach((d) => d.addEventListener('click', (e) => (e.target === d |
 
 $('#dc-shelf').addEventListener('click', (e) => {
   const b = e.target.closest('[data-shelf]');
-  if (!b || b.dataset.shelf === st.shelf) return;
-  if (!st.online && b.dataset.shelf !== 'all') return toast('精选分类需要连接社区服务。');
-  $$('[data-shelf]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  if (!b || b.dataset.shelf === st.shelf || detailOpen || detailClosing) return;
   st.shelf = b.dataset.shelf;
-  st.items = [];
-  st.cursor = null;
-  st.index = 0;
-  feed.innerHTML = '';
-  feed.scrollTop = 0;
-  fetchMore();
+  $$('[data-shelf]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  saveDiscoveryURL();
+  applyDiscoveryFilter();
+});
+
+let searchTimer;
+function searchProjects() {
+  clearTimeout(searchTimer);
+  st.query = $('#dc-query').value.trim();
+  saveDiscoveryURL();
+  applyDiscoveryFilter();
+}
+$('#dc-search-toggle').addEventListener('click', () => {
+  const form = $('#dc-search');
+  form.hidden = !form.hidden;
+  $('#dc-search-toggle').setAttribute('aria-expanded', String(!form.hidden));
+  if (!form.hidden) $('#dc-query').focus();
+});
+$('#dc-search').addEventListener('submit', e => { e.preventDefault(); searchProjects(); });
+$('#dc-query').addEventListener('input', e => { clearTimeout(searchTimer); if (!e.isComposing) searchTimer = setTimeout(searchProjects, 180); });
+$('#dc-query').addEventListener('compositionend', () => { clearTimeout(searchTimer); searchTimer = setTimeout(searchProjects, 180); });
+$('#dc-search-clear').addEventListener('click', () => { $('#dc-query').value = ''; searchProjects(); $('#dc-query').focus(); });
+attachSearchSuggestions($('#dc-query'), {
+  ...projectSearchOptions, limit: 7,
+  getItems: () => filterDiscovery(st.catalogue, { shelf: st.shelf, hidden: [...st.hidden] }),
+  getMeta: it => it.repository,
+  getQuery: it => it.title,
+  onSelect: () => searchProjects(),
 });
 
 addEventListener('keydown', (e) => {
   if (document.querySelector('dialog[open]') || /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) return;
   const k = e.key.toLowerCase();
+  if (rackMode && rack) return rackKeys(e, k);
   const slide = slideEl(st.index);
   const it = st.items[st.index];
   if (['arrowdown', 'j', 'pagedown', ' '].includes(k)) { e.preventDefault(); go(1); }
@@ -472,12 +540,410 @@ addEventListener('keydown', (e) => {
   else if (k === 'o' && safeURL(it.repositoryUrl)) open(it.repositoryUrl, '_blank', 'noopener');
 });
 
+// ---------- 光碟架：有 WebGL 时代替竖滑流（?view=feed 可以回到竖滑流） ----------
+// 左边简介、下方数据（GitHub ★ / 站内收藏 / 评论 / 浏览），点光碟展开详细介绍和评论。
+// 浏览量和评论数只来自社区服务；静态页面上显示“—”，不编数字。
+
+const rackMode = new URLSearchParams(location.search).get('view') !== 'feed' && webglAvailable();
+const dg = $('#dg');
+const VIEWED_KEY = 'luokixi.discover.viewed';
+let rack = null;
+let rackLoading = null;
+let detailOpen = false;
+let detailClosing = false;
+let detailGeneration = 0;
+let indexGeneration = 0;
+const swaps = {};
+const field = (k) => dg.querySelector(`[data-f="${k}"]`);
+
+// 盘面上的项目名：长名字拆成两行
+function discLabel(title) {
+  const t = String(title || '').trim();
+  if ([...t].length <= 8) return [t];
+  const parts = t.split(/\s+/);
+  if (parts.length > 1) {
+    const mid = Math.ceil(parts.length / 2);
+    return [parts.slice(0, mid).join(' '), parts.slice(mid).join(' ')];
+  }
+  const chars = [...t], half = Math.ceil(chars.length / 2);
+  return [chars.slice(0, half).join(''), chars.slice(half).join('')];
+}
+
+function discOf(it) {
+  const cat = CATEGORIES[it.category];
+  return {
+    key: it.repository,
+    hue: cat?.hue ?? hueOf(it.repository),
+    label: discLabel(it.title),
+    repo: it.repository,
+    ring: `${it.title}  ·  ${cat?.name ?? '开源项目'}  ·  ${it.license || '许可待核'}  ·  ★ ${it.githubStars != null ? fmtNum(it.githubStars) : '—'}  ·  LUOKIXI 开源广场`,
+    cover: safeURL(it.cover),
+  };
+}
+
+function guideLabel(it) {
+  if (it.guideState === 'reviewed') return '中文导读 · 已核对';
+  if (it.guideState === 'static') return '人工简介';
+  return 'AI 导读尚未核对';
+}
+
+const counted = (it, k) => (st.online && it.entryId && it[k] != null ? fmtNum(it[k]) : '—');
+
+function rackStats(it) {
+  const local = !st.online || !it.entryId;
+  const saved = isSaved(it);
+  field('gh').textContent = it.githubStars != null ? fmtNum(it.githubStars) : '—';
+  field('saveLabel').textContent = local ? '本机收藏' : '站内收藏';
+  field('site').textContent = local ? (saved ? '已收藏' : '收藏') : fmtNum(it.siteStars ?? 0);
+  field('replies').textContent = counted(it, 'replyCount');
+  field('views').textContent = counted(it, 'views');
+  const off = st.online ? '这个项目还没收录进本站' : '需要连接社区服务';
+  field('replies').title = field('replies').textContent === '—' ? off : '';
+  field('views').title = field('views').textContent === '—' ? off : '';
+  $$('[data-act="save"]', dg).forEach((b) => { b.setAttribute('aria-pressed', String(saved)); b.classList.toggle('is-on', saved); });
+  $$('[data-act="plan"]', dg).forEach((b) => b.classList.toggle('is-on', st.plan.includes(it.repository)));
+  const dv = $('#dg-d-views'), dr = $('#dg-d-replies'), ds = $('#dg-d-site');
+  if (dv) dv.textContent = counted(it, 'views');
+  if (dr) dr.textContent = counted(it, 'replyCount');
+  if (ds) ds.textContent = local ? (saved ? '已收藏到本机' : '—') : fmtNum(it.siteStars ?? 0);
+}
+
+function rackInfo(i, animate = true) {
+  const it = st.items[i];
+  if (!it) return;
+  st.index = i;
+  const tags = [it.shelf ? SHELF[it.shelf] : null, CATEGORIES[it.category]?.name, guideLabel(it), it.tested ? '已实测' : null].filter(Boolean).join(' · ');
+  const values = [tags, it.title, `${it.repository}${it.credit ? ` · ${it.credit}` : ''}`, it.idea || '原项目没有写简介。'];
+  const els = ['tags', 'title', 'repo', 'intro'].map(field);
+  if (animate) swaps.info = swapLines(els, values, swaps.info);
+  else { swaps.info?.kill(); swaps.info = null; els.forEach((el, k) => (el.textContent = values[k])); }
+  rackStats(it);
+  $('#dg-count').textContent = `${i + 1} / ${st.cursor ? `${st.items.length}+` : st.items.length}`;
+  $$('#dg-index button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
+  dg.querySelector('.dg-live').textContent = `${it.title}，第 ${i + 1} 个项目`;
+  status();
+  if (i >= st.items.length - 3) fetchMore();
+}
+
+function rackIndex() {
+  $('#dg-index').innerHTML = st.items
+    .map((it, i) => `<li><button type="button" data-goto="${i}" aria-current="${i === st.index}"><span>${esc(it.title)}</span><small>${esc(CATEGORIES[it.category]?.name ?? '')}</small></button></li>`)
+    .join('');
+}
+
+async function rackAdd(batch, start) {
+  if (!batch.length) return;
+  const mounting = !rack, mountedItems = st.items;
+  if (!rack) {
+    rackLoading ??= mountRack(dg, batch.map(discOf), { onActive: i => { if (rack) rackInfo(i); }, onOpen: () => openDetail() })
+      .then(r => { rack = r; return r; })
+      .catch(() => { leaveRack(); renderSlides(st.items, 0); return null; });
+    if (!await rackLoading) { rackLoading = null; return; }
+  }
+  // A query may have changed while WebGL was loading. Always render current state.
+  const desired = st.index;
+  if (!mounting || mountedItems !== st.items || desired !== 0) {
+    rack.setItems(st.items.map(discOf));
+    rack.go(desired, { duration: 0 });
+  }
+  dg.hidden = !st.items.length;
+  $('.dc').classList.toggle('dg-on', !!st.items.length);
+  rackInfo(desired, false);
+  rackIndex();
+}
+
+function leaveRack() {
+  if (!rackMode) return;
+  rack?.destroy();
+  rack = null;
+  rackLoading = null;
+  dg.hidden = true;
+  $('.dc').classList.remove('dg-on', 'dg-detail-open');
+}
+
+// ---------- 片单 ----------
+
+function setIndex(open) {
+  const ticket = ++indexGeneration;
+  const panel = $('#dg-index'), scrim = dg.querySelector('.dg-scrim'), btn = dg.querySelector('.dg-index-btn');
+  panel.getAnimations().forEach(a => a.cancel());
+  scrim.getAnimations().forEach(a => a.cancel());
+  btn.setAttribute('aria-expanded', String(open));
+  if (reducedMotion()) { panel.hidden = !open; scrim.hidden = !open; return; }
+  if (open) { panel.hidden = false; scrim.hidden = false; }
+  gsapLite(scrim, open ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }], open ? 400 : 250).then(() => { if (!open && ticket === indexGeneration) scrim.hidden = true; });
+  gsapLite(panel, open ? [{ opacity: 0, transform: 'translateY(-8px) scale(.98)' }, { opacity: 1, transform: 'none' }] : [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-8px) scale(.98)' }], open ? 450 : 220)
+    .then(() => { if (!open && ticket === indexGeneration) panel.hidden = true; });
+  if (open) panel.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest' });
+}
+// 小弹层用浏览器自带的 Web Animations，曲线和光碟架同一条
+function gsapLite(el, frames, duration) {
+  const a = el.animate(frames, { duration, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'forwards' });
+  return a.finished.catch(() => {});
+}
+
+// ---------- 详细介绍 ----------
+
+function detailHTML(it) {
+  const cat = CATEGORIES[it.category];
+  const ev = new Map((it.evidence ?? []).map((x) => [x.id, x]));
+  const local = !st.online || !it.entryId;
+  const rows = [
+    ['分类', esc(cat?.name ?? '—')],
+    ['许可证', it.license ? esc(it.license) : '许可待核'],
+    ['GitHub ★', it.githubStars != null ? fmtNum(it.githubStars) : '—'],
+    [local ? '本机收藏' : '站内收藏', `<span id="dg-d-site"></span>`],
+    ['浏览', `<span id="dg-d-views"></span>`],
+    ['评论', `<span id="dg-d-replies"></span>`],
+    ['收录时间', it.uploadedAt ? new Date(it.uploadedAt).toLocaleString('zh-CN') : '历史记录未注明'],
+    ['上传者', esc(it.uploadedBy || it.credit || '历史记录未注明')],
+    ['审核者', esc(it.reviewedBy || '历史记录未注明')],
+    ['核对于', it.verifiedAt ? timeAgo(it.verifiedAt) : '—'],
+  ];
+  const release = (it.downloads ?? []).filter((d) => d.kind === 'official-release');
+  const source = (it.downloads ?? []).filter((d) => d.kind !== 'official-release');
+  const dl = (d) => (safeURL(d.url) ? `<li><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a>${d.version ? ` · ${esc(d.version)}` : ''}</li>` : '');
+  return `
+    <div class="dg-d-block"><p class="dg-d-kicker">${esc([it.shelf ? SHELF[it.shelf] : null, guideLabel(it)].filter(Boolean).join(' · '))}</p></div>
+    <div class="dg-d-block"><h2 class="dg-d-title" id="dg-d-title">${esc(it.title)}</h2></div>
+    <div class="dg-d-block"><p class="dg-d-repo num">${esc(it.repository)}${it.credit ? ` · ${esc(it.credit)}` : ''}</p></div>
+    <dl class="dg-d-table"><div class="dg-rule"></div>${rows.map(([k, v]) => `<div class="dg-d-block"><dt>${k}</dt><dd class="num">${v}</dd></div><div class="dg-rule"></div>`).join('')}</dl>
+    <div class="dg-d-actions dg-d-block">
+      <button class="btn btn-primary dg-star" type="button" data-act="save" aria-pressed="false"><span class="ico" aria-hidden="true">★</span>${local ? '收藏到本机' : '站内收藏'}</button>
+      <button class="btn btn-outline" type="button" data-act="download">下载</button>
+      ${safeURL(it.repositoryUrl) ? `<a class="btn btn-outline" href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">查看原作 ↗</a>` : ''}
+      ${safeURL(it.readmeUrl) ? `<a class="btn btn-outline" href="${esc(it.readmeUrl)}" target="_blank" rel="noopener">阅读 README ↗</a>` : ''}
+      ${safeURL(it.videoUrl) ? `<a class="btn btn-outline" href="${esc(it.videoUrl)}" target="_blank" rel="noopener">观看演示 ↗</a>` : ''}
+      <button class="btn btn-outline" type="button" data-act="plan">加入搭建清单</button>
+    </div>
+    ${it.idea ? `<section class="dg-d-sec dg-d-block"><h3>简介</h3><p${it.ideaLanguage === 'original' ? ' lang="en"' : ''}>${esc(it.idea)}</p></section>` : ''}
+    ${it.whyRecommended ? `<section class="dg-d-sec dg-d-block"><h3>为什么推荐</h3><p>${esc(it.whyRecommended)}</p></section>` : ''}
+    ${(it.sections ?? []).map((sec) => `<section class="dg-d-sec dg-d-block"><h3>${esc(sec.heading)}</h3><p>${esc(sec.text)}</p>${sec.evidenceIds?.length ? `<p class="cite">依据：${sec.evidenceIds.map((id) => ev.get(id)).filter((x) => x && safeURL(x.url)).map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener" title="${esc(x.text ?? '')}">${esc(x.id)}</a>`).join('、') || '—'}</p>` : ''}</section>`).join('')}
+    ${(it.unknowns ?? []).length ? `<section class="dg-d-sec dg-d-block"><h3>原项目未说明</h3><ul>${it.unknowns.map((u) => `<li>${esc(u)}</li>`).join('')}</ul></section>` : ''}
+    ${release.length ? `<section class="dg-d-sec dg-d-block"><h3>官方发布包</h3><ul>${release.map(dl).join('')}</ul></section>` : ''}
+    ${source.length ? `<section class="dg-d-sec dg-d-block"><h3>源代码</h3><p class="cite">源代码不是安装包，需要按原项目说明构建。</p><ul>${source.map(dl).join('')}</ul></section>` : ''}
+    ${it.tested ? `<section class="dg-d-sec dg-d-block"><h3>实测记录</h3><p>${esc(it.testEvidence ?? '')}</p></section>` : ''}
+    <section class="dg-comments dg-d-block" id="dg-comments" aria-labelledby="dg-c-title">
+      <h3 id="dg-c-title">评论 <span id="dg-c-count"></span></h3>
+      <div id="dg-c-body"><p class="dg-c-empty">正在读取…</p></div>
+    </section>`;
+}
+
+function openDetail({ focus } = {}) {
+  const it = st.items[st.index];
+  if (!it || !rack || detailOpen) return;
+  detailOpen = true;
+  detailClosing = false;
+  const ticket = ++detailGeneration;
+  setIndex(false);
+  const detail = $('#dg-detail'), body = $('#dg-d-body');
+  detail.getAnimations().forEach(a => a.cancel());
+  detail.style.opacity = '';
+  $('.dc-top').inert = true;
+  $('#dc-plan-btn').inert = true;
+  body.innerHTML = detailHTML(it);
+  body.scrollTop = 0;
+  rackStats(it);
+  detail.hidden = false;
+  $('.dc').classList.add('dg-detail-open');
+  rack.setOpen(true);
+  const out = dg.querySelectorAll('.dg-info, .dg-stats, .dg-rail, .dg-nav');
+  out.forEach(el => { el.getAnimations().forEach(a => a.cancel()); el.style.opacity = ''; });
+  if (!reducedMotion()) {
+    out.forEach((el) => el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: 'ease-in', fill: 'forwards' }));
+    // 细线逐条画出，内容一块一块浮上来（只动 transform 和 opacity）
+    body.querySelectorAll('.dg-rule').forEach((el, k) => el.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+      { duration: 900, delay: 380 + k * 60, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }));
+    body.querySelectorAll('.dg-d-block').forEach((el, k) => el.animate([{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 600, delay: 300 + Math.min(k, 14) * 35, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }));
+    dg.querySelector('.dg-back').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, delay: 400, fill: 'backwards' });
+  } else out.forEach((el) => (el.style.opacity = '0'));
+  out.forEach((el) => el.setAttribute('inert', ''));
+  dg.querySelector('.dg-back').focus({ preventScroll: true });
+  recordView(it);
+  loadComments(it).then(() => {
+    if (detailOpen && ticket === detailGeneration && focus === 'comments') $('#dg-comments')?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+  });
+}
+
+function closeDetail(instant = false) {
+  if (!detailOpen && !detailClosing) return;
+  detailOpen = false;
+  detailClosing = true;
+  const ticket = ++detailGeneration;
+  const detail = $('#dg-detail');
+  detail.getAnimations().forEach(a => a.cancel());
+  const out = dg.querySelectorAll('.dg-info, .dg-stats, .dg-rail, .dg-nav');
+  const done = () => {
+    if (ticket !== detailGeneration) return;
+    detailClosing = false;
+    detail.hidden = true;
+    $('.dc').classList.remove('dg-detail-open');
+    $('.dc-top').inert = false;
+    $('#dc-plan-btn').inert = false;
+    out.forEach(el => { el.removeAttribute('inert'); el.getAnimations().forEach(a => a.cancel()); el.style.opacity = ''; });
+    rack?.focus();
+  };
+  rack?.setOpen(false);
+  if (instant || reducedMotion()) { done(); return; }
+  detail.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, easing: 'ease-in' }).finished.then(() => {
+    if (ticket !== detailGeneration) return;
+    done();
+    out.forEach(el => el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' }));
+  }).catch(() => {});
+}
+
+// 浏览量：每个项目在这个浏览器会话里只报一次；服务端再按人按天去重
+function recordView(it) {
+  if (!st.online || !it.entryId) return;
+  const seen = new Set(store.get(VIEWED_KEY, []));
+  if (seen.has(it.entryId)) return;
+  seen.add(it.entryId);
+  store.set(VIEWED_KEY, [...seen], true);
+  hubApi.view(it.entryId).then((r) => {
+    if (r?.views == null) return;
+    it.views = r.views;
+    if (st.items[st.index] === it) rackStats(it);
+  }).catch(() => {});
+}
+
+async function loadComments(it) {
+  const body = $('#dg-c-body'), count = $('#dg-c-count'), ticket = detailGeneration;
+  const current = () => detailOpen && ticket === detailGeneration && st.items[st.index] === it && body?.isConnected;
+  if (!body) return;
+  if (!st.online) {
+    body.innerHTML = '<p class="dg-c-empty">评论保存在社区服务里；现在是只读的静态页面，暂时看不到也不能发表。</p>';
+    return;
+  }
+  if (!it.entryId) {
+    body.innerHTML = `<p class="dg-c-empty">这个项目来自开源目录，还没有收录进本站，暂时不能评论。${safeURL(it.repositoryUrl) ? ` <a href="${esc(it.repositoryUrl)}" target="_blank" rel="noopener">去原项目交流 ↗</a>` : ''}</p>`;
+    return;
+  }
+  let rows = [];
+  try {
+    const r = await hubApi.entry(it.entryId);
+    if (!current()) return;
+    rows = r.replies ?? [];
+    if (r.views != null) it.views = r.views;
+    if (r.replyCount != null) it.replyCount = r.replyCount;
+    rackStats(it);
+  } catch (e) {
+    if (!current()) return;
+    body.innerHTML = `<p class="dg-c-empty">评论暂时读不到：${esc(e.message ?? '')}</p>`;
+    return;
+  }
+  if (!current()) return;
+  count.textContent = it.replyCount != null ? fmtNum(it.replyCount) : '';
+  const list = rows.length
+    ? `<ol class="dg-c-list">${rows.map((r) => `<li><b>${esc(r.author?.name || '同学')}</b>${r.state !== 'published' ? '<span class="state">审核中，只有你看得到</span>' : ''}<p>${esc(r.body)}</p></li>`).join('')}</ol>`
+    : '<p class="dg-c-empty">还没有公开评论。用过的话，说说你做了什么、卡在了哪里。</p>';
+  const form = st.user
+    ? `<form class="dg-c-form" id="dg-c-form"><label class="sr-only" for="dg-c-text">写评论</label><textarea id="dg-c-text" maxlength="2000" required placeholder="说说你用它做了什么、卡在哪了"></textarea><div class="row"><small>评论经审核后公开。</small><button class="btn btn-primary btn-sm" type="submit">发表</button></div></form>`
+    : `<p class="dg-c-note"><a href="${esc(loginURL())}">登录</a>后可以发表评论。</p>`;
+  body.innerHTML = list + form;
+}
+
+dg.addEventListener('submit', async (e) => {
+  if (e.target.id !== 'dg-c-form') return;
+  e.preventDefault();
+  const it = st.items[st.index], text = $('#dg-c-text'), btn = e.target.querySelector('[type=submit]');
+  if (!it?.entryId || !text.value.trim()) return;
+  btn.disabled = true;
+  try {
+    const r = await hubApi.reply(it.entryId, text.value.trim());
+    toast(r?.state === 'published' ? '评论已发表。' : '已提交，审核通过后公开。');
+    await loadComments(it);
+  } catch (err) {
+    toast(err.message ?? '发表失败，请稍后再试。');
+    btn.disabled = false;
+  }
+});
+
+// 不感兴趣：这张盘沉下去，后面的补上来；可以撤销
+async function rackHide(it) {
+  if (st.online && st.user) {
+    try { await hubApi.feedback(it.repository, 'not-interested'); } catch (e) { return toast(e.message); }
+  } else {
+    st.hidden.add(it.repository);
+    store.set(HIDE_KEY, [...st.hidden]);
+  }
+  st.hidden.add(it.repository);
+  const i = st.items.indexOf(it);
+  if (i >= 0) {
+    closeDetail(true);
+    st.items.splice(i, 1);
+    rack?.remove(i);
+    rackIndex();
+  }
+  toast(st.online && st.user ? '以后不再推荐这个项目。' : '已在本机隐藏这个项目。', {
+    label: '撤销',
+    onClick: async () => {
+      if (st.online && st.user) { try { await hubApi.feedback(it.repository, 'clear'); } catch (e) { return toast(e.message); } }
+      else { st.hidden.delete(it.repository); store.set(HIDE_KEY, [...st.hidden]); }
+      st.hidden.delete(it.repository);
+      // Re-evaluate the current category/query; an old async undo must not
+      // insert a project into an unrelated shelf.
+      await applyDiscoveryFilter();
+    },
+  });
+  if (!st.items.length) renderEmpty();
+}
+
+dg.addEventListener('click', (e) => {
+  const go = e.target.closest('[data-goto]');
+  if (go) { setIndex(false); rack?.go(Number(go.dataset.goto), { duration: 1.2 }); rack?.focus(); return; }
+  if (e.target.closest('.dg-index-btn')) return setIndex($('#dg-index').hidden);
+  if (e.target.closest('.dg-scrim')) return setIndex(false);
+  const btn = e.target.closest('[data-act]');
+  const it = st.items[st.index];
+  if (!btn || !it) return;
+  const act = btn.dataset.act;
+  if (act === 'close') { e.preventDefault(); e.stopPropagation(); }
+  if (act === 'open') openDetail();
+  if (act === 'close') closeDetail();
+  if (act === 'comments') detailOpen ? $('#dg-comments')?.scrollIntoView({ behavior: 'smooth' }) : openDetail({ focus: 'comments' });
+  if (act === 'download') openDownload(it);
+  if (act === 'plan') { togglePlan(it, btn); rackStats(it); }
+  if (act === 'hide') rackHide(it);
+  if (act === 'save') {
+    save(it, btn).then(() => {
+      rackStats(it);
+      // 收藏图标像 SF Symbols 那样弹一下
+      if (!reducedMotion()) btn.querySelector('b, .ico')?.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.25)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+    });
+  }
+});
+
+function rackKeys(e, k) {
+  if (detailOpen || detailClosing) {
+    if (k === 'escape') { e.preventDefault(); closeDetail(); }
+    return;
+  }
+  if (!$('#dg-index').hidden && k === 'escape') return setIndex(false);
+  const it = st.items[st.index];
+  if (document.activeElement !== dg.querySelector('.dg-stage')) {
+    if (['arrowright', 'arrowdown', 'j'].includes(k)) { e.preventDefault(); rack.go(st.index + 1); }
+    else if (['arrowleft', 'arrowup', 'k'].includes(k)) { e.preventDefault(); rack.go(st.index - 1); }
+  }
+  if (!it) return;
+  if (k === 'l') dg.querySelector('.dg-stats [data-act="save"]').click();
+  else if (k === 'x') rackHide(it);
+  else if (k === 'b') dg.querySelector('.dg-rail [data-act="plan"]').click();
+  else if (k === 'g' || (k === 'enter' && document.activeElement === document.body)) openDetail();
+  else if (k === 'o' && safeURL(it.repositoryUrl)) open(it.repositoryUrl, '_blank', 'noopener');
+}
+
 // ---------- 启动 ----------
 
 hubState().then((s) => {
   st.online = s.online;
   st.user = s.user;
-  $$('[data-shelf]').forEach((b) => b.dataset.shelf !== 'all' && b.toggleAttribute('data-locked', !st.online));
+  const params = new URLSearchParams(location.search);
+  st.shelf = Object.hasOwn(DISC_TOPICS, params.get('shelf')) ? params.get('shelf') : 'all';
+  st.query = (params.get('q') || '').slice(0,160);
+  $('#dc-query').value = st.query;
+  if (st.query) { $('#dc-search').hidden = false; $('#dc-search-toggle').setAttribute('aria-expanded','true'); }
+  $$('[data-shelf]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.shelf === st.shelf)));
   fetchMore();
 });
 

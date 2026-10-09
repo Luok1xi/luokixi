@@ -1,0 +1,11 @@
+.ops-panel { border-block-end: 1px solid var(--border, #ddd); padding-block: 0 28px; margin-block-end: 32px; }
+.ops-panel h4 { font-size: 20px; margin-block: 24px 8px; }
+.ops-facts { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-block: 20px; }
+.ops-facts dt { color: var(--muted, #777); font-size: 13px; }
+.ops-facts dd { margin: 5px 0 0; overflow-wrap: anywhere; }
+.ops-alerts, .ops-backups { list-style: none; padding: 0; }
+.ops-alerts li, .ops-backups li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 16px; border-block-end: 1px solid var(--border, #ddd); }
+.ops-alerts p, .ops-backups p { color: var(--muted, #777); font-size: 13px; margin-block: 5px 0; }
+.ops-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ops-message { min-height: 24px; }
+@media (max-width: 600px) { .ops-facts { grid-template-columns: 1fr; } .ops-alerts li, .ops-backups li { align-items: flex-start; flex-direction: column; } }

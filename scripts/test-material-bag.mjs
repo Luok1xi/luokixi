@@ -26,3 +26,10 @@ test('cancel stops file collection',async()=>{
  const c=new AbortController();c.abort();let fetched=false;
  await assert.rejects(buildMaterialZip([item],{signal:c.signal,fetcher:async()=>{fetched=true;}}),{name:'AbortError'});assert.equal(fetched,false);
 });
+
+test('structured question JSON is a real downloadable file; JSON errors still fail',async()=>{
+ const question={...item,format:'json',url:'/api/hub/question-papers/01234567-abcd-1234-abcd-0123456789ab/json'};
+ const packed=await buildMaterialZip([question],{fetcher:async()=>new Response('{"questions":[]}',{headers:{'Content-Type':'application/json','Content-Disposition':'attachment; filename="questions.json"'}})});
+ assert.ok(Object.keys(unzipSync(packed)).some(k=>k.endsWith('.json')&&k!=='来源与许可.json'));
+ await assert.rejects(buildMaterialZip([question],{fetcher:async()=>Response.json({error:'no file'})}));
+});

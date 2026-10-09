@@ -18,7 +18,7 @@ from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from http.client import HTTPConnection
 from pathlib import Path
-from urllib.parse import parse_qs, urljoin, urlsplit, unquote
+from urllib.parse import parse_qs, urljoin, urlsplit, unquote, quote
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 from urllib.error import HTTPError
 from urllib.robotparser import RobotFileParser
@@ -100,7 +100,8 @@ def put_document(doc, chunks):
     return doc['id'], True
 
 def public_doc(row):
-    return {k:row[k] for k in row.keys() if k not in ('file_path','body')}
+    from local_course_links import course_for_document
+    return {**{k:row[k] for k in row.keys() if k not in ('file_path','body')}, 'course_id': course_for_document(row)}
 
 def catalogue(q='',course='',scope='',kind='',status='ready',offset=0):
     q = q.strip()[:160]
@@ -242,6 +243,9 @@ def crawl_job(jid,seed,limit,dynamic,course):
 
 class Server(ThreadingHTTPServer):
     daemon_threads=True
+    # Browser modules, fonts and PDF workers arrive together. Windows can refuse
+    # a new local connection while the standard five-slot accept backlog is full.
+    request_queue_size=128
 
 class Handler(BaseHTTPRequestHandler):
     server_version='CampusLibrary/1.0'
@@ -254,6 +258,10 @@ class Handler(BaseHTTPRequestHandler):
     def send_json(self,data,status=200):
         raw=json.dumps(data,ensure_ascii=False).encode('utf-8')
         self.send_response(status);self.headers_common()
+        if len(raw)>16384 and 'gzip' in self.headers.get('Accept-Encoding',''):
+            import gzip
+            raw=gzip.compress(raw,compresslevel=3)
+            self.send_header('Content-Encoding','gzip');self.send_header('Vary','Accept-Encoding')
         self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Cache-Control','no-store')
         self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw)
     def valid_origin(self,mutation=False):
@@ -314,8 +322,42 @@ class Handler(BaseHTTPRequestHandler):
                 return self.proxy_hub()
             if path=='/api/community' or path.startswith('/api/community/'):
                 return self.send_json(community.handle('GET',path,query,None,connection))
-            if path=='/api/health': return self.send_json({'ok':True,'app':'cumtb-campus-library','version':'1.1','local_only':True,'community':'local-workbench-v1'})
+            if path=='/api/health': return self.send_json({'ok':True,'app':'cumtb-campus-library','version':'1.1','libraryPipelineVersion':3,'local_only':True,'community':'local-workbench-v1'})
+            if path=='/api/library/feed':
+                from library_pipeline import catalogue as library_feed
+                return self.send_json(library_feed(DATA))
             if path=='/api/catalogue':return self.send_json(catalogue(**{k:v for k,v in query.items() if k in ('q','course','scope','kind','status')},offset=max(0,int(query.get('offset',0)))))
+            if path=='/api/library/collections':
+                from library_organizer import get_library_collections
+                from local_course_links import course_for_document
+                return self.send_json(get_library_collections(DB,course_resolver=course_for_document))
+            if path=='/api/library/university-sources':
+                from university_question_bank import catalogue_response
+                compressed='gzip' in self.headers.get('Accept-Encoding','').lower()
+                raw,tag=catalogue_response(DATA,compressed)
+                self.send_response(304 if self.headers.get('If-None-Match')==tag else 200)
+                self.headers_common()
+                self.send_header('ETag',tag)
+                self.send_header('Cache-Control','private, max-age=0, must-revalidate')
+                self.send_header('Vary','Accept-Encoding')
+                if self.headers.get('If-None-Match')==tag:
+                    self.end_headers();return
+                self.send_header('Content-Type','application/json; charset=utf-8')
+                if compressed:self.send_header('Content-Encoding','gzip')
+                self.send_header('Content-Length',str(len(raw)))
+                self.end_headers();self.wfile.write(raw);return
+            if path.startswith('/api/library/university-sources/banks/'):
+                from university_question_bank import get_bank
+                try:
+                    bank=get_bank(DATA,path.rsplit('/',1)[-1])
+                except LookupError as error:
+                    return self.send_json({'error':str(error)},404)
+                except ValueError as error:
+                    return self.send_json({'error':str(error)},409)
+                return self.send_json({'bank':bank})
+            if path=='/api/library/sources':
+                from learning_sources_robot import get_learning_sources
+                return self.send_json(get_learning_sources(DATA))
             if path=='/api/meta':
                 with connection() as c:
                     counts=dict(c.execute('SELECT course,count(*) FROM documents WHERE status="ready" GROUP BY course').fetchall())
@@ -343,8 +385,15 @@ class Handler(BaseHTTPRequestHandler):
                     item['related']=[public_doc(r) for r in c.execute('SELECT * FROM documents WHERE group_key=? AND group_key<>"" AND id<>? AND status="ready"',(row['group_key'],docid))]
                 return self.send_json(item)
             if path.startswith('/api/file/'):
-                with connection() as c: row=c.execute('SELECT file_path,format FROM documents WHERE id=?',(path.rsplit('/',1)[-1],)).fetchone()
-                if not row or row['format'] not in ('pdf','mp3'):return self.send_json({'error':'文件不存在。'},404)
+                with connection() as c: row=c.execute('SELECT * FROM documents WHERE id=?',(path.rsplit('/',1)[-1],)).fetchone()
+                if not row:return self.send_json({'error':'文件不存在。'},404)
+                if row['format']=='html' and row['body']:
+                    raw=('# '+row['title']+'\n\n来源：'+row['source_url']+'\n\n以下为本站已保存的提取文本，非原始网页完整副本。\n\n'+row['body']).encode('utf-8')
+                    self.send_response(200);self.headers_common()
+                    self.send_header('Content-Type','text/markdown; charset=utf-8')
+                    self.send_header('Content-Disposition',"attachment; filename*=UTF-8''"+quote(row['title'][:100]+'.md',safe=''))
+                    self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
+                if row['format'] not in ('pdf','mp3'):return self.send_json({'error':'尚未保存可下载原件。'},404)
                 return self.send_file(Path(row['file_path']))
             if path=='/api/search-web':
                 from ddgs import DDGS
@@ -366,6 +415,7 @@ class Handler(BaseHTTPRequestHandler):
             if not target.is_relative_to(base.resolve()) or not target.is_file(): return self.send_json({'error':'页面不存在。'},404)
             return self.send_file(target)
         except (ValueError,KeyError,json.JSONDecodeError) as e:self.send_json({'error':str(e)},400)
+        except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):pass
         except Exception as e:self.send_json({'error':str(e)[:300]},502)
     def send_file(self,path):
         if not path.is_file():return self.send_json({'error':'原文件已移动，请重新导入资料。'},404)
@@ -451,6 +501,7 @@ class Handler(BaseHTTPRequestHandler):
                         restored+=c.execute('INSERT OR IGNORE INTO cards VALUES (?,?,?,?,?,?,?,?,?,?)',(cid,item['docid'],max(1,int(item['page'])),item['question'],item['answer'],item['due'],max(0,int(item['attempts'])),max(0,int(item['streak'])),str(item['last_result'])[:20],str(item['created'])[:60])).rowcount
                 return self.send_json({'ok':True,'restored':restored,'skipped':skipped})
             return self.send_json({'error':'操作不存在。'},404)
+        except (BrokenPipeError,ConnectionResetError,ConnectionAbortedError):pass
         except (ValueError,KeyError,TypeError,json.JSONDecodeError) as e:self.send_json({'error':str(e)},400)
         except Exception as e:self.send_json({'error':str(e)[:300]},500)
 

@@ -11,15 +11,64 @@
 
 <main id="main" class="dc">
   <div class="dc-top">
-    <div class="segmented glass-pill" role="group" aria-label="精选分类" id="dc-shelf">
+    <div class="segmented glass-pill" role="group" aria-label="项目分类" id="dc-shelf">
       <button type="button" data-shelf="all" aria-pressed="true">全部</button>
       <button type="button" data-shelf="practical" aria-pressed="false">实用</button>
       <button type="button" data-shelf="creative" aria-pressed="false">新奇</button>
       <button type="button" data-shelf="potential" aria-pressed="false">潜力</button>
+      <button type="button" data-shelf="cs" aria-pressed="false">CS</button>
+      <button type="button" data-shelf="daily" aria-pressed="false">日常</button>
+      <button type="button" data-shelf="embedded" aria-pressed="false">嵌入式</button>
+      <button type="button" data-shelf="ai" aria-pressed="false">AI</button>
+      <button type="button" data-shelf="mech" aria-pressed="false">机电</button>
+      <button type="button" data-shelf="course" aria-pressed="false">课程</button>
+      <button type="button" data-shelf="research" aria-pressed="false">科研</button>
     </div>
-    <div class="feed-links"><a href="projects.html">搜索项目 ↗</a><a href="contribute.html#project">发布作品 ＋</a></div>
+    <div class="feed-links"><button type="button" id="dc-search-toggle" aria-expanded="false" aria-controls="dc-search">搜索项目</button><a href="contribute.html#project">发布作品 ＋</a></div>
+    <form id="dc-search" class="dc-search glass-pill" role="search" hidden>
+      <label class="sr-only" for="dc-query">在光碟架搜索项目</label>
+      <input id="dc-query" type="search" placeholder="项目名、技术或关键词" autocomplete="off" maxlength="160" enterkeyhint="search">
+      <button type="submit">搜索</button><button type="button" id="dc-search-clear" aria-label="清空搜索">清空</button>
+      <span id="dc-search-count" role="status"></span>
+    </form>
     <p class="dc-status" id="dc-status" role="status"></p>
   </div>
+
+  <!-- 光碟架：有 WebGL 时代替下面的竖滑流（discover.js 决定）。左边简介、下方数据，点光碟展开详细介绍。 -->
+  <section class="dg" id="dg" hidden aria-label="项目光碟架">
+    <div class="dg-stage" tabindex="0" role="group" aria-roledescription="轮播" aria-label="项目光碟。左右方向键切换，回车展开详细介绍">
+      <canvas class="dg-canvas" aria-hidden="true"></canvas>
+      <canvas class="dg-scribble" aria-hidden="true"></canvas>
+    </div>
+    <header class="dg-info">
+      <p class="dg-tags" data-f="tags"></p>
+      <h1 class="dg-title" data-f="title"></h1>
+      <p class="dg-repo num" data-f="repo"></p>
+      <p class="dg-intro" data-f="intro"></p>
+      <button class="dg-more" type="button" data-act="open">详细介绍 <span aria-hidden="true">→</span></button>
+    </header>
+    <div class="dg-nav">
+      <button class="dg-index-btn" type="button" aria-expanded="false" aria-controls="dg-index">片单 <span class="dg-count num" id="dg-count"></span></button>
+    </div>
+    <div class="dg-scrim" hidden></div>
+    <ol class="dg-index" id="dg-index" hidden></ol>
+    <footer class="dg-stats" aria-label="项目数据">
+      <div class="dg-stat"><span>GitHub ★</span><b class="num" data-f="gh"></b></div>
+      <button class="dg-stat dg-stat-btn" type="button" data-act="save" aria-pressed="false"><span data-f="saveLabel">站内收藏</span><b class="num" data-f="site"></b></button>
+      <button class="dg-stat dg-stat-btn" type="button" data-act="comments"><span>评论</span><b class="num" data-f="replies"></b></button>
+      <div class="dg-stat"><span>浏览</span><b class="num" data-f="views"></b></div>
+    </footer>
+    <div class="dg-rail" role="group" aria-label="操作">
+      <button type="button" class="dg-rail-btn" data-act="download"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg><span>下载</span></button>
+      <button type="button" class="dg-rail-btn" data-act="plan"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg><span>搭建</span></button>
+      <button type="button" class="dg-rail-btn" data-act="hide"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="m6 6 12 12"/></svg><span>不感兴趣</span></button>
+    </div>
+    <article class="dg-detail" id="dg-detail" hidden aria-labelledby="dg-d-title">
+      <button class="dg-back" type="button" data-act="close">← 回到光碟架</button>
+      <div class="dg-d-scroll" id="dg-d-body"></div>
+    </article>
+    <p class="dg-live sr-only" aria-live="polite"></p>
+  </section>
 
   <div class="dc-feed" id="dc-feed" tabindex="0" aria-label="项目发现流。用上下方向键切换项目"></div>
 

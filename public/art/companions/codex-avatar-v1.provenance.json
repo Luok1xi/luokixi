@@ -1,0 +1,10 @@
+{
+  "tool": "built-in image_gen",
+  "role": "Codex chat and studio avatar",
+  "created": "2026-10-08",
+  "sources": [
+    "codex-neutral.png",
+    "../beikuang/avatar.png"
+  ],
+  "prompt": "Use case: style-transfer, identity-preserve. Asset: square Q版 anime chat avatar, head-and-shoulders close-up. Reference 1 is the exact character identity: Codex, adult silver-white long-haired dragon woman, two curved white ridged dragon horns, pale violet eyes, pointed ears, ornate white silver floral knot ornament on her left temple (viewer right), white high collar from her elegant gown. Reference 2 is STYLE ONLY: match its charming polished chibi anime painting, crisp soft line art, big glossy eyes, softly shaded fluffy hair and pastel round backdrop. Create one standalone avatar of the WHITE-HAIRED character, NOT the black/red character. Her face and white hair fill most of the square; include both whole horns with safe margin, crop just below shoulders. Calm, restrained, slightly reserved but kind expression, small closed mouth, delicate faint blush, NOT crying, no tears. Large chibi head with elegant proportions, violet-tinted shadows and light lavender circular background on warm ivory, excellent readability at 48px, centered composition. Keep hairstyle, horns, violet eyes and distinctive white ornament true to first reference. No text, no logo, no watermark, no speech bubble, no hands, no full body, no extra objects. Output 1024px square raster."
+}

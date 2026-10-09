@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>收集课程资料 · Luokixi</title>
+<meta name="description" content="粘贴链接、DOI 或选择文件，关联课程后私人保存，或主动提交公开审核。">
+<script type="module" src="/src/pages/collect.js"></script>
+</head>
+<body data-page="collect">
+<!-- @include nav -->
+<main id="main" class="collect wrap">
+  <header class="collect-heading">
+    <p class="collect-eyebrow">LUOKIXI / 资料收集</p>
+    <h1>收好一份<br>学习资料。</h1>
+    <p>把值得看的资料放回课程里，留下一句它能帮到谁。</p>
+    <nav class="collect-links" aria-label="资料导航"><a href="search.html">查找课程资料</a><a href="#private">我的私人资料</a><a id="source-management" href="sources.html" hidden>检查公开来源</a></nav>
+    <div class="collect-folder" aria-hidden="true"><div class="collect-folder-paper"><small>RESOURCE NOTES</small><i></i><i></i><i></i></div><div class="collect-folder-front"><small>LUOKIXI / COLLECTION</small><b>我的<br>资料夹</b><span>LINKS · FILES · NOTES</span></div></div>
+    <p class="collect-desk-note">先留下来源与用途，<br>再决定私人保留，或分享给同学。</p>
+  </header>
+  <form id="collect-form" class="collect-form" autocomplete="off">
+    <section class="collect-section" aria-labelledby="source-heading">
+      <div class="collect-section-heading"><span aria-hidden="true">01</span><h2 id="source-heading">从一个来源开始</h2></div>
+      <label for="source">链接或 DOI</label>
+      <div class="collect-source"><input id="source" name="source" type="text" inputmode="url" maxlength="1000" spellcheck="false" placeholder="https://… 或 10.…/…"><button id="preview" class="btn btn-secondary" type="button">识别公开信息</button></div>
+      <label class="collect-check"><input id="fetch-metadata" type="checkbox">允许此次访问来源网页，读取公开标题与作者</label>
+      <p class="collect-hint">粘贴不会发送地址。点击“识别”会将地址交给本站查重；勾选后才访问来源。文件内容不会随识别发送。</p>
+      <div id="preview-status" class="collect-feedback" role="status" aria-live="polite"></div>
+      <div id="duplicates" class="collect-matches" hidden></div>
+      <div class="collect-file"><label for="file">或者选择本地文件 <span>≤ 25 MB</span></label><input id="file" type="file"><p id="file-status" class="collect-hint">选择文件只在本机读取；保存为私人资料时，原文件留在当前浏览器。</p><button id="clear-file" class="btn btn-link" type="button" hidden>移除所选文件</button></div>
+    </section>
+    <section class="collect-section" aria-labelledby="details-heading">
+      <div class="collect-section-heading"><span aria-hidden="true">02</span><h2 id="details-heading">留一点使用线索</h2></div>
+      <label for="title">资料标题</label><input id="title" name="title" required maxlength="160" placeholder="给自己和后来的人一个清楚的名字">
+      <div class="collect-pair"><div><label for="course">关联课程</label><select id="course"><option value="">稍后关联</option></select></div><div><label for="material-type">资料类型</label><select id="material-type"><option value="notes">笔记</option><option value="textbook">教材信息</option><option value="course">公开课程</option><option value="exam">试卷</option><option value="exercise">习题与解析</option><option value="code">代码</option><option value="data">数据与实验材料</option><option value="experience">学习经验</option><option value="other">其他</option></select></div></div>
+      <p id="course-status" class="collect-hint" role="status">正在读取课程目录…</p>
+      <div class="collect-pair"><div><label for="offering">具体开课（可选）</label><select id="offering" disabled><option value="">不限某次开课 / 尚未核实</option></select></div><div><label for="term">适用学期（可选）</label><input id="term" maxlength="80" placeholder="未核实可留空"></div></div>
+      <label for="summary">适合谁，为什么值得看</label><textarea id="summary" required maxlength="1000" rows="3" placeholder="例如：适合刚学矩阵运算的同学，第三节有一步步的推导。"></textarea>
+      <details class="collect-more"><summary>版本、来源与获取条件</summary><div class="collect-more-body">
+        <div class="collect-pair"><div><label for="version">教材 / 资料版本</label><input id="version" maxlength="160" placeholder="未核实可留空，不会合并不同版本"></div><div><label for="access">获取条件</label><select id="access"><option value="unknown">尚未核实</option><option value="public">公开可访问</option><option value="campus">需学校授权</option><option value="request">需联系作者</option></select></div></div>
+        <div class="collect-pair"><div><label for="credit">原作者 / 来源署名</label><input id="credit" maxlength="300" placeholder="未知可留空"></div><div><label for="checked-at">最近人工核对日期</label><input id="checked-at" type="date"></div></div>
+      </div></details>
+    </section>
+    <section class="collect-section" aria-labelledby="visibility-heading">
+      <div class="collect-section-heading"><span aria-hidden="true">03</span><h2 id="visibility-heading">决定放在哪里</h2></div>
+      <fieldset class="collect-destination"><legend class="sr-only">资料保存范围</legend><label><input type="radio" name="visibility" value="private" checked><span><strong>私人保存</strong><small>笔记与文件只留在当前浏览器</small></span></label><label><input type="radio" name="visibility" value="public"><span><strong>提交公开审核</strong><small>你确认后发送；审核通过后才公开</small></span></label></fieldset>
+      <div id="public-options" class="collect-public" hidden>
+        <p>公开提交会发送本表单内容及所选文件。请只分享你有权公开的资料，学校账号、受限全文和私人研究笔记请保留在本机。</p>
+        <label for="license">许可 / 分享依据</label><input id="license" maxlength="120" placeholder="例如：本人原创，CC BY 4.0；或许可待核，仅链接">
+        <label for="source-note">来源说明</label><input id="source-note" maxlength="600" placeholder="原始发布页、授权人或原创说明">
+        <label class="collect-check"><input id="rights" type="checkbox">我确认有权分享上述内容与附件，并同意将它们发送到本站接受公开审核。</label>
+        <p id="public-status" class="collect-hint" role="status"></p>
+      </div>
+      <div class="collect-actions"><button id="save" class="btn btn-primary" type="submit">保存到本机</button><p id="save-scope">不会上传，也不会进入公开搜索。</p></div>
+      <div id="save-status" class="collect-feedback" role="status" aria-live="polite" tabindex="-1"></div>
+    </section>
+  </form>
+  <section id="private" class="collect-library" aria-labelledby="private-heading">
+    <header><div><p class="collect-eyebrow">仅当前浏览器</p><h2 id="private-heading">我的私人资料</h2></div><button id="export-index" class="btn btn-secondary" type="button" disabled>导出链接索引</button></header>
+    <p class="collect-hint">清理浏览器站点数据会移除这些资料。索引只包含链接、DOI 和课程标识，不含笔记或文件；原文件可逐个下载保留。</p>
+    <label class="sr-only" for="private-query">搜索本机私人资料</label><input id="private-query" type="search" placeholder="只在本机搜索标题、笔记和课程" maxlength="200">
+    <p id="private-status" class="collect-feedback" role="status"></p><div id="private-items"></div>
+  </section>
+</main>
+<!-- @include footer -->
+</body>
+</html>

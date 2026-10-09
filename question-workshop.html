@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><!-- @include head -->
+<title>北矿娘 · 识题与组卷 · Luokixi</title>
+<meta name="description" content="把自己的试卷、讲义与图片整理成可编辑的题目，对照原页核对，自由排版。">
+<script type="module" src="/src/pages/question-workshop.js"></script>
+</head>
+<body data-page="materials" class="ap-page qw-page">
+<!-- @include nav -->
+<main id="main" class="qw">
+  <header class="qw-head"><div><a href="materials.html" class="qw-back">↖ 资料库</a><p class="qw-kicker">BEIKUANG / PAPER WORKSHOP</p><h1>把原稿，<br>整理成题册。</h1></div><div class="qw-emblem" aria-hidden="true"><i></i><i></i><b>北<span>识题 · 校对 · 排版</span></b></div></header>
+  <div class="qw-toolstrip"><span><i class="qw-dot"></i>北矿娘 · 本机工作台</span><span id="qw-capability">正在检查识题能力…</span><a href="materials.html#all-materials">成套资料 ↗</a></div>
+  <p class="qw-status" id="qw-status" role="status" aria-live="polite"></p>
+  <section id="qw-auth" class="qw-auth" hidden><h2>把题册存进自己的架子。</h2><p>登录后可识别、编辑并保存私人题册。</p><a id="qw-login" class="btn btn-primary" href="auth.html">登录</a></section>
+  <section id="qw-university" class="qw-university" aria-labelledby="qw-university-title">
+    <header class="qw-university-head"><div><p class="qw-kicker">ACROSS CAMPUSES / 跨校来源库</p><h2 id="qw-university-title">顺着课程，找到好题。</h2></div><button type="button" id="qw-university-reload" class="qw-plain">刷新目录 ↻</button></header>
+    <form id="qw-university-search" role="search" aria-label="跨校资料搜索"><label class="sr-only" for="qw-university-q">搜索学校、课程或资料</label><input id="qw-university-q" type="search" maxlength="180" placeholder="学校、课程、试卷名称…" autocomplete="off"><button type="submit" class="qw-solid">查找 ↗</button></form>
+    <div class="qw-university-groups" role="group" aria-label="学校类型"><button type="button" data-university-group="all" aria-pressed="true">全部院校</button><button type="button" data-university-group="985" aria-pressed="false">985</button><button type="button" data-university-group="211" aria-pressed="false">211</button><button type="button" data-university-group="specialist" aria-pressed="false">特色院校</button></div>
+    <div class="qw-university-filters">
+      <label>学校<select id="qw-university-school"><option value="">全部学校</option></select></label>
+      <label>课程<select id="qw-university-course"><option value="">全部课程</option></select></label>
+      <label>年份<select id="qw-university-year"><option value="">全部年份</option></select></label>
+      <label>资料<select id="qw-university-kind"><option value="">全部类型</option><option value="exam">试卷</option><option value="answer">答案</option><option value="exercise">习题</option><option value="notes">笔记 / 讲义</option><option value="unknown">待分类</option></select></label>
+      <label>进度<select id="qw-university-phase"><option value="">全部进度</option><option value="indexed">已发现</option><option value="downloaded">有原件</option><option value="extracted">已取正文</option><option value="structured">可选题组卷</option><option value="needs-review">待核对</option></select></label>
+      <button type="button" id="qw-university-clear" class="qw-plain">重置</button>
+    </div>
+    <p id="qw-university-summary" class="qw-university-summary" role="status" aria-live="polite">正在读取来源目录…</p>
+    <p id="qw-university-note" class="qw-small">目录与可组卷题目分开标记；原始来源随题目保留。</p>
+    <details id="qw-university-failures" class="qw-university-failures" hidden><summary>未完成的采集</summary><ul></ul></details>
+    <div id="qw-university-results" class="qw-university-results" aria-busy="true"></div>
+    <nav class="qw-university-pager" aria-label="来源结果翻页"><button id="qw-university-prev" class="qw-plain" type="button" disabled>← 上一页</button><span id="qw-university-page">0 / 0</span><button id="qw-university-next" class="qw-plain" type="button" disabled>下一页 →</button></nav>
+    <form id="qw-compose" class="qw-compose" hidden><div><span class="qw-kicker">YOUR NEXT PAPER</span><p id="qw-compose-count"></p><button id="qw-compose-clear" class="qw-plain" type="button">清空选题</button></div><label>新题册名称<input id="qw-compose-title" maxlength="200" placeholder="如：高数 · 跨校练习"></label><button id="qw-compose-submit" class="qw-solid" type="submit">组成私人题册 ↗</button></form>
+  </section>
+  <section class="qw-intake" id="qw-intake" aria-labelledby="qw-intake-title">
+    <header><span class="qw-kicker">01 / 原稿</span><h2 id="qw-intake-title">从一份资料开始。</h2><p>原图留在左边，题目在右边重新排好。</p><p id="qw-selected-course" hidden></p></header>
+    <form id="qw-create">
+      <div class="qw-source-tabs" role="group" aria-label="选择原稿方式"><button type="button" data-mode="local" aria-pressed="true">已有资料</button><button type="button" data-mode="upload" aria-pressed="false">图片 / PDF</button><button type="button" data-mode="text" aria-pressed="false">粘贴文字</button></div>
+      <div data-source-panel="local"><label for="qw-document">原卷或讲义</label><select id="qw-document"><option value="">正在读取本机资料…</option></select><p class="qw-small" id="qw-local-note">本机资料由维护者处理；上传的原稿仅本人可见。</p></div>
+      <div data-source-panel="upload" hidden><label class="qw-drop" for="qw-file"><strong>把原稿放到这里</strong><span>选择图片或 PDF · 最大 25 MB</span><input id="qw-file" type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md"></label><span class="qw-small" id="qw-file-name"></span></div>
+      <div data-source-panel="text" hidden><label for="qw-text">题目原文</label><textarea id="qw-text" rows="7" maxlength="80000" placeholder="粘贴带题号的内容，如：&#10;1. 题干…&#10;A. 选项…&#10;B. 选项…&#10;答案：…"></textarea></div>
+      <div class="qw-create-bottom"><label id="qw-pages-label">识别页码<input id="qw-pages" value="1" placeholder="如 1-3,5" inputmode="text" maxlength="80"><small>每次最多 12 页</small></label><button class="btn btn-primary" id="qw-start" type="submit">交给北矿娘 <span aria-hidden="true">↗</span></button></div>
+      <p class="qw-small">本机识别，不上传给云端模型。识别完成后保留原页，疑点逐题核对。</p>
+    </form>
+  </section>
+  <section id="qw-working" class="qw-working" hidden aria-live="polite"><span class="qw-processing-mark" aria-hidden="true">北</span><div><h2>正在整理原稿</h2><p id="qw-progress">识别文字 → 切分题目 → 检查疑点 → 归类</p></div><button id="qw-working-back" type="button">返回资料架</button></section>
+  <section id="qw-editor" hidden aria-label="题目编辑工作台">
+    <header class="qw-editor-head"><div><p class="qw-kicker">02 / 校对与排版</p><label class="sr-only" for="qw-title">题册名称</label><input id="qw-title" maxlength="200" aria-label="题册名称"><p id="qw-review-line"></p></div><div class="qw-actions"><button type="button" id="qw-new">新原稿</button><button type="button" id="qw-export-text">导出文本</button><button type="button" id="qw-export">导出 JSON</button><a class="as-get is-small" href="materials.html">资料库 ↗</a><button type="button" id="qw-save" class="qw-solid">保存与复核</button></div></header>
+    <div class="qw-editor-meta"><label>课程<input id="qw-course" maxlength="120" placeholder="未分类"></label><label>分类<select id="qw-category"><option>课程练习</option><option>四六级</option><option>通识选修</option><option>竞赛</option><option>知识要点</option><option>其他</option></select></label><label class="qw-coverage"><input id="qw-coverage" type="checkbox">已核对整页切分，题目没有遗漏</label></div>
+    <div class="qw-viewbar"><div role="group" aria-label="工作台视图"><button type="button" data-view="edit" aria-pressed="true">对照编辑</button><button type="button" data-view="print" aria-pressed="false">排版预览</button><button type="button" data-view="study" aria-pressed="false">知识要点</button></div><span id="qw-dirty"></span></div>
+    <details id="qw-provenance" class="qw-paper-provenance" hidden><summary>本册来源清单</summary><div id="qw-provenance-list"></div></details>
+    <div id="qw-edit-view" class="qw-editor-grid"><aside class="qw-source"><div class="qw-source-toolbar"><strong>原稿</strong><label>第 <select id="qw-source-page" aria-label="查看原稿页码"></select> 页</label><a id="qw-original" target="_blank" rel="noopener" hidden>原件 ↗</a></div><div class="qw-source-scroll"><img id="qw-source-image" alt="当前题目所在原稿页" hidden><pre id="qw-source-text"></pre></div><p class="qw-small" id="qw-source-note"></p></aside><div><div id="qw-questions" class="qw-questions"></div><button type="button" id="qw-add" class="qw-add">＋ 补一道题</button></div></div>
+    <div id="qw-print-view" hidden><div class="qw-print-controls"><label>版式<select id="qw-columns"><option value="1">单栏</option><option value="2">双栏</option></select></label><label>字号<select id="qw-font-size"><option value="14">14 pt</option><option value="12">12 pt</option><option value="16">16 pt</option></select></label><label><input id="qw-show-answer" type="checkbox">附答案与解析</label><button type="button" id="qw-print" class="qw-solid">打印 / 存为 PDF</button></div><article id="qw-print-paper" class="qw-print-paper"></article></div>
+    <div id="qw-study-view" class="qw-study" hidden></div>
+  </section>
+  <section id="qw-shelf" class="qw-shelf" aria-labelledby="qw-shelf-heading"><header><div><p class="qw-kicker">YOUR COLLECTION</p><h2 id="qw-shelf-heading">我的题册</h2></div><label class="sr-only" for="qw-shelf-filter">筛选课程</label><input id="qw-shelf-filter" type="search" placeholder="按题册、课程查找"></header><div id="qw-papers"><p class="qw-small">登录后显示你的私人题册。</p></div></section>
+  <section class="qw-sources" id="qw-sources"><header><p class="qw-kicker">NEXT / 通识与竞赛</p><h2>沿着真实来源，继续整理。</h2></header><div id="qw-source-links"><p class="qw-small">正在读取已核对来源…</p></div></section>
+</main>
+<dialog id="qw-bank-dialog" class="qw-bank-dialog" aria-labelledby="qw-bank-title"><div class="qw-bank-head"><div><p class="qw-kicker">SELECT / 选题</p><h2 id="qw-bank-title">来源题目</h2></div><button id="qw-bank-close" type="button" class="qw-plain" aria-label="关闭选题">关闭 ×</button></div><p id="qw-bank-note" class="qw-small" role="status"></p><div class="qw-bank-tools"><button id="qw-bank-all" type="button" class="qw-plain" disabled>选择整份</button><button id="qw-bank-none" type="button" class="qw-plain" disabled>取消本份</button><button id="qw-bank-import" type="button" class="qw-plain" disabled>整份存入题架 ↗</button></div><div id="qw-bank-questions" class="qw-bank-questions"></div><nav class="qw-university-pager" aria-label="题目翻页"><button id="qw-bank-prev" type="button" class="qw-plain" disabled>← 上一页</button><span id="qw-bank-page">0 / 0</span><button id="qw-bank-next" type="button" class="qw-plain" disabled>下一页 →</button></nav><footer><span id="qw-bank-selected" role="status"></span><button id="qw-bank-done" type="button" class="qw-solid">完成选择</button></footer></dialog>
+<!-- @include footer -->
+</body></html>

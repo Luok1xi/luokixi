@@ -1,0 +1,28 @@
+name: 自动测试
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # 启动与测试会导入 Crawlee，见 README「新电脑快速开始」。
+      - run: npm --prefix tools/crawler ci
+      # 只跑 node --test；live-*/browser 检查需要真实密钥或浏览器，不在 CI 中运行，也不会产生模型费用。
+      - run: npm test

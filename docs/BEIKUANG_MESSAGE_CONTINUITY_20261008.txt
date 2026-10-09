@@ -1,0 +1,66 @@
+北矿娘：人格连续性、分条、表情与情绪行动修复
+2026-10-08；本机已加载 Hub15 / 原版宿主6
+
+结论
+问题确实存在于原版与网站之间：不是缺一段“像人一样说话”的提示词。
+本次继续修 campus-companion 原有模块和网站显示，没有创建第二个人格、记忆或自主行动引擎。
+仍使用 campus-companion@d5ca8d3 与 deepseek-flash，所有模型调用共享原有每日5元上限。
+
+找到并修复的断点
+1. 网站聊天只显示 body，忽略原版 messages 数组。因此原本分开的文字和表情被合并成一段文字。
+   现在保留模型选择的分段和顺序：文字、图片、再补一句都独立显示。前端不按标点切句，不改写文字。
+   新回复逐条出现，最长展示等待约8秒；历史直接展开。用户补充消息时先展开已生成的剩余内容，输入框一直可用。
+   重复刷新不重复插入；切换页面取消旧计时器；隐藏页面不继续拖延展示。
+2. 原版卡片升级会统一停用所有语气规则，连明确用户偏好也一起停用。
+   当前实际停用的两条来源是“可以不那么人机吗 谢谢你”“别这样冷淡”。
+   修复后升级保留有来源的明确偏好；历史误停用项按用户原话恢复，不恢复模型过度扩写出的禁令。
+   原历史记录保留。明确标注由用户停用的规则不复活。
+3. 原版 characterFeeling 影响表达，但自主行动主要读取另一组数值心情。
+   现在经过原话/置信度校验、随时间衰减的感受也进入 selfState：开心影响主动节奏，好奇影响求知需求，低落影响状态。
+   不凭情绪改变关系进度、执行权限、预算或强制发消息；模型仍可选择休息。原有暂停和免打扰保留。
+   网站直接读取同一个原版状态，8秒短缓存避免反复请求；不再只看最近一条消息保存的旧情绪。
+4. 宿主以固定 else-if 顺序调度，前方任务持续到期时可能一直挤掉 Agency。
+   改为轮流检查符合原有开关条件的引擎，一轮只运行一个；聊天优先，各引擎仍自己判断是否行动。
+5. 原版表情在自己的控制台目录，网站没有可用资源目录；日报只保存了合并文本。
+   现在导出并校验原有21张PNG（8张通用表情、13张旧Miku收藏），网站能展示；日报保存原版完整消息链。
+   旧收藏明确标注“不代表当前角色”，没有把旧头像当作北矿娘本人。当前角色的 moyu-stickers.json 在原目录也缺失，本次没有生成新的专属表情包。
+
+用户给的两份项目：源码对照
+QQ Bridge 固定提交 9df6a7e7fc5abcb36793337f778483bd442a3d2d
+https://github.com/Derpyu520/qq-bridge/blob/9df6a7e7fc5abcb36793337f778483bd442a3d2d/src/preset-prompt.js
+https://github.com/Derpyu520/qq-bridge/blob/9df6a7e7fc5abcb36793337f778483bd442a3d2d/dsh/agent-presets/qq-chat-v2/agent.cordis.yml
+实际读取人格/行为分层、数组分条、参与机会不强制发言、轻量记忆和表情目录协议。
+采用它与现有原程序相符的设计思路；没有复制其群聊专用工具、等待协议或固定台词。
+其中“故意给没用答案”“假装没看手机”的群聊扮演要求不适合网站工作事实，与原角色卡的可靠性要求相冲突，未加入。
+
+Shinsekai 固定提交 b39c8cef73fd5283c993675719e21ea808cfa5bf
+https://rachelforster.github.io/Shinsekai/
+https://github.com/RachelForster/Shinsekai/blob/b39c8cef73fd5283c993675719e21ea808cfa5bf/ai/llm/template/dialog/sections/character.py
+https://github.com/RachelForster/Shinsekai/blob/b39c8cef73fd5283c993675719e21ea808cfa5bf/ai/llm/template/dialog/sections/requirements.py
+另读 prompts/system.py、prompts/user.py、field_requirements.py、application/chat/background_prompt.py。
+它把当前人物设定、可用表情/立绘、场景和输出约束统一装配给模型；这是人格表达与场景一致性的机制，不是人格永远一致或智商提升的证明。
+北矿娘继续使用自己的原角色卡、记忆与消息链。Shinsekai 的完整舞台、BGM、CG、语音没有移植，不能说已具有全部新世界功能。
+参考文件只读取，未执行、安装或复制为运行依赖。研究副本位于本机 cha/research/personality-references-20261008。
+
+验收
+256项原版Node测试通过；145项网站隔离检查通过；前端构建通过（现有Three.js大包提示仍在）。
+新增覆盖：角色升级保留偏好、误停用恢复与明确停用区别；开心影响自主节奏且可选休息；好奇与衰减；五个原引擎公平轮转；当前情绪按账号隔离与缓存；日报消息链入库。
+真实本机：Hub15、宿主6、Flash；公开目录218项；21张PNG均HTTP200且文件签名正确。
+实际原库：10条记忆、3篇阅读记录、5次学习；网站当前情绪和 self.mood 与原版一致；网页接口60条历史中9条有原版结构化消息。
+浏览器：1280桌面和390手机模拟视口，用实际生产页面、真实表情图片及隔离接口数据，验证文字/图片/文字顺序、初始历史兼容、发送节奏、补充输入、20段不丢失、刷新不重复、不执行消息中的HTML、缺图回退、输入框可见和无页面横向溢出。无运行时异常。
+这次没有调用付费模型，没有伪造正式聊天，也没有新增测试房间。浏览器脚本里的台词是测试数据，不能当作真实模型的新表现。
+未重新训练模型权重，未做智商/情商评测；以上证据只能证明功能接线与行为约束，不证明回复自然度已达最高或与新世界相当。
+
+证据
+campus/.data/message-continuity-node-full.log
+campus/.data/chat-repair-tests.log
+campus/.data/message-continuity-live-check.json
+C:/Users/user/Documents/Codex/2026-10-07/cha/verification/message-continuity/result.json
+C:/Users/user/Documents/Codex/2026-10-07/cha/verification/message-continuity/chat-1280.png
+C:/Users/user/Documents/Codex/2026-10-07/cha/verification/message-continuity/input-390.png
+修改前源码和两份数据库备份：campus/.data/before-message-continuity-20261008-150402。
+
+仍未完成的边界
+专属北矿娘表情包、网站语音/视觉上传、完整舞台效果、通用搜索供应商与外部MCP配置仍未完成。
+网站机器人自动改程序的应用、功能测试、回滚闭环仍未完成；沿用既有工作室和候选代码流程，不能另建一套后宣称已接完。
+源码和本机运行目录不自动跟随GitHub更新；旧本机 companion 副本未修改。本轮无GitHub推送、QQ发信或公网部署。

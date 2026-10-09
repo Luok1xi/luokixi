@@ -57,6 +57,24 @@ class StudioTests(TestCase):
     def answer(self, message='A real adapter result in this mocked test.', files=None):
         return {'message': message, 'tasks': ['Review behaviour'], 'files': files or []}, 'mock-test-model', {'input_tokens': 100}
 
+    def test_stage_expression_keeps_old_replies_and_never_accepts_actions(self):
+        old={'message':'我看过了。','tasks':[],'files':[]}
+        self.assertEqual(studio_providers.reply_json(json.dumps(old)),old)
+        self.assertEqual(studio_providers.reply_json(json.dumps(dict(old,expression='happy')))['expression'],'happy')
+        self.assertEqual(studio_providers.reply_json(json.dumps(dict(old,expression='execute-command')))['expression'],'neutral')
+        with self.assertRaises(Problem):
+            studio_providers.reply_json(json.dumps(dict(old,command='publish')))
+
+    def test_selected_expression_is_persisted_and_returned_with_existing_studio_message(self):
+        run=self.start_run()
+        answer,model,usage=self.answer();answer['expression']='composed'
+        with patch.object(studio_providers,'codex',return_value=(answer,model,usage)):
+            studio_worker.run_one()
+        row=StudioMessage.objects.get(run_id=run['id'])
+        self.assertEqual(row.expression,'composed')
+        from .studio import run_data
+        self.assertEqual(run_data(row.run)['messages'][0]['expression'],'composed')
+
     def test_supervisor_and_codex_can_discuss_without_publishing(self):
         from .models import ExternalCache, Entry
         from .test_project_repository import fixture
@@ -71,8 +89,10 @@ class StudioTests(TestCase):
         run=StudioRun.objects.get(pk=response.json()['run']['id'])
         self.assertEqual(run.seats,['beikuang','codex']);self.assertEqual(run.rounds,2)
         with patch.object(studio_providers,'codex',return_value=self.answer()) as call:
-            self.assertTrue(studio_worker.run_one())
-        self.assertEqual(call.call_count,2)
+            with patch.object(studio_providers,'deepseek',return_value=self.answer()) as flash:
+                self.assertTrue(studio_worker.run_one())
+        self.assertEqual(call.call_count,1)
+        self.assertEqual(flash.call_count,1)
         run.refresh_from_db();self.assertEqual(run.state,'completed')
         self.assertEqual(list(run.messages.order_by('id').values_list('seat',flat=True)),['beikuang','codex'])
         self.assertFalse(Entry.objects.filter(state='published').exists())
@@ -234,12 +254,12 @@ class StudioTests(TestCase):
         with self.assertRaises(Problem):
             context_files(['campus/search_helper.py'])
 
-    def test_stale_job_marks_interrupted_no_retry(self):
+    def test_stale_job_before_model_call_can_be_claimed_again(self):
         self.start_run()
         run = studio_worker.claim_next()
         StudioRun.objects.filter(pk=run.pk).update(updated=timezone.now() - timedelta(minutes=6))
         self.assertEqual(studio_worker.recover_interrupted(), 1)
-        self.assertIsNone(studio_worker.claim_next())
+        self.assertEqual(studio_worker.claim_next().pk,run.pk)
 
     def test_codex_protocol_has_no_shell_or_publish(self):
         args = studio_providers.codex_command('codex', '.', 'schema', 'out')
@@ -249,3 +269,105 @@ class StudioTests(TestCase):
         self.assertNotIn('--dangerously-bypass-approvals-and-sandbox', args)
         with self.assertRaises(Problem):
             studio_providers.reply_json('{"message":"fake"}')
+
+    def test_codex_chat_is_owner_only_and_has_its_own_room(self):
+        response=self.client.get('/api/hub/studio/codex/chat')
+        self.assertEqual(response.status_code,200)
+        self.assertEqual(response.json()['runs'],[])
+        other=Client();other.force_login(self.other)
+        self.assertEqual(other.get('/api/hub/studio/codex/chat').status_code,403)
+        run=self.post('codex/messages',{'body':'你好','requestKey':'codex-test-1'})
+        self.assertEqual(run['seats'],['codex'])
+        self.assertEqual(run['mode'],'chat')
+        self.assertEqual(run['rounds'],1)
+        repeat=self.post('codex/messages',{'body':'你好','requestKey':'codex-test-1'})
+        self.assertEqual(run['id'],repeat['id'])
+        self.post('codex/messages',{'body':'另一句','requestKey':'codex-test-1'},409)
+        self.post('codex/messages',{'body':'另一句','requestKey':'codex-test-2'},409)
+
+    def test_codex_chat_preserves_both_sides_of_history_and_actual_model(self):
+        first=self.post('codex/messages',{'body':'先帮我记一下讨论主题：资料整理','requestKey':'chat-history-1'})
+        with patch.object(studio_providers,'codex',return_value=self.answer('资料整理，继续说。')):
+            self.assertTrue(studio_worker.run_one())
+        second=self.post('codex/messages',{'body':'接着上面的话说','requestKey':'chat-history-2'})
+        with patch.object(studio_providers,'codex',return_value=self.answer('接着讨论资料整理。')) as call:
+            studio_worker.run_one()
+        prompt=call.call_args.args[0]
+        self.assertIn('先帮我记一下讨论主题',prompt)
+        self.assertIn('资料整理，继续说。',prompt)
+        view=self.client.get('/api/hub/studio/codex/chat').json()
+        self.assertEqual(len(view['runs']),2)
+        self.assertEqual(view['runs'][0]['messages'][0]['model'],'mock-test-model')
+        self.assertEqual(StudioDay.objects.get().codex_calls,2)
+        self.assertFalse(any(run['artifact'] for run in view['runs']))
+
+    def test_codex_chat_failure_is_visible_and_does_not_fake_a_reply(self):
+        run=self.post('codex/messages',{'body':'测试错误状态','requestKey':'chat-failure'})
+        with patch.object(studio_providers,'codex',side_effect=Problem('本机账号额度不足',502)):
+            studio_worker.run_one()
+        view=self.client.get('/api/hub/studio/codex/chat').json()
+        self.assertEqual(view['runs'][0]['state'],'failed')
+        self.assertEqual(view['runs'][0]['messages'],[])
+        self.assertIn('额度不足',view['runs'][0]['error'])
+        with patch.object(studio_providers,'codex') as call:
+            self.assertFalse(studio_worker.run_one())
+        call.assert_not_called()
+
+    def test_codex_chat_history_fetch_has_bounded_query_count(self):
+        from .codex_chat import chat_room,view
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+        room=chat_room(self.owner,True)
+        for n in range(35):
+            run=StudioRun.objects.create(room=room,request_key='query-test-'+str(n),prompt='一个历史问题',mode='chat',state='completed',seats=['codex'],rounds=1)
+            StudioMessage.objects.create(run=run,sequence=0,seat='codex',provider='codex',model='isolated',body='历史回复')
+        with CaptureQueriesContext(connection) as queries:
+            result=view(self.owner,config())
+        self.assertEqual(len(result['runs']),35)
+        self.assertLessEqual(len(queries),7)
+
+    def test_existing_joint_history_reaches_codex_without_other_owners_private_rooms(self):
+        from .studio import collaboration_context
+        room=StudioRoom.objects.create(owner=self.owner,title='已有 SimpleFOC 讨论')
+        prior=StudioRun.objects.create(room=room,request_key='old-discussion',prompt='核对项目分类',
+            seats=['beikuang','codex'],rounds=2,state='completed')
+        StudioMessage.objects.create(run=prior,sequence=0,seat='beikuang',provider='codex',
+            model='historical',body='这项控制算法应该归嵌入式。',tasks=['核对分类原文'])
+        foreign=StudioRoom.objects.create(owner=self.other,title='别人的私密工作')
+        StudioRun.objects.create(room=foreign,request_key='private',prompt='私密内容',seats=['beikuang','codex'],state='completed')
+        data=collaboration_context(self.owner)
+        self.assertEqual([r['id'] for r in data['runs']],[str(prior.pk)])
+        self.assertEqual(data['runs'][0]['functionalTests'],'not-run')
+        self.post('codex/messages',{'body':'还记得和小煤渣的讨论吗','requestKey':'joint-recall'})
+        with patch.object(studio_providers,'codex',return_value=self.answer()) as provider:
+            studio_worker.run_one()
+        prompt=provider.call_args.args[0]
+        self.assertIn('这项控制算法应该归嵌入式',prompt)
+        self.assertIn('清冷、克制',prompt)
+        self.assertIn('闺蜜',prompt)
+        self.assertNotIn('私密内容',prompt)
+        self.assertEqual(StudioRoom.objects.filter(title='已有 SimpleFOC 讨论').count(),1)
+
+    def test_joint_seat_uses_original_companion_and_does_not_double_reserve(self):
+        from . import companion_bridge
+        self.start_run(rounds=2,seats=['beikuang','codex'])
+        with patch.object(companion_bridge,'enabled',return_value=True), \
+             patch.object(companion_bridge,'studio_respond',return_value=self.answer('原版人格对搭档的实际回应')) as original, \
+             patch.object(studio_providers,'deepseek') as legacy, \
+             patch.object(studio_providers,'codex',return_value=self.answer()):
+            studio_worker.run_one()
+        original.assert_called_once();legacy.assert_not_called()
+        self.assertEqual(StudioDay.objects.get().reserved_cny,0,'only the original bridge reserves DeepSeek cost')
+        self.assertEqual(StudioDay.objects.get().codex_calls,1)
+        self.assertEqual(StudioMessage.objects.filter(seat='beikuang').get().body,'原版人格对搭档的实际回应')
+
+    def test_original_companion_failure_never_falls_back_to_legacy_persona_in_studio(self):
+        from . import companion_bridge
+        self.start_run(rounds=1,seats=['beikuang'])
+        with patch.object(companion_bridge,'enabled',return_value=True), \
+             patch.object(companion_bridge,'studio_respond',side_effect=Problem('原版服务断开',503)), \
+             patch.object(studio_providers,'deepseek') as legacy:
+            studio_worker.run_one()
+        legacy.assert_not_called()
+        self.assertEqual(StudioRun.objects.get().state,'reconnecting')
+        self.assertFalse(StudioMessage.objects.exists())

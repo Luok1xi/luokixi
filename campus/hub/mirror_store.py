@@ -193,5 +193,5 @@ def download(request, asset, license_only=False):
     response['Accept-Ranges']='bytes';response['ETag']=etag;response['X-Checksum-SHA256']=asset.sha256
     response['X-Content-Type-Options']='nosniff';response['Cache-Control']='public, max-age=86400'
     if range_header: response['Content-Range']=f'bytes {start}-{end}/{asset.size}'
-    if start==0: MirrorAsset.objects.filter(pk=asset.pk).update(downloads=F('downloads')+1)
+    if start==0 and end>0: MirrorAsset.objects.filter(pk=asset.pk).update(downloads=F('downloads')+1)
     return response

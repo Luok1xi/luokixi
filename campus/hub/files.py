@@ -17,7 +17,8 @@ def upload_data(upload):
     return {'id':str(upload.pk), 'name':upload.name, 'bytes':upload.asset.size,
             'sha256':upload.asset_id, 'extraction':upload.asset.extraction,
             'preview':upload.asset.text[:12000], 'pages':len(upload.asset.pages),
-            'url':'/api/hub/uploads/'+str(upload.pk)+'/file'}
+            'url':'/api/hub/uploads/'+str(upload.pk)+'/file',
+            'readerUrl':'/viewer.html?kind=upload&id='+str(upload.pk)}
 
 
 def receive(request):

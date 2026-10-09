@@ -11,7 +11,7 @@ from django.http.response import HttpResponseBase
 from django.shortcuts import render
 from django.utils import timezone
 from . import accounts, files, github_guides
-from .core import (Problem, EVENTS, accept_reply, broadcast, categories, contribute, entry_data, entry_for,
+from .core import (Problem, EVENTS, accept_reply, broadcast, categories, contribute, entry_data, entry_for, record_view,
                    member_data, notify, public_entries, publish_reply, require, review_entry,
                    save_entry, string_list, submit_entry, text, throttle, url, withdraw_entry)
 from .models import (Audit, Contribution, Entry, ExternalCache, Job, Member, Notification,
@@ -84,11 +84,38 @@ def endpoint(request, route=''):
 
 
 def get(request, route):
+    if route.startswith('illustration/'):
+        from .editorial_art import get as illustration
+        return illustration(route.removeprefix('illustration/'))
+    if route.startswith('reader/'):
+        from . import reader
+        return reader.get(request, route)
+    if route == 'question-papers' or route.startswith('question-papers/'):
+        from . import question_api
+        return question_api.get(request, route)
+    if route == 'learning/sources':
+        from .source_health import list_sources
+        return list_sources(request)
+    if route.startswith('learning/'):
+        from . import learning
+        return learning.get(request, route)
+    if route == 'club-schedule' or route.startswith('club-schedule/'):
+        from . import club_schedule
+        return club_schedule.get(request, route)
+    if route == 'map/names':
+        from . import building_names
+        return building_names.get(request)
     user, query = request.user, request.GET
     if route == 'bookings' or route.startswith('bookings/'):
         from . import bookings
         return bookings.get(request,route)
     parts = route.split('/')
+    if parts[0] == 'planner':
+        from . import planner
+        return planner.get(request, route)
+    if parts[0] == 'operations':
+        from . import operations
+        return operations.get(request, route)
     if parts[0] == 'sync':
         from . import sync
         return sync.get(request, route)
@@ -136,7 +163,8 @@ def get(request, route):
                 'license':state.get('license',assets[0].license if assets else ''),'reason':state.get('reason',''),
                 'checkedAt':state.get('checkedAt'),'githubUrl':f'https://github.com/{repository}'}
     if route=='health':
-        return {'ok':True,'version':'2.0','accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
+        from .operations import RELEASE
+        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
     if route=='categories':
         return {'categories':categories()}
     if route=='map/places':
@@ -210,7 +238,7 @@ def get(request, route):
         return {'profile':member_data(user,True),
                 'entries':[entry_data(e,user,True) for e in Entry.objects.filter(owner=user).order_by('-updated')[:100]],
                 'stars':[entry_data(s.entry,user) for s in Star.objects.filter(user=user,entry__public_revision__gt=0).exclude(entry__state='withdrawn').select_related('entry')[:200]],
-                'workspaces':[serialize_workspace(w) for w in Workspace.objects.filter(owner=user).order_by('-updated')[:100]]}
+                'workspaces':[serialize_workspace(w) for w in Workspace.objects.filter(owner=user).exclude(kind='building_name_vote').order_by('-updated')[:100]]}
     if parts[0]=='members' and len(parts)==2:
         member = Member.objects.filter(username__iexact=parts[1],is_active=True).first()
         if not member:
@@ -287,13 +315,38 @@ def get(request, route):
     if route=='backup':
         require(user)
         return {'schema':'luokixi-personal-v1','created':timezone.now().isoformat(),
-                'workspaces':[serialize_workspace(w) for w in Workspace.objects.filter(owner=user)],
+                'workspaces':[serialize_workspace(w) for w in Workspace.objects.filter(owner=user).exclude(kind='campus-plan')],
+                'notice':'校园计划请在计划页单独导出；此备份包含其余个人工作区与收藏。',
                 'stars':list(Star.objects.filter(user=user).values('entry_id','collection'))}
     raise Problem('接口不存在。',404)
 
 
 def post(request, route, body):
+    if route == 'question-papers' or route.startswith('question-papers/'):
+        from . import question_api
+        return question_api.post(request, route, body)
+    if route == 'learning/preview':
+        from .learning_collect import preview
+        return preview(request, body)
+    if route == 'learning/questions':
+        from .learning_discussion import submit_question
+        return submit_question(request, body)
+    if route.startswith('learning/'):
+        from . import learning
+        return learning.post(request, route, body)
+    if route == 'club-schedule' or route.startswith('club-schedule/'):
+        from . import club_schedule
+        return club_schedule.post(request, route, body)
+    if route == 'map/names':
+        from . import building_names
+        return building_names.post(request, body)
     user, parts = request.user, route.split('/')
+    if parts[0] == 'planner':
+        from . import planner
+        return planner.post(request, route, body)
+    if parts[0] == 'operations':
+        from . import operations
+        return operations.post(request, route, body)
     if route == 'bookings' or route.startswith('bookings/'):
         from . import bookings
         return bookings.post(request,route,body)
@@ -363,6 +416,9 @@ def post(request, route, body):
     if route=='auth/logout':
         logout(request)
         return accounts.session(request)
+    if len(parts)==3 and parts[0]=='entries' and parts[2]=='view':
+        # 浏览量不需要登录；按账号或浏览器会话、按天去重
+        return {'views':record_view(request,entry_for(user,parts[1]))}
     require(user)
     if len(parts)==4 and parts[:2]==['map','places'] and parts[3]=='observe':
         from .places import observe
@@ -514,6 +570,9 @@ def post(request, route, body):
         from .feed import workflow
         return serialize_workspace(workflow(user,body))
     if route in ('workspaces','planning') or (parts[0]=='workspaces' and len(parts)==2):
+        require(user)
+        if parts[0] == 'workspaces' and len(parts) == 2 and Workspace.objects.filter(owner=user, pk=parts[1], kind__in=['campus-plan','building_name_vote']).exists():
+            raise Problem('请在对应的课表或地图页面修改记录。')
         from .research import save_workspace, create_plan
         if route=='planning':
             return serialize_workspace(create_plan(user,body))
@@ -527,6 +586,12 @@ def post(request, route, body):
         payload = validate_source(body)
         if body.get('id'):
             source = Source.objects.get(pk=body['id'])
+            if 'metadata' not in body:
+                payload.pop('metadata', None)
+            if source.url != payload['url'] or source.kind != payload['kind']:
+                source.etag = source.modified = source.fingerprint = source.error = ''
+                source.last_success = source.last_attempt = None
+                ExternalCache.objects.filter(pk='source-health:' + str(source.pk)).delete()
             for key,value in payload.items():
                 setattr(source,key,value)
             source.save()

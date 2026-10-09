@@ -122,3 +122,18 @@ status：todo / review / solved（自评）。数据键 `luokixi.community.noteb
 适配器浏览器验证：先执行 `node campus/tests/build_community_test.mjs`，再执行 `python campus/verify_community.py`。使用临时库，不污染真实投稿与贡献。
 
 Opus 页面接入后仍须做整页验收：投稿字段错误/成功/重复、核对后计数、讨论采纳、收藏与笔记刷新、深浅色、390px、键盘、静态站零 API。当前验证不替代这些最终页面检查。
+
+
+## 校园建筑名称（2026-10-07）
+
+`GET /api/hub/map/names?campus=xueyuanlu`（或 shahe）返回 `{campus, buildings: {"way/...": {preferred, total, names: [{name, votes}], mine?}}}`。匿名可读，mine 仅登录本人可见，不返回投票者身份。
+
+`POST /api/hub/map/names` 使用 hubApi.request，内容为 `{campus, osm, name}`。需要登录且验证邮箱、地图中真实的校内建筑；名称不超过 40 字符，每账号每栋楼唯一选择，空名称表示撤回，每小时 30 次限制。返回 `{ok: true}` 后重新 GET 聚合。名称是学生常用名，不覆盖官方/OSM 来源名称；统计来自真实存储记录。静态或服务不可用时保持原地图名称。
+
+
+## 2026-10-07 资料整理与识题工作台（实现接口约定）
+
+GET /api/library/collections 为本机只读资料套件与实际缺件报告。GET /api/hub/question-papers/capabilities 返回本机识题能力；GET/POST /api/hub/question-papers 列出本人资料/创建识别任务，sourceKind=text/upload/local，文本或本人 uploadId/受信本机 documentId，选页上限 12 页。GET /api/hub/question-papers/{id} 与 POST /api/hub/question-papers/{id}/save 只限本人，保存带 revision 防止覆盖。字段 questions 支持题干、选项、答案、解析、知识点、来源与疑点；保存后规则复核并归类本人架。GET /api/hub/question-papers/{id}/source?page=1 返回本人源页预览。新任务 Job kind=question-process，仅此类可在 review-mode 中运行，不触发全部后台任务。
+
+
+补充：POST /api/hub/question-papers/import-source 只接受已登记 bankId；保留署名/许可/固定版本，精确幂等导入到本人题架。question-process 在 review-mode 中执行，5分钟超时任务按最多3次恢复，旧处理结果受时间戳隔离；正常明确失败不冒充成功。

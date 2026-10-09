@@ -729,6 +729,7 @@
 
 .cx-photos.is-multi {
   grid-auto-columns: 88%;
+  --ds-radius: 16px; /* 多张照片：画框 + 视差（depth-slider.css） */
 }
 
 .cx-photos::-webkit-scrollbar {
@@ -2750,6 +2751,8 @@ body[data-page="map"] {
   border-radius: 22px;
 }
 
+.cx-detail .cx-photos.is-multi { --ds-radius: 22px; }
+
 /* ---------- 我的校园对话框 ---------- */
 
 .cx-h3 {
@@ -2879,3 +2882,23 @@ body[data-page="map"] {
     animation: none;
   }
 }
+
+/* Personal route controls inherit both campus map color schemes. */
+.cx-route-form { display:grid;gap:10px;margin:12px 0; }
+.cx-route-form label { display:grid;gap:5px;color:var(--fg-2);font-size:12px; }
+.cx-route-form input,.cx-route-form select { width:100%;min-width:0;min-height:40px;padding:8px;border:1px solid var(--line-soft);border-radius:var(--r-s);background:var(--fill-2);color:var(--fg);font:inherit; }
+.cx-route-form select[multiple] { min-height:75px; }
+.cx-route-summary { font-size:14px;font-weight:650; }
+.cx-route-stops { padding-left:20px;font-size:13px;display:grid;gap:8px; }
+body.is-map-embedded .gn,body.is-map-embedded .tabbar,body.is-map-embedded .fab,body.is-map-embedded footer { display:none!important; }
+body.is-map-embedded { --nav-h:0px;--tabbar-h:0px; padding:0!important; }
+body.is-map-embedded #main { padding:0; }
+body.is-map-embedded .cx-explore { height:100dvh; }
+
+.cx-activity-details { margin: 18px 0; padding: 14px; border: 1px solid var(--line); border-radius: var(--r-s); background: var(--fill); }
+.cx-activity-details p { margin: 0 0 12px; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+.cx-activity-details p:last-child { margin-bottom: 0; }
+#cx-activity-fields legend small { font-weight: 400; color: var(--fg-3); }
+
+.cx-plan-link { flex-shrink: 0; font-size: 12px; font-weight: 600; line-height: 1.4; color: var(--accent); white-space: nowrap; padding: 8px 0; }
+.cx-plan-link:hover { text-decoration: underline; text-underline-offset: 3px; }

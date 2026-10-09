@@ -1,3 +1,6 @@
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
+import { loadLearningCatalogue } from '../js/learning-catalog.js';
+import {newsMediaLayout,bindNewsImage} from '../js/news-media.js';
 // 首页“今日矿大”：第一屏是横向大轮播（Apple TV / App Store 首页），下面按 App Store 的货架排热帖、开源、竞赛和口碑。
 // 只用真实数据：学校新闻和宣讲会要等来源登记和编辑核对（data/featured.json），没有就不编；
 // 社区服务没连上、读取失败、确实没有内容，三种情况分别说明。
@@ -15,12 +18,14 @@ import { openStory } from '../js/story.js';
 import { mountCarousel } from '../js/carousel.js';
 import { animate as springTo } from '../js/motion.js';
 import { loadMaterials, readBag, toggleBag, yearKey } from '../js/materials-catalog.js';
-import { loadMe, classesOn, todayIndex } from '../js/quests.js';
+import { readyMe, loadMe, classesOn, todayIndex } from '../js/quests.js';
 import '../styles/v3.css';
 import '../styles/today.css';
 import '../styles/app-store.css';
 
 initShell();
+import { mountHomeUpdates } from '../js/home-updates.js';
+void mountHomeUpdates();
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -31,6 +36,11 @@ const json = (path) => fetch(path, { cache: 'no-cache' }).then((r) => (r.ok ? r.
 const ok = (d) => d && !d.error;
 
 const st = { tab: 'picks', online: false, user: null };
+attachSearchSuggestions($('#td-learning-q'), {
+  getItems: async () => (await loadLearningCatalogue()).items.filter(item => !item.localOnly && item.access !== 'private'),
+  getKeywords: item => [item.code,item.id,item.courseName].filter(Boolean).join(' '),
+  getMeta: item => item.courseName || '课程与资料',
+});
 
 // ---------- 数据：只请求一次，各处共用 ----------
 
@@ -146,10 +156,11 @@ const linkBtn = (href, text, primary = false) => `<a class="btn ${primary ? 'btn
 
 function slide({ id, eyebrow, title, dek, bg, art, media, primary, story }) {
   if (story) STORIES.set(id, story);
+  const picture=newsMediaLayout(media||{});
   const ext = /^https?:/.test(primary.href) ? ' target="_blank" rel="noopener"' : '';
   return `<article class="hc-slide" aria-roledescription="slide" data-id="${esc(id)}">
     <div class="hc-card" ${story ? `data-story="${esc(id)}"` : ''} style="--hc-bg:${bg}">
-      <div class="hc-media"${art ? ` data-art="${esc(art)}"` : ''}>${media ? `<img class="art-img" src="${esc(media.src)}" alt="${esc(media.alt ?? '')}" width="${Number(media.width) || 1600}" height="${Number(media.height) || 1000}" loading="${media.priority ? 'eager' : 'lazy'}" fetchpriority="${media.priority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer">` : ''}</div>
+      <div class="hc-media"${art ? ` data-art="${esc(art)}"` : ''}${media?` data-fit="${picture.fit}" data-position="${picture.position}"`:''}>${media ? `<img class="art-img" src="${esc(media.src)}" alt="${esc(media.alt ?? '')}"${picture.width&&picture.height?` width="${picture.width}" height="${picture.height}"`:''} style="object-position:${picture.position}" loading="${media.priority ? 'eager' : 'lazy'}" fetchpriority="${media.priority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer">` : ''}</div>
       <div class="hc-copy">
         <p class="hc-eyebrow">${esc(eyebrow)}</p>
         <h2 class="hc-title">${title}</h2>
@@ -300,7 +311,10 @@ async function mountHero() {
       ${ARROW(1)}</div>`;
   $$('.hc-slide', heroEl).forEach((s, i) => s.setAttribute('aria-label', `第 ${i + 1} 张，共 ${slides.length} 张`));
   // Official images stay on their original host. If unavailable, retain a readable news card.
-  $$('.hc-media img', heroEl).forEach(img => img.addEventListener('error', () => img.remove(), { once: true }));
+  $$('.hc-media img', heroEl).forEach(img => {
+    bindNewsImage(img,{fit:img.parentElement.dataset.fit,position:img.parentElement.dataset.position});
+    img.addEventListener('error', () => img.remove(), { once: true });
+  });
   const c = mountCarousel(heroEl);
   mountArt(heroEl);
   return c;
@@ -456,7 +470,7 @@ const modHead = (title, action = '') => `<div class="td-mod-head"><h2>${title}</
 const modNote = (text) => `<p class="ap-sub td-mod-note">${text}</p>`;
 
 const QUICK = [
-  ['map.html#quests', '今天的课', 'clock', 211],
+  ['planner.html', '今天的课', 'clock', 211],
   ['map.html?type=study', '去哪自习', 'study', 150],
   ['reservations.html', '座位预约', 'seat', 262],
   ['materials.html?upload=1', '上传资料', 'upload', 28],
@@ -477,13 +491,14 @@ function bagRowText(n) {
 
 function todayRows(site) {
   const rows = [];
-  const me = loadMe();
+  let me;
+  try { me = loadMe(); } catch { return '<p class="cp-fine">本地课表暂不可读。<a href="planner.html">打开校园中心检查存储权限</a></p>'; }
   const list = me.courses.length ? classesOn(me, todayIndex()) : [];
   const now = list.find((x) => x.status === 'now');
   const focus = now ?? list.find((x) => x.status === 'next');
-  if (!me.courses.length) rows.push(`<a class="ap-row" href="map.html#quests">${sym('clock', 211)}<span class="ap-row-text"><b>还没有填课表</b><span>填上以后，这里显示下一节课在哪栋楼。课表只存在这个浏览器里。</span></span>${CHEV}</a>`);
-  else if (focus) rows.push(`<a class="ap-row" href="map.html#quests">${sym('clock', 211)}<span class="ap-row-text"><b>${now ? '正在上' : '下一节'} · ${esc(focus.course.name)}</b><span>${esc(focus.slot.start)}–${esc(focus.slot.end)} · ${esc([focus.course.building?.name, focus.course.room].filter(Boolean).join(' · ') || '还没选教学楼')}</span></span>${CHEV}</a>`);
-  else rows.push(`<a class="ap-row" href="map.html#quests">${sym('clock', 211)}<span class="ap-row-text"><b>${list.length ? '今天的课都上完了' : '今天没有课'}</b><span>一共 ${me.courses.length} 门课，点开看本周安排</span></span>${CHEV}</a>`);
+  if (!me.courses.length) rows.push(`<a class="ap-row" href="planner.html">${sym('clock', 211)}<span class="ap-row-text"><b>还没有填课表</b><span>填上以后，这里显示下一节课在哪栋楼。课表只存在这个浏览器里。</span></span>${CHEV}</a>`);
+  else if (focus) rows.push(`<a class="ap-row" href="planner.html">${sym('clock', 211)}<span class="ap-row-text"><b>${now ? '正在上' : '下一节'} · ${esc(focus.course.name)}</b><span>${esc(focus.slot.start)}–${esc(focus.slot.end)} · ${esc([focus.course.building?.name, focus.course.room].filter(Boolean).join(' · ') || '还没选教学楼')}</span></span>${CHEV}</a>`);
+  else rows.push(`<a class="ap-row" href="planner.html">${sym('clock', 211)}<span class="ap-row-text"><b>${list.length ? '今天的课都上完了' : '今天没有课'}</b><span>一共 ${me.courses.length} 门课，点开看本周安排</span></span>${CHEV}</a>`);
   const exam = site?.nextExam;
   const days = exam?.date ? daysUntil(exam.date) : -1;
   if (days >= 0) rows.push(`<a class="ap-row" href="cet4.html">${sym('exam', 24)}<span class="ap-row-text"><b>${esc(exam.label)}</b><span>${(exam.sessions ?? []).map((x) => `${esc(x.exam)} ${esc(x.time)}`).join(' · ')} · 以考试院公告为准</span></span><span class="td-days"><b class="num">${days}</b>天</span></a>`);
@@ -493,6 +508,7 @@ function todayRows(site) {
 }
 
 async function todayHTML() {
+  try { await readyMe(); } catch { /* Campus dashboard shows the storage error; homepage remains usable. */ }
   const site = await load('site');
   return `<section class="td-mod" aria-label="今天">${modHead('今天')}<div class="ap-list">${todayRows(site)}</div></section>`;
 }

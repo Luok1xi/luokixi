@@ -511,21 +511,3 @@ a.ap-row:hover { text-decoration: none; background: var(--fill); }
 @keyframes ap-rise {
   from { opacity: 0; transform: translate3d(0, 24px, 0); }
 }
-
-/* ---------- 全站搜索（search.js）：分组标题右侧的“在板块里看全部” ---------- */
-
-.spot-group {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.spot-group a { color: var(--link); font-size: 12px; font-weight: 400; }
-.spot-pending { padding: 14px 20px; font-size: 13px; }
-.spot-icon { font-size: 11px; letter-spacing: -0.02em; }
-
-@media (max-width: 760px) {
-  .spot { margin-top: 6vh; }
-  .spot-hint { display: none; }
-}

@@ -1,20 +1,24 @@
-// 资料：Apple Store 式的资料商店。搜索、按学科逛、一份份放进资料袋，最后在浏览器里打包成 ZIP。
-// 目录与打包逻辑沿用 Codex v0.3：本机资料服务 → 公共目录 → 已审核的公开投稿；资料袋存在本浏览器。
-// 版式（Opus）：两段式大标题、带图标的学科行、单列白卡片、放入资料袋时缩略图沿弧线飞进右上角的资料袋。
+import { fuzzySearch } from '../js/fuzzy-search.js';
+import { attachSearchSuggestions } from '../js/search-suggestions.js';
+// Document gallery: real catalogue metadata, preview, direct download and browser-local bag.
 import { initShell, reducedMotion } from '../js/shell.js';
-import { hubApi, hubState, loginURL } from '../js/hub.js';
+import { canParticipate, hubApi, hubState, loginURL } from '../js/hub.js';
 import { esc } from '../js/data.js';
 import { buildMaterialZip } from '../js/material-bag.js';
-import { mountArt } from '../js/art.js';
+import { mountShelfMotion, mountHeroBooks, createBookReader, createBagMotion, flyBookToBag, cancelBookTransfer } from '../js/materials-motion.js';
+import { groupMaterialBundles } from '../js/materials-bundles.js';
 import { BAG_KEY, BAG_LIMIT, readBag, loadMaterials, yearKey } from '../js/materials-catalog.js';
 import '../styles/product-forms.css';
 import '../styles/market.css';
+import '../styles/materials-gallery.css';
+import '../styles/learning-gallery.css';
 
 initShell();
 
 const $ = (s) => document.querySelector(s);
 
 let all = [];
+let bundles = [];
 let filtered = [];
 let subject = '';
 let limit = 24;
@@ -50,7 +54,14 @@ const SUBJECTS = [
 const symbol = (key) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[key] ?? ICON.all}</svg>`;
 const BAG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 8h13l-1 12.5h-11z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>';
 
-const inBag = (x) => bag.some((b) => b.url === x.url);
+const downloadableFiles = item => (item.files || [item]).filter(file => !file.external && file.url);
+const inBag = item => { const files=downloadableFiles(item);return files.length>0&&files.every(file=>bag.some(saved=>saved.url===file.url)); };
+const bagSelection = item => downloadableFiles(item).filter(file=>bag.some(saved=>saved.url===file.url)).length;
+const findItem = id => bundles.find(item=>item.id===id)||all.find(item=>item.id===id);
+const ROLE_NAMES = {paper:'试卷',answer:'答案',audio:'听力',other:'其他'};
+const bagLabel = item => { const files=downloadableFiles(item),selected=bagSelection(item);return inBag(item)?(item.files?.length>1?'已收好整册':'已放入资料袋'):selected?`补齐本册（${selected}/${files.length}）`:item.files?.length>1?`整册放入资料袋 · ${files.length}`:'放入资料袋'; };
+const bundleDate = item => yearKey(item)*100 + Number(item.groupKey?.split('_')[2] || 0);
+const fileCount = items => new Set(items.flatMap(item=>downloadableFiles(item)).map(file=>file.url)).size;
 
 function saveBag() {
   try { localStorage.setItem(BAG_KEY, JSON.stringify(bag)); } catch {
@@ -58,138 +69,158 @@ function saveBag() {
   }
   $('#bag-count').textContent = bag.length;
   $('#bag-dock-count').textContent = bag.length;
-  $('#bag-dock-summary').textContent = bag.length ? `已选 ${bag.length} 份 · 点“去打包”一次下载` : '点资料右边的“＋”，一份份放进来';
+  $('#bag-dock-summary').textContent = bag.length ? `已选 ${bag.length} 份 · 点“去打包”一次下载` : '收好需要的资料，一次打包';
   document.querySelector('.mt-bagbar')?.classList.toggle('has-items', bag.length > 0);
   $('#bag-dock-open').disabled = !bag.length;
   $('#bag-download').disabled = !bag.length || busy;
 }
 
-// 缩略图沿一条弧线飞进右上角的资料袋，资料袋跳一下（只动 transform 和 opacity）
-function flyToBag(from) {
-  const target = $('#bag-open');
-  if (!from || !target || reducedMotion()) return;
-  const a = from.getBoundingClientRect();
-  const b = target.getBoundingClientRect();
-  if (!a.width || !b.width) return;
-  const ghost = from.cloneNode(true);
-  ghost.classList.add('mt-ghost');
-  Object.assign(ghost.style, { left: `${a.left}px`, top: `${a.top}px`, width: `${a.width}px`, height: `${a.height}px` });
-  document.body.append(ghost);
-  setTimeout(() => ghost.remove(), 1500); // 页面在后台时动画会被挂起，兜底清掉
-  const dx = b.left + b.width / 2 - (a.left + a.width / 2);
-  const dy = b.top + b.height / 2 - (a.top + a.height / 2);
-  const lift = Math.min(160, Math.abs(dx) * 0.25 + 60);
-  ghost.animate(
-    [
-      { transform: 'translate(0, 0) scale(1) rotate(0deg)', opacity: 1 },
-      { transform: `translate(${dx * 0.45}px, ${dy * 0.45 - lift}px) scale(0.62) rotate(-8deg)`, opacity: 1, offset: 0.45 },
-      { transform: `translate(${dx}px, ${dy}px) scale(0.14) rotate(-14deg)`, opacity: 0.2 },
-    ],
-    { duration: 720, easing: 'cubic-bezier(0.45, 0, 0.25, 1)' },
-  ).finished.then(() => {
-    ghost.remove();
-    target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }], { duration: 420, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+function updateBagButtons() {
+  document.querySelectorAll('[data-add]').forEach(button => {
+    const item=findItem(button.dataset.add);
+    if(!item)return;
+    const on=inBag(item),selected=bagSelection(item);
+    button.classList.toggle('is-on',on);
+    button.setAttribute('aria-pressed',on?'true':selected?'mixed':'false');
+    button.setAttribute('aria-label',`${on?'从资料袋拿出':'放入资料袋'}：${item.title}`);
+    button.querySelector('span').textContent=on?'✓':'＋';
+    button.querySelector('em').textContent=bagLabel(item);
   });
+  document.querySelectorAll('[data-reader-count]').forEach(el=>el.textContent=bag.length);
 }
-
 function add(item, button) {
-  if (!item) return;
+  if (!item || busy) return;
+  const files=downloadableFiles(item);
+  if (!files.length) return;
   if (inBag(item)) {
-    bag = bag.filter((x) => x.url !== item.url);
+    cancelBookTransfer();
+    const urls=new Set(files.map(file=>file.url));
+    bag=bag.filter(file=>!urls.has(file.url));
   } else {
-    if (bag.length >= BAG_LIMIT) {
-      $('#library-status').textContent = `资料袋已放入 ${BAG_LIMIT} 份，请先打包这一批。`;
+    const existing=new Set(bag.map(file=>file.url));
+    const missing=files.filter(file=>!existing.has(file.url));
+    if (bag.length+missing.length>BAG_LIMIT) {
+      const message=`本册还需 ${missing.length} 个位置，资料袋还剩 ${BAG_LIMIT-bag.length} 个。请先打包或移除部分文件。`;
+      $('#library-status').textContent=message;
+      document.querySelectorAll('[data-reader-status]').forEach(el=>el.textContent=message);
       return;
     }
-    bag.push(item);
-    flyToBag(button?.closest('.mt-row')?.querySelector('.mt-doc'));
+    bag.push(...missing);
+    const reader=button?.closest('.mt-reader');
+    const from=reader?.querySelector('.mt-reader-object .mt-book')||button?.closest('.mt-row')?.querySelector('.mt-book');
+    flyBookToBag(from,reader?.querySelector('.mt-reader-bag')||$('#bag-open'));
   }
-  saveBag();
-  renderList();
-  renderBag();
+  document.querySelectorAll('[data-reader-status]').forEach(el=>el.textContent=inBag(item)?`已收好 ${files.length} 份文件。`:'已从资料袋取出。');
+  saveBag();updateBagButtons();renderBag();
 }
 
 // 文件图标：像访达里的文档图标，右上角折角，底部写格式
 const doc = (x) => `<span class="mt-doc" data-format="${esc(x.format)}"><span class="mt-doc-page"><i></i><i></i><i></i><i class="is-short"></i></span><b>${esc(String(x.format || '').toUpperCase() || 'FILE')}</b></span>`;
 
-function row(x) {
-  const on = inBag(x);
-  return `<article class="mt-row ap-card">
-    ${doc(x)}
-    <div class="mt-info">
-      <p class="mt-kicker">${esc(x.course)} · ${esc(x.kind)}${x.year ? ` · ${esc(x.year)}` : ''}</p>
+const coverPalette = ['var(--book-blue)','var(--book-violet)','var(--book-green)','var(--book-rust)','var(--book-slate)','var(--book-olive)'];
+function cover(x) {
+  const index=[...String(x.course)].reduce((n,c)=>n+c.codePointAt(0),0)%coverPalette.length;
+  const key=x.coverKey||SUBJECTS.find(([id])=>id&&x.course?.includes(id))?.[2]||'all';
+  return `<span class="mt-book" style="--cover-color:${coverPalette[index]}"><span class="mt-book-back"></span><span class="mt-book-pages"></span><span class="mt-book-front"><small>LUOKIXI / ${esc(String(x.isCollection?'COLLECTION':x.format||'FILE').toUpperCase())}</small><strong>${esc(x.course||x.title)}</strong><span class="mt-book-graphic"><i></i><i></i><i></i>${symbol(key)}</span><span class="mt-book-bottom"><span>${esc(x.isSuite?`${x.year}.${x.groupKey.split('_')[2]} · 第${x.groupKey.split('_')[3]}套`:x.year||x.kind||'课程资料')}</span><em>${esc(x.kind||'资料')}</em></span></span></span>`;
+}
+let galleryMotion;
+let heroMotion;
+const bagMotion=createBagMotion($('#bag-dialog'),$('#bag-open'));
+const bookReader=createBookReader({getItem:findItem,cover,inBag,bagLabel,onBag:()=>openBag()});
+function row(x,index) {
+  const on=inBag(x),roles=Object.entries(x.roles).filter(([,files])=>files.length);
+  const missing=x.missingRoles.map(role=>ROLE_NAMES[role]);
+  return `<article class="mt-row" data-index="${index}">
+    <div class="mt-cover-stage"><span class="mt-shelf-index" aria-hidden="true">${String(index+1).padStart(2,'0')} / ${String(filtered.length).padStart(2,'0')}</span><span class="mt-shelf-shadow" aria-hidden="true"></span><div class="mt-book-float"><div class="mt-book-tilt"><button type="button" class="mt-book-button" data-book="${esc(x.id)}" aria-label="翻开 ${esc(x.title)}">${cover(x)}<span class="mt-book-hint" aria-hidden="true">点击翻阅 ↗</span></button></div></div></div>
+    <div class="mt-info"><p class="mt-kicker">${esc(x.course)} · ${x.isSuite?'真题套卷':esc(x.kind)}${x.year?` · ${esc(x.year)}`:''}</p>
       <h3 class="mt-title">${esc(x.title)}</h3>
-      <p class="mt-meta">${esc(x.pages ? `${x.pages} 页 · ` : '')}${esc(x.note || '请以原文件为准')}</p>
-      <p class="mt-rights">${esc(x.rights || '')}</p>
-    </div>
-    <div class="mt-actions">
-      <a class="ap-more" href="${esc(x.url)}" target="_blank" rel="noopener">${x.external ? '前往原站' : '预览'}</a>
-      ${x.external
-        ? '<span class="mt-note">仅原站链接，不能打包</span>'
-        : `<button class="mt-add${on ? ' is-on' : ''}" type="button" data-add="${esc(x.id)}" aria-pressed="${on}" aria-label="${on ? '从资料袋拿出' : '放进资料袋'}：${esc(x.title)}"><span aria-hidden="true">${on ? '✓' : '＋'}</span><em>${on ? '已放入' : '放入资料袋'}</em></button>`}
-    </div>
-  </article>`;
+      ${x.schools?.length || x.discipline ? `<p class="mt-meta">${esc([...(x.schools||[]),x.discipline,x.priority].filter(Boolean).join(' · '))}</p>` : ''}
+      ${x.paperId ? `<a class="ap-more" href="question-workshop.html?paper=${encodeURIComponent(x.paperId)}">编辑题目与排版 ↗</a>` : x.bankId ? '<a class="ap-more" href="question-workshop.html">到题目工坊编辑 ↗</a>' : ''}
+      <div class="mt-suite-contents" aria-label="本册内容">${roles.map(([role,files])=>`<span><i aria-hidden="true">${role==='audio'?'◌':role==='answer'?'↳':'▱'}</i>${ROLE_NAMES[role]}<b>${files.length}</b></span>`).join('')}</div>
+      ${x.isSuite?`<p class="mt-meta">${missing.length?`已收录 ${x.fileCount} 份文件 · 尚缺${missing.join('、')}`:`试卷、答案与听力已收齐 · ${x.fileCount} 份文件`}</p>`:x.note?`<p class="mt-meta">${esc(x.note)}</p>`:''}
+      <p class="mt-byline"><span>${x.fileCount} ${x.external?'个来源':'份文件'}${x.pages?` · ${esc(x.pages)} 页`:''}</span>${x.uploader?`<span>上传者 ${esc(x.uploader)}</span>`:''}${x.uploadedAt?`<span>收录 ${esc(new Date(x.uploadedAt).toLocaleString('zh-CN'))}</span>`:''}<span>审核：${esc(x.reviewedBy||'历史审核者未记录')}</span>${!x.isCollection&&Number.isFinite(x.stars)?`<span>${x.stars} 人收藏</span>`:''}</p>
+      <div class="mt-actions"><button class="mt-view" type="button" data-book="${esc(x.id)}" aria-label="翻开 ${esc(x.title)}">${x.isCollection?'翻开这一册':'翻开资料'} ↗</button>
+        ${downloadableFiles(x).length?`<button class="mt-add${on?' is-on':''}" type="button" data-add="${esc(x.id)}" aria-pressed="${on}" aria-label="${on?'从资料袋拿出':'放入资料袋'}：${esc(x.title)}"><span aria-hidden="true">${on?'✓':'＋'}</span><em>${bagLabel(x)}</em></button>`:`<a class="ap-more" href="${esc(x.url)}" target="_blank" rel="noopener">前往原站 ↗</a>`}
+      </div>
+    </div></article>`;
 }
 
 function renderList() {
+  galleryMotion?.();
   const focused = document.activeElement?.dataset?.add;
-  const q = $('#library-q').value.trim().toLowerCase().replaceAll('线代', '线性代数').replaceAll('高数', '高等数学').replaceAll('大物', '大学物理');
+  const q = $('#library-q').value.trim();
   const kind = $('#library-kind').value;
   const year = $('#library-year').value;
   const sort = $('#library-sort').value;
-  filtered = all.filter((x) => (!subject || x.course.includes(subject))
-    && (!q || q.split(/\s+/).every((w) => `${x.title} ${x.course} ${x.year} ${x.kind}`.toLowerCase().includes(w)))
-    && (!kind || `${x.kind} ${x.title}`.includes(kind))
-    && (!year || x.year === year));
-  if (sort === 'new') filtered.sort((a, b) => yearKey(b) - yearKey(a));
-  if (sort === 'old') filtered.sort((a, b) => yearKey(a) - yearKey(b));
+  const candidates = bundles.filter((x) => (!subject || x.course.includes(subject))
+    && (!kind || x.kind===kind || x.files.some(file=>`${file.kind} ${file.title}`.includes(kind)))
+    && (!year || x.year === year)
+    && (!$('#library-university').value || x.schools?.includes($('#library-university').value))
+    && (!$('#library-discipline').value || x.discipline === $('#library-discipline').value)
+    && (!$('#library-priority').value || x.priority === $('#library-priority').value));
+  filtered = fuzzySearch(candidates, q, { getText: bundleSearchText, limit: Infinity });
+  if (sort === 'new') filtered.sort((a, b) => bundleDate(b) - bundleDate(a));
+  if (sort === 'old') filtered.sort((a, b) => bundleDate(a) - bundleDate(b));
   if (sort === 'pages') filtered.sort((a, b) => (b.pages ?? 0) - (a.pages ?? 0));
-  $('#library-heading').textContent = SUBJECTS.find((x) => x[0] === subject)?.[1] || '全校资料库';
-  $('#library-count').textContent = `${filtered.length} 份实际文件。`;
+  $('#library-heading').textContent = SUBJECTS.find((x) => x[0] === subject)?.[1] || '全部资料';
+  $('#library-count').textContent = `${filtered.length} 册 · ${fileCount(filtered)} 份文件`;
   $('#library-subjects').innerHTML = SUBJECTS.map(([id, name, icon, h]) => {
-    const n = all.filter((x) => !id || x.course.includes(id)).length;
+    const n = bundles.filter((x) => !id || x.course.includes(id)).length;
     return `<button class="mt-rail-item" type="button" data-subject="${id}" aria-pressed="${id === subject}" style="--h:${h}">
-      <span class="mt-rail-icon" data-art="mat-${icon}">${symbol(icon)}</span>
+      <span class="mt-rail-icon">${symbol(icon)}</span>
       <span class="mt-rail-name">${name}</span><span class="mt-rail-n num">${n}</span>
     </button>`;
   }).join('');
   $('#library-list').innerHTML = filtered.length
     ? filtered.slice(0, limit).map(row).join('')
-    : `<div class="ap-empty"><b>这一格，等你来补充。</b><p>当前没有符合条件的文件。换个关键词，或者分享这门课的第一份资料。</p><button class="btn btn-primary" type="button" data-upload>分享资料</button></div>`;
+    : `<div class="ap-empty"><b>没有找到相关资料</b><p>试试其他关键词或分类。</p><button class="btn btn-primary" type="button" data-upload>分享资料</button></div>`;
   $('#library-more').hidden = filtered.length <= limit;
-  mountArt($('#library-subjects'));
+  $('#library-total').textContent = `${bundles.length} 册资料 · ${fileCount(bundles)} 份文件。试卷、答案与听力按套归册。`;
+  const coverItems = [...new Map(bundles.map(x=>[x.course,x])).values()].slice(0,3);
+  if (!$('#library-covers').children.length) $('#library-covers').innerHTML=coverItems.map(x=>`<button class="mt-hero-book" type="button" data-book="${esc(x.id)}" aria-label="翻开 ${esc(x.title)}">${cover(x)}</button>`).join('');
+  updateBagButtons();
+  galleryMotion=mountShelfMotion($('#library-list'));
+  if(!heroMotion)heroMotion=mountHeroBooks($('#library-covers'));
   if (focused) document.querySelector(`[data-add="${CSS.escape(focused)}"]`)?.focus({ preventScroll: true });
 }
 
 function renderBag() {
   $('#bag-list').innerHTML = bag.length
-    ? `<ul class="ap-list">${bag.map((x) => `<li class="ap-row mt-bag-row">${doc(x)}
+    ? `<ul class="ap-list">${bag.map((x) => `<li class="ap-row mt-bag-row"><span class="mt-bag-cover" aria-hidden="true">${cover(x)}</span>
         <span class="ap-row-text"><b>${esc(x.title)}</b><span>${esc(x.course)} · ${esc(String(x.format || '').toUpperCase())}</span></span>
         <button class="mt-remove" type="button" data-remove="${esc(x.id)}" aria-label="移除 ${esc(x.title)}" ${busy ? 'disabled' : ''}>移除</button></li>`).join('')}</ul>`
-    : `<div class="ap-empty mt-bag-empty"><span class="mt-bag-empty-icon">${BAG}</span><b>资料袋还是空的。</b><p>把需要的试卷、答案和笔记，一份份放进来。</p></div>`;
+    : `<div class="ap-empty mt-bag-empty"><span class="mt-bag-empty-icon">${BAG}</span><b>资料袋还是空的。</b><p>整册收好试卷、答案和听力，也可以只选其中一份。</p></div>`;
   saveBag();
 }
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-add],[data-remove],[data-subject],[data-upload],[data-close]');
   if (!b) return;
-  if (b.hasAttribute('data-close')) b.closest('dialog').close();
-  if (b.hasAttribute('data-add')) add(all.find((x) => x.id === b.dataset.add), b);
+  if (b.hasAttribute('data-close')) {const dialog=b.closest('dialog');if(dialog.id==='bag-dialog')bagMotion.close();else dialog.close();}
+  if (b.hasAttribute('data-add')) add(findItem(b.dataset.add), b);
   if (b.hasAttribute('data-remove') && !busy) {
     bag = bag.filter((x) => x.id !== b.dataset.remove);
     renderBag();
-    renderList();
+    updateBagButtons();
   }
   if (b.hasAttribute('data-subject')) {
     subject = b.dataset.subject;
     limit = 24;
     renderList();
+    document.querySelector(`[data-subject="${CSS.escape(subject)}"]`)?.focus({preventScroll:true});
   }
   if (b.hasAttribute('data-upload')) openUpload();
 });
 
 // 点对话框外面的遮罩也能关上
-document.querySelectorAll('dialog.mt-sheet').forEach((d) => d.addEventListener('click', (e) => e.target === d && !busy && d.close()));
+document.querySelectorAll('dialog.mt-sheet').forEach(d=>d.addEventListener('click',event=>{if(event.target===d&&!busy){if(d.id==='bag-dialog')bagMotion.close();else d.close();}}));
+$('#bag-dialog').addEventListener('cancel',event=>{event.preventDefault();if(!busy)bagMotion.close();});
+
+const bundleSearchText = (item) => [item.course, item.year, item.kind, ...(item.schools || []), item.discipline, item.priority, ...(item.files || []).map(file => `${file.title} ${file.kind}`)].filter(Boolean).join(' ');
+attachSearchSuggestions($('#library-q'), {
+  getItems: () => bundles.filter(item => (!subject || item.course.includes(subject)) && (!$('#library-kind').value || item.kind === $('#library-kind').value || item.files.some(file => `${file.kind} ${file.title}`.includes($('#library-kind').value))) && (!$('#library-year').value || item.year === $('#library-year').value)),
+  getText: bundleSearchText, getMeta: item => [item.course, item.year, `${item.files?.length || 1} 份文件`].filter(Boolean).join(' · '),
+});
 
 $('#library-search').onsubmit = (e) => {
   e.preventDefault();
@@ -197,14 +228,15 @@ $('#library-search').onsubmit = (e) => {
   renderList();
 };
 let debounce;
-$('#library-q').oninput = () => {
+$('#library-q').oninput = (event) => {
+  if (event.isComposing) { clearTimeout(debounce); return; }
   clearTimeout(debounce);
   debounce = setTimeout(() => {
     limit = 24;
     renderList();
   }, 130);
 };
-['#library-kind', '#library-year', '#library-sort'].forEach((id) => ($(id).onchange = () => {
+['#library-kind', '#library-year', '#library-sort', '#library-university', '#library-discipline', '#library-priority'].forEach((id) => ($(id).onchange = () => {
   limit = 24;
   renderList();
 }));
@@ -213,17 +245,18 @@ $('#library-more').onclick = () => {
   renderList();
 };
 
-const openBag = () => {
+const openBag = event => {
   renderBag();
-  $('#bag-dialog').showModal();
+  bagMotion.open(event?.detail===0);
 };
+matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',()=>{galleryMotion?.();galleryMotion=mountShelfMotion($('#library-list'));});
 $('#bag-dock-open').onclick = openBag;
 $('#bag-open').onclick = openBag;
 $('#bag-clear').onclick = () => {
   if (!busy) {
     bag = [];
     renderBag();
-    renderList();
+    updateBagButtons();
   }
 };
 
@@ -327,7 +360,7 @@ async function openUpload() {
   let html = '';
   if (!s.online) html = '<div class="ap-empty mt-gate"><b>上传需要社区服务。</b><p>现在打开的是只读的静态页面。连接社区服务后，登录就能上传。</p></div>';
   else if (!s.user) html = `<div class="ap-empty mt-gate"><b>登录之后就能上传。</b><p>投稿记在你的账号下，审核结果会通知你。</p><a class="btn btn-primary" href="${esc(loginURL())}">登录或注册</a></div>`;
-  else if (!s.user.emailVerified) html = '<div class="ap-empty mt-gate"><b>先验证邮箱。</b><p>验证之后才能上传文件和提交审核。</p><a class="btn btn-primary" href="me.html#account">去验证</a></div>';
+  else if (!canParticipate(s.user)) html = '<div class="ap-empty mt-gate"><b>先验证邮箱。</b><p>验证之后才能上传文件和提交审核。</p><a class="btn btn-primary" href="me.html#account">去验证</a></div>';
   gate.innerHTML = html;
   form.hidden = Boolean(html);
   $('#upload-courses').innerHTML = [...new Set([...SUBJECTS.map(([id]) => id).filter(Boolean), ...all.map((x) => x.course)])].map((c) => `<option value="${esc(c)}">`).join('');
@@ -419,9 +452,57 @@ async function init() {
   // 全站搜索、首页带着关键词过来时，直接填进搜索框
   const q0 = new URLSearchParams(location.search).get('q');
   if (q0) $('#library-q').value = q0;
-  const { items, notes } = await loadMaterials();
+  const [loaded, session] = await Promise.all([loadMaterials(), hubState()]);
+  const items = [...loaded.items], notes = [...loaded.notes];
+  let collectionManifest = loaded.collectionManifest ? {...loaded.collectionManifest, collections: [...loaded.collectionManifest.collections]} : null;
+  // Private assembled questions live in the same gallery, under the signed-in owner.
+  if (session.user) {
+    try {
+      const [result, collected] = await Promise.all([hubApi.request('question-papers'), hubApi.request('question-papers/collected').catch(() => ({banks: [], errors: [{reason: '已采集题库暂时读取失败'}]}))]);
+      for (const bank of collected.banks || []) {
+        const profile = bank.classification || {};
+        const common = {course: bank.course || '待归类', kind: '已采集题库', status: 'ready', private: true,
+          schools: profile.schools || [], discipline: profile.discipline || '待归类', priority: '待核对',
+          coverKey: profile.coverKey || 'all', source: bank.sourceUrl, rights: bank.license || '仅私人学习，许可待核对',
+          note: `${bank.questionCount} 道结构化题目 · 已采集，未人工复核 · 可直接下载或到题目工坊编辑`,
+          fresh: bank.checkedAt, bankId: bank.id};
+        const members = ['md', 'json'].map(format => ({...common, id: `collected-${bank.id}-${format}`, format,
+          title: `${bank.title} · ${format === 'md' ? '可编辑文本' : '结构化题目'}`,
+          url: `/api/hub/question-papers/collected/${encodeURIComponent(bank.id)}/${format === 'md' ? 'text' : 'json'}`}));
+        items.push(...members);
+        collectionManifest ||= {schemaVersion: 1, collections: []};
+        collectionManifest.collections.push({id: `collected-${bank.id}`, title: bank.title, course: common.course,
+          verified: true, source: 'registered-collected-bank', members: members.map((file, order) => ({id: file.id, role: 'paper', order}))});
+      }
+      if (collected.errors?.length) notes.push(`${collected.errors.length} 份采集来源暂不可读取，已保留原件与错误记录。`);
+      for (const paper of result.papers || []) {
+        if (!paper.questionCount) continue;
+        const classification = paper.classification || {};
+        const common = {course: paper.course || '待归类', year: '', kind: '题册', status: 'ready',
+          rights: '私人学习副本', source: '', private: true, paperId: paper.id,
+          schools: classification.schools || [], discipline: classification.discipline || '待归类',
+          priority: classification.priority || '待核对', coverKey: classification.coverKey || 'all',
+          note: `${paper.questionCount} 道可编辑题目 · ${paper.state === 'shelved' ? '整理已复核' : '待核对'} · 仅你可见`,
+          fresh: paper.updated};
+        const members = ['md', 'json'].map((format) => ({...common, id: `question-${paper.id}-${format}`,
+          title: `${paper.title} · ${format === 'md' ? '可编辑文本' : '结构化题目'}`, format,
+          url: `/api/hub/question-papers/${encodeURIComponent(paper.id)}/${format === 'md' ? 'text' : 'json'}`}));
+        items.push(...members);
+        collectionManifest ||= {schemaVersion: 1, collections: []};
+        collectionManifest.collections.push({id: `private-question-${paper.id}`, title: paper.title,
+          course: common.course, verified: true, source: 'private-question-workshop',
+          members: members.map((file, order) => ({id: file.id, role: 'paper', order}))});
+      }
+    } catch {
+      notes.push('私人题册暂时读取失败，可从识题与组卷继续查看。');
+    }
+  }
   all = items;
+  bundles = groupMaterialBundles(items, { manifest: collectionManifest });
   $('#library-status').textContent = notes.join(' ');
+  for (const [selector, values] of [['#library-university', bundles.flatMap(x => x.schools || [])], ['#library-discipline', bundles.map(x => x.discipline).filter(Boolean)]]) {
+    $(selector).insertAdjacentHTML('beforeend', [...new Set(values)].sort().map(value => `<option>${esc(value)}</option>`).join(''));
+  }
   const years = [...new Set(all.map((x) => x.year).filter(Boolean))].sort().reverse();
   $('#library-year').insertAdjacentHTML('beforeend', years.map((y) => `<option>${esc(y)}</option>`).join(''));
   renderList();

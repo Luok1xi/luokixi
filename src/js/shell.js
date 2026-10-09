@@ -9,6 +9,9 @@ import '../styles/apple.css';
 import '../styles/store.css';
 import '../styles/motion.css';
 import { initFx } from './fx.js';
+import { installSiteReader } from './site-reader.js';
+import { installAccelerator } from './download-accelerator.js';
+installAccelerator();
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -24,7 +27,8 @@ const store = {
 // 六个一级板块（docs/PRODUCT_SPEC.md 1.1）。旧页面都保留，按内容归到对应板块，导航按板块高亮。
 const BOARD = {
   home: 'home',
-  map: 'campus', reservations: 'campus',
+  map: 'campus', planner: 'campus', reservations: 'campus',
+  search: 'materials', course: 'materials', collect: 'materials', sources: 'materials',
   materials: 'materials', cet4: 'materials', cet6: 'materials', school: 'materials', knowledge: 'materials',
   circle: 'circle', reputation: 'circle', community: 'circle', rules: 'circle',
   projects: 'open', discover: 'open', project: 'open', contribute: 'open',
@@ -147,6 +151,7 @@ async function initAccount() {
   const { hubState, hubApi } = await import('./hub.js');
   const s = await hubState();
   if (!s.online || !s.user) return;
+  if (s.user.moderator) hubApi.request('studio/budget').then(() => {const entry=document.querySelector('[data-ai-studio]');if(entry)entry.hidden=false;}).catch(() => {});
   const name = s.user.name || s.user.username;
   me.href = 'me.html';
   me.classList.add('is-user');
@@ -230,14 +235,30 @@ export function observeLive(scope = document) {
 
 // 全站搜索：按需加载，不拖慢首屏
 function initSearch() {
-  const open = () => import('./search.js').then((m) => m.openSearch());
+  // 浮层从点到的那个搜索框里长出来（spotlight.js）；键盘打开时从顶栏的搜索按钮长出来
+  const open = (opts) => import('./spotlight.js').then((m) => m.openSpotlight(opts));
   // 用事件委托：页面后来渲染出来的搜索框（比如首页的快捷搜索）也能打开全站搜索
   document.addEventListener('click', (e) => {
-    if (e.target.closest?.('[data-search]')) open();
+    const trigger = e.target.closest?.('[data-search]');
+    if (trigger) open({ origin: trigger });
   });
+  // 指针移到搜索框上就先把浮层和索引备好，点下去不用等
+  const warm = (e) => {
+    if (e.target.closest?.('[data-search]')) import('./spotlight.js').then((m) => m.warm());
+  };
+  document.addEventListener('pointerover', warm, { passive: true });
+  document.addEventListener('focusin', warm);
+  // 页面加载完、浏览器空闲时先把搜索的模块、样式和界面备好（不取数据）：点下去只剩开始动画
+  const idle = (cb) => (window.requestIdleCallback ? requestIdleCallback(cb, { timeout: 4000 }) : setTimeout(cb, 1500));
+  const prewarm = () => idle(() => import('./spotlight.js').then((m) => m.prewarm()));
+  if (document.readyState === 'complete') prewarm();
+  else addEventListener('load', prewarm, { once: true });
   addEventListener('keydown', (e) => {
     const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
-    if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
+    if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      open({ toggle: true });
+    } else if (e.key === '/' && !typing) {
       e.preventDefault();
       open();
     }
@@ -247,6 +268,7 @@ function initSearch() {
 }
 
 export function initShell() {
+  installSiteReader();
   initPageTransitions();
   initNav();
   initTheme();

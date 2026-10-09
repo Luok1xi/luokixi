@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<!-- @include head -->
+<title>课程 · Luokixi</title>
+<meta name="description" content="把课程资料、分学期的学习经验和已解决的问题留在同一个地方。">
+<script type="module" src="/src/pages/course.js"></script>
+</head>
+<body data-page="course" class="ap-page">
+<!-- @include nav -->
+<main id="main" class="course-main learning-wrap">
+  <a class="course-back" href="search.html">← 查找课程与资料</a>
+  <header class="course-hero">
+    <div class="course-hero-copy">
+    <p class="learning-eyebrow">LUOKIXI / 课程档案</p>
+    <h1 id="course-title" data-vt-title>课程与学习经验</h1>
+    <p class="course-sub" id="course-description">资料、经验与问题，沿着同一门课积累。</p>
+    <div class="course-actions"><a class="btn btn-primary" id="course-collect" href="collect.html">补充资料</a><button class="btn btn-outline" id="course-ask" type="button">求资料 / 提问</button><button class="btn btn-outline" id="course-follow" type="button" hidden>关注课程更新</button></div>
+    <p class="course-status" id="course-status" role="status"></p>
+    </div>
+    <div class="course-folio" aria-hidden="true"><div class="course-folio-sheet"><small>COURSE NOTES</small><i></i><i></i><i></i><i></i><span>资料 · 经验 · 问答</span></div><div class="course-folio-cover"><small>LUOKIXI / 课程共建</small><b>学习<br>档案</b><span class="course-folio-rings"><i></i><i></i><i></i></span><span>沿着同一门课积累。 ↗</span></div></div>
+  </header>
+  <div id="course-directory"></div>
+  <div id="course-content" hidden>
+    <nav class="course-tabs" aria-label="本课程内容"><a href="#course-materials">资料</a><a href="#course-experiences">同学经验</a><a href="#course-questions">问题与答案</a><a href="#course-record">共建记录</a></nav>
+    <section class="course-section" id="course-materials"><div class="course-section-heading"><h2>课程资料</h2><a id="course-search" href="search.html">筛选全部 ›</a></div><div id="course-resource-list" class="course-list"></div></section>
+    <section class="course-section" id="course-experiences"><div class="course-section-heading"><h2>同学经验</h2><a id="course-review" href="reputation.html?view=courses">写学习经验 ›</a></div><p class="learning-muted">先确认任课教师和学期，再参考这段经历。</p><div id="course-offerings" class="course-offerings"></div><div id="course-experience-list" class="course-list"></div></section>
+    <section class="course-section" id="course-questions"><div class="course-section-heading"><h2>问题与答案</h2><button class="course-text-button" type="button" data-ask>问一个问题 ↗</button></div><div id="course-question-list" class="course-list"></div></section>
+    <section class="course-section" id="course-record"><h2>共建记录</h2><div id="course-provenance" class="course-provenance"></div></section>
+  </div>
+  <section id="question-composer" class="course-composer" hidden aria-labelledby="question-composer-title">
+    <div class="course-section-heading"><h2 id="question-composer-title">把问题留给后来的人</h2><button id="question-cancel" type="button" class="course-text-button">收起</button></div>
+    <form id="question-form">
+      <p id="question-context" class="learning-muted"></p>
+      <label>关联课程<select name="courseId" id="question-course"><option value="">暂不确定</option></select></label>
+      <label>想找什么？<input name="title" maxlength="160" required placeholder="例如：线性代数有什么适合期末复习的笔记？"></label>
+      <label>补充一点上下文<textarea name="body" rows="4" maxlength="20000" required placeholder="你已经看过什么？卡在哪里？希望得到哪类帮助？"></textarea></label>
+      <label class="course-consent"><input name="confirm" type="checkbox" required>我确认公开这些内容，提交后等待审核。</label>
+      <button class="btn btn-primary" type="submit">提交求助</button><p id="question-status" role="status"></p>
+    </form>
+  </section>
+  <section id="course-thread" class="course-thread" hidden aria-labelledby="thread-title"></section>
+</main>
+</body></html>

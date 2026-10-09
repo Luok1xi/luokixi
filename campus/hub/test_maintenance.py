@@ -61,6 +61,9 @@ class MaintenanceTests(TestCase):
 
     def test_school_news_creates_pending_entries_for_review(self):
         def fake(target, limit=0):
+            if 'virtual_attach_file' in target:
+                from .test_news_media import picture
+                return picture((1280, 800)), target
             return (ARTICLE if '/info/' in target else NEWS_LIST), target
         with mock.patch.object(maintenance, 'get_page', side_effect=fake):
             result = maintenance.school_news()
@@ -70,6 +73,7 @@ class MaintenanceTests(TestCase):
         entry = Entry.objects.get(pk=result['created'][0]['id'])
         self.assertEqual((entry.kind, entry.state, entry.owner), ('news', 'pending', None))
         self.assertIn('virtual_attach_file', entry.draft['media']['src'])
+        self.assertEqual((entry.draft['media']['width'], entry.draft['media']['height'], entry.draft['media']['fit']), (1280, 800, 'cover'))
         # 机器人的消息交给北矿娘，不再进维护者的通知（beikuang.receive）
         self.assertFalse(Notification.objects.filter(user=self.mod, event='maintenance').exists())
         self.assertTrue(BeikuangTask.objects.filter(kind='notice', key__startswith='notice:maint-news:').exists())
@@ -80,6 +84,17 @@ class MaintenanceTests(TestCase):
         news = self.visitor.get('/api/hub/catalogue?kind=news').json()
         self.assertEqual(news['total'], 1)
         self.assertEqual(news['items'][0]['data']['media']['credit'][:5], '矿大新闻网')
+
+    def test_invalid_news_images_remain_explicitly_unavailable(self):
+        def fake(target, limit=0):
+            return (ARTICLE if '/info/' in target else NEWS_LIST), target
+        with mock.patch.object(maintenance, 'get_page', side_effect=fake):
+            result = maintenance.school_news(max_new=1)
+        entry = Entry.objects.get(pk=result['created'][0]['id'])
+        self.assertNotIn('media', entry.draft)
+        self.assertEqual(entry.draft['mediaCheck']['status'], 'unavailable')
+        self.assertFalse(result['created'][0]['image'])
+        self.assertEqual(entry.state, 'pending')
 
     def test_status_and_run_are_staff_only(self):
         self.assertEqual(self.a.get('/api/hub/maintenance/status').status_code, 403)

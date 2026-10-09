@@ -1,5 +1,10 @@
 # 数据格式
 
+## 2026-10-07：广场主题与模糊查询
+
+`discover-filters.js` 在现有公开项目快照之上派生 CS/日常/嵌入式/AI 等浏览主题，保留原 category/shelf 与项目 identity；不改投稿分类枚举，不建立假项目。相同目录仅载入一次，页内词条、分类、隐藏名单共同过滤。`fuzzy-search.js` 和服务端 `search_matching.py` 统一别名/有限错拼原则，搜索排名不用于合并课程/版本身份。私人收藏/本机资料提示不上传；公开学习、校圈、口碑和仓库检索仍先遵守发布/权限边界。详见 [交接与验证](PLAZA_MOTION_SEARCH_2026_10_07.md)。
+
+
 页面在运行时读取 `public/data/*.json`。改数据不需要改代码，也不需要重新构建页面结构，刷新即可。
 
 ## `cet4.json` / `cet6.json`
@@ -127,3 +132,8 @@
 - `public/data/campus-map/overrides.json`（可选）：按 OSM id 更正楼的用途、名称、层数，每条必须有 `source`。
 - `public/art/campus-map/manifest.json`：Codex 交付的重绘插画清单，格式见 `docs/CAMPUS_MAP_ART.md`。
 - 个人数据（学院、专业、课表、到过的楼）只存在浏览器的 `localStorage`（键 `luokixi.campus.me`），不上传。
+
+
+## 2026-10-07 资料套件与私有结构化题目
+
+LibraryCollection 使用不可混淆的 group_key：cet4/cet6 + 年 + 月 + 明确套号；范围套卷自成一套，未归组原件独立。保存 files/roles/missingRoles/原件 ID 与元数据，不推测答案配对。QuestionPaper 为用户私有文档，保存 source_meta、selected_pages、raw_text、extracted_pages、questions、review、revision；QuestionRevision 记录编辑版本。OCR 结果与人工改动均保留可追溯页码，审核只表示规则通过；公开发布继续走既有公共审核。

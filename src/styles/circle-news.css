@@ -156,6 +156,9 @@ body[data-page="reputation"] .footer { display: none; }
 
 .cs-avatar {
   display: grid;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
   flex: none;
   place-items: center;
   width: 34px;
@@ -265,8 +268,9 @@ body[data-page="reputation"] .footer { display: none; }
 .cs-op-who { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .cs-op { padding: 1px 6px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; }
 .cs-op-body { font-size: 16px; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
-.cs-op-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; }
-.cs-op-photos img { width: 100%; border-radius: 12px; object-fit: cover; }
+/* 楼主的照片：一张时整幅；多张时是有纵深的横向滑轨（depth-slider.js） */
+.cs-op-photos { --ds-radius: 16px; --ds-col: 82%; }
+.cs-op-photos.ds-track { margin-inline: -4px; padding-inline: 4px; scroll-padding-inline: 4px; }
 
 .cs-lit h3, .cs-floors h3 { margin-bottom: 8px; font-size: 15px; font-weight: 700; }
 .cs-lit h3 { color: var(--ios-hot); }
@@ -325,3 +329,10 @@ body[data-page="reputation"] .footer { display: none; }
   .cs-post { padding: 14px 14px 8px; }
   .cs-thread-body { padding: 16px; }
 }
+
+/* Account-backed social connections and a visible destination for reply notices. */
+.cs-feed-reason { color: var(--ios-label-2, var(--fg-2)); font-size: 12px; line-height: 1.5; }
+.cs-floor.is-target { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cs-accepted { color: var(--accent); }
+.cs-post-head > [data-follow-creator] { flex: none; }
+@media (max-width: 480px) { .cs-post-head { flex-wrap: wrap; } .cs-post-head > [data-follow-creator] { margin-left: auto; } }

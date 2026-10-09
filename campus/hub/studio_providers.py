@@ -9,19 +9,25 @@ import urllib.request
 from pathlib import Path
 from .core import Problem
 
+EXPRESSIONS = ('neutral', 'composed', 'happy', 'angry', 'think', 'sad', 'awkward', 'curious', 'question', 'surprised')
+STAGE_INSTRUCTION = ('expression 只选择当前发言适合的立绘表情：neutral/composed/happy/angry/think/sad/awkward/curious/question/surprised；'
+                     '每条发言放进 messages 数组，元素为 {type:"text",text:"中文",speech:"意思一致的日语口语",expression:"表情"}；message 是中文全文。日语只作朗读，不添加新事实、不读网址。'
+                     '没有明确情绪就 neutral 或 composed，不为演出强加情绪、不把表情标签写进台词。它不改变人格、关系或操作权限。')
 SCHEMA = {'type': 'object', 'additionalProperties': False,
           'properties': {'message': {'type': 'string'},
+                         'expression': {'type': 'string', 'enum': list(EXPRESSIONS)},
+                         'messages': {'type':'array','items':{'type':'object','additionalProperties':False,'properties':{'type':{'type':'string','enum':['text']},'text':{'type':'string'},'speech':{'type':'string'},'expression':{'type':'string','enum':list(EXPRESSIONS)}},'required':['type','text','speech','expression']}},
                          'tasks': {'type': 'array', 'items': {'type': 'string'}},
                          'files': {'type': 'array', 'items': {'type': 'object', 'additionalProperties': False,
                                    'properties': {'path': {'type': 'string'}, 'content': {'type': 'string'}},
                                    'required': ['path', 'content']}}},
-          'required': ['message', 'tasks', 'files']}
+          'required': ['message', 'tasks', 'files', 'expression', 'messages']}
 
 
 def reply_json(raw):
     try:
         value = json.loads(raw)
-        if not isinstance(value, dict) or set(value) != {'message', 'tasks', 'files'}:
+        if not isinstance(value, dict) or not {'message', 'tasks', 'files'} <= set(value) or set(value) - {'message', 'tasks', 'files', 'expression', 'messages'}:
             raise ValueError()
         if not isinstance(value['message'], str) or not value['message'].strip() or len(value['message']) > 15000:
             raise ValueError()
@@ -32,6 +38,21 @@ def reply_json(raw):
         for file in value['files']:
             if not isinstance(file, dict) or set(file) != {'path', 'content'} or not all(isinstance(x, str) for x in file.values()):
                 raise ValueError()
+        parts = value.get('messages', [])
+        if not isinstance(parts,list) or len(parts)>24:
+            raise ValueError()
+        for part in parts:
+            if not isinstance(part,dict) or part.get('type')!='text' or not isinstance(part.get('text'),str) or not part['text'].strip() or len(part['text'])>15000:
+                raise ValueError()
+            if not isinstance(part.get('speech',''),str) or len(part.get('speech',''))>14000:
+                raise ValueError()
+            if part.get('expression') not in EXPRESSIONS: part['expression']='neutral'
+        if parts:
+            value['message']='\n\n'.join(p['text'] for p in parts)
+            if len(value['message'])>15000: raise ValueError()
+        # Older stored outputs remain valid. A bad decorative tag must not lose a real reply.
+        if 'expression' in value and value['expression'] not in EXPRESSIONS:
+            value['expression'] = 'neutral'
         return value
     except (ValueError, TypeError):
         raise Problem('模型没有返回有效的工作结果，本轮已停止；不会用假回复代替。', 502)
@@ -71,7 +92,7 @@ def deepseek(prompt, cfg, stopped=lambda: False):
         raise Problem('DeepSeek 连接或响应异常；不自动重试以避免重复扣费。', 502)
 
 
-def codex_command(executable, directory, schema, result, model=''):
+def codex_command(executable, directory, schema, result, model='', reasoning_effort=''):
     # No user plugins, hooks, shell or web tools. Codex returns code as JSON;
     # the host validates and writes it into a separate candidate afterwards.
     command = [executable, 'exec', '--ignore-user-config', '--ephemeral', '--skip-git-repo-check',
@@ -83,10 +104,12 @@ def codex_command(executable, directory, schema, result, model=''):
                '--output-schema', str(schema), '-o', str(result)]
     if model:
         command += ['--model', model]
+    if reasoning_effort in ('low','medium','high'):
+        command += ['-c', 'model_reasoning_effort='+json.dumps(reasoning_effort)]
     return command + ['-']
 
 
-def codex(prompt, cfg, stopped=lambda: False, *, output_schema=None, parse_result=None):
+def codex(prompt, cfg, stopped=lambda: False, *, output_schema=None, parse_result=None, images=None):
     if stopped():
         raise Problem('本轮已停止。', 409)
     # TEMP is outside the website: no repository config/hooks, no private files in context.
@@ -94,7 +117,12 @@ def codex(prompt, cfg, stopped=lambda: False, *, output_schema=None, parse_resul
         root = Path(tmp)
         schema, result = root / 'schema.json', root / 'reply.json'
         schema.write_text(json.dumps(output_schema or SCHEMA), encoding='utf-8')
-        command = codex_command(cfg['codex_executable'], root, schema, result, cfg['codex_model'])
+        command = codex_command(cfg['codex_executable'], root, schema, result, cfg['codex_model'],cfg.get('codex_reasoning_effort',''))
+        for index,(extension,content) in enumerate(images or []):
+            if extension not in ('.png','.jpg','.gif','.webp') or len(content)>8*1024*1024 or index>=4:
+                raise Problem('图像附件无效。')
+            image=root/f'input-{index}{extension}';image.write_bytes(content)
+            command[-1:-1]=['--image',str(image)]
         env = {k: v for k, v in os.environ.items() if k.upper() in {
             'PATH', 'SYSTEMROOT', 'WINDIR', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA',
             'TEMP', 'TMP', 'HOMEDRIVE', 'HOMEPATH', 'HOME', 'CODEX_HOME',
@@ -106,7 +134,8 @@ def codex(prompt, cfg, stopped=lambda: False, *, output_schema=None, parse_resul
                 try:
                     process.stdin.write(prompt.encode('utf-8'))
                     process.stdin.close()
-                    deadline = time.monotonic() + (240 if output_schema else 180)
+                    timeout = max(1, min(240, float(cfg.get('summary_timeout', 240 if output_schema else 180))))
+                    deadline = time.monotonic() + timeout
                     while process.poll() is None:
                         if stopped() or time.monotonic() > deadline:
                             process.kill()

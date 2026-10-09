@@ -1,7 +1,9 @@
 import { initShell, observeReveal, observeLive } from '../js/shell.js';
 import { loadCommunity, projectCard, fmtNum } from '../js/community.js';
 import { coverMediaHTML as coverSVG } from '../js/cover.js';
-import { CATEGORIES } from '../js/schema.js';
+import { CATEGORIES, ORIGINS } from '../js/schema.js';
+import { hubState, hubApi } from '../js/hub.js';
+import { mergeProjects, publicProjectEntries } from '../js/project-catalogue.js';
 import { esc } from '../js/data.js';
 import { mountRepository } from '../js/repository-browser.js';
 import '../styles/community.css';
@@ -59,9 +61,12 @@ function grid() {
     .filter((p) => state.cat === 'all' || p.category === state.cat)
     .filter((p) => state.origin === 'all' || p.origin === state.origin)
     // 本校项目永远排在外部推荐前面
-    .sort((a, b) => (a.origin === b.origin ? sorters[state.sort](a, b) : a.origin === 'cumtb' ? -1 : 1));
+    .sort(sorters[state.sort]);
   const el = $('#pj-grid');
-  el.innerHTML = list.map((p) => projectCard(p, data.people)).join('');
+  el.innerHTML = list.map((p) => {
+    const card = projectCard(p.entryId ? { ...p, links: { ...p.links, repo: p.pageUrl } } : p, data.people);
+    return p.entryId ? card.replace(' target="_blank" rel="noopener"', '').replace(`>${ORIGINS[p.origin]}</span>`, `>${esc(p.originLabel || ORIGINS[p.origin])}</span>`) : card;
+  }).join('');
   $('#pj-empty').hidden = list.length > 0 && !(state.origin === 'all' && !data.projects.some((p) => p.origin === 'cumtb'));
   observeReveal(el);
 }
@@ -92,8 +97,12 @@ function wire() {
   $('#sort').addEventListener('change', (e) => switchTo(() => (state.sort = e.target.value)));
 }
 
-loadCommunity()
-  .then((d) => {
+Promise.all([loadCommunity(), hubState()])
+  .then(async ([d, s]) => {
+    if (s.online) {
+      try { d = { ...d, projects: mergeProjects(d.projects, await publicProjectEntries(hubApi, err => console.warn('[luokixi] 部分已公开项目暂时无法读取', err))) }; }
+      catch (err) { console.warn('[luokixi] 已公开项目暂时无法读取，保留静态目录', err); }
+    }
     data = d;
     posterWall(d.projects);
     stats(d.projects);

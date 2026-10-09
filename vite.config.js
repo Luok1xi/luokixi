@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, cpSync, mkdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import campus from './campus/vite-plugin.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
-const pages = ['index', 'cet4', 'cet6', 'school', 'knowledge', 'projects', 'community', 'profile', 'contribute', 'discover', 'auth', 'me', 'map', 'project', 'reputation', 'design', 'materials', 'circle', 'studio', 'reservations', 'rules'];
+const pages = ['index', 'cet4', 'cet6', 'school', 'knowledge', 'projects', 'community', 'profile', 'contribute', 'discover', 'auth', 'me', 'map', 'planner', 'project', 'reputation', 'design', 'materials', 'circle', 'studio', 'reservations', 'rules', 'search', 'course', 'collect', 'sources', 'question-workshop', 'viewer'];
 
 // 极简 HTML 片段引入：<!-- @include nav --> → src/partials/nav.html
 function partials() {
@@ -27,7 +27,11 @@ function partials() {
 
 export default defineConfig({
   base: './',
-  plugins: [partials(), campus()],
+  plugins: [partials(), campus(), {name:'local-pdf-resources',writeBundle(){
+    const source=resolve(root,'node_modules/pdfjs-dist'),target=resolve(root,'dist/vendor/pdfjs');
+    mkdirSync(target,{recursive:true});
+    for(const name of ['cmaps','standard_fonts','wasm','LICENSE'])cpSync(resolve(source,name),resolve(target,name),{recursive:true});
+  }}],
   build: {
     rollupOptions: {
       input: Object.fromEntries(pages.map((p) => [p, resolve(root, `${p}.html`)])),

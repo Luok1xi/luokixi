@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/Derpyu520/qq-bridge",
+  "revision": "9df6a7e7fc5abcb36793337f778483bd442a3d2d",
+  "license": "MIT",
+  "copied": [
+    "safe-fetch.js",
+    "LICENSE"
+  ],
+  "adapted": "Bing search and query sanitization from src/mcp-web-search-safe.js, removed MCP transport, added result redirect decoding; original tool registry/ledger/cache used"
+}

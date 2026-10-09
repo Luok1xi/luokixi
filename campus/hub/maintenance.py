@@ -125,13 +125,9 @@ def parse_article(raw, origin):
     source = re.search(r'来源[：:]\s*([^\s]{1,30})', text)
     content = page.css('.v_news_content')
     body = ' '.join(t.strip() for t in content[0].css('::text').getall() if t.strip()) if content else ''
-    image = ''
-    if content:
-        for img in content[0].css('img'):
-            src = img.attrib.get('src', '')
-            if src and not src.startswith('data:'):
-                image = urljoin(origin, src)
-                break
+    from .news_media import candidates
+    images = candidates(content[0], origin) if content else []
+    image = images[0]['url'] if images else ''
     photo = re.search(r'(?:图|摄影|摄)\s*[/／:：]\s*([^\s，。；;）)]{1,20})', body)
     words = re.search(r'(?<![图摄])文\s*[/／:：]\s*([^\s，。；;）)]{1,20})', body)
     summary = re.split(r'(?<=[。！？])', body)[0][:160] if body else ''
@@ -144,6 +140,7 @@ def parse_article(raw, origin):
         'source': source[1] if source else '',
         'summary': summary,
         'image': image,
+        'imageCandidates': images,
         'credit': credit,
     }
 
@@ -180,13 +177,19 @@ def school_news(max_new=MAX_NEW_ARTICLES):
             'audience': '全校', 'uploads': [], 'rightsConfirmed': False, 'collectedBy': 'maintenance-bot',
             'collectedAt': timezone.now().isoformat(),
         }
-        if a['image']:
-            payload['media'] = {'src': a['image'], 'alt': payload['title'], 'credit': f"矿大新闻网原报道{(' · ' + a['credit']) if a['credit'] else ''}",
-                                'sourceUrl': item['url'], 'usage': '引用官方原图链接；未复制原图，版权归原权利人。'}
+        from .news_media import select
+        selected, image_errors = select(a['imageCandidates'], get_page)
+        if selected:
+            payload['media'] = {'src': selected['url'], 'alt': selected['alt'] or payload['title'], 'credit': f"矿大新闻网原报道{(' · ' + a['credit']) if a['credit'] else ''}",
+                                'sourceUrl': item['url'], 'usage': '引用官方原图链接；未复制原图，版权归原权利人。',
+                                **{k: selected[k] for k in ('width', 'height', 'fit', 'position', 'selectionVersion', 'resolvedUrl')}}
+        if image_errors:
+            payload['mediaCheck'] = {'checkedAt': timezone.now().isoformat(), 'errors': image_errors,
+                                     'status': 'selected' if selected else 'unavailable'}
         with transaction.atomic():
             entry = Entry.objects.create(kind='news', slug=slug, state='pending', draft=payload)
             Revision.objects.create(entry=entry, number=entry.revision, data=payload, state='pending')
-        created.append({'id': str(entry.pk), 'title': payload['title'], 'image': bool(a['image'])})
+        created.append({'id': str(entry.pk), 'title': payload['title'], 'image': bool(selected)})
     if created:
         staff_notice('maint-news:' + created[0]['id'], f'维护机器人发现 {len(created)} 条学校新闻，等你审核后上首页。')
     result = {'listed': len(unique), 'checked': seen, 'created': created, 'errors': errors}

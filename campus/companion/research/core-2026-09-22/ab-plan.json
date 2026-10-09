@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "createdOn": "2026-09-22",
+  "kind": "research_design_not_executable_benchmark",
+  "executionAuthorizedByThisFile": false,
+  "common": {
+    "sameModelAndVersion": true,
+    "sameInputsInitialStateAndBudget": true,
+    "frozenPrompts": true,
+    "splitBy": "来源或任务族；留出内容不进入训练、修复提示或经验池",
+    "randomizedBlindPresentation": true,
+    "stochasticRepeats": 3,
+    "reportAllRuns": true,
+    "successOracle": "代码输出用独立断言，体验用用户盲评；模型自评不能决定通过",
+    "inferenceLimit": "探索性小样本，报告波动及区间；通过不等于普遍有效",
+    "delivery": "本地测试收件箱，不发送微信实验消息"
+  },
+  "budget": {
+    "spentByThisStudyOnMikuApi": 0,
+    "proposedPilotMaxCny": 5,
+    "proposedNextPhaseMaxCny": 15,
+    "existingMonthlyMaxCny": 200,
+    "allCapsIntersect": true,
+    "reserveBeforeCalls": true,
+    "insufficientBudget": "缩小样本或停止，不突破现有子预算"
+  },
+  "recommendedOrder": [
+    [
+      "RM",
+      "PS"
+    ],
+    [
+      "DPC",
+      "SP"
+    ],
+    [
+      "D2A",
+      "PF"
+    ],
+    [
+      "P2A",
+      "TM"
+    ]
+  ],
+  "experiments": [
+    {
+      "id": "P2A",
+      "project": "Paper2Agent",
+      "baseline": "按资料临时调用同一个工具",
+      "treatment": "版本锁定、契约与参考样例验收后复用",
+      "cases": {
+        "total": 12,
+        "heldOut": 4
+      },
+      "metrics": [
+        "独立参考输出正确率",
+        "错误接受数",
+        "准备费用",
+        "重复调用费用"
+      ],
+      "gates": [
+        "留出正确率不低于 A",
+        "错误接受数为 0",
+        "每项可用能力都有结果或产物断言"
+      ],
+      "negativeControls": [
+        "空正文",
+        "旧产物",
+        "仅 MCP 启动成功"
+      ],
+      "stop": [
+        "达到预留准备费用上限"
+      ],
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "TM",
+      "project": "ToolMaker",
+      "baseline": "现有重试与适配器回退",
+      "treatment": "独立实现的隔离重放、诊断及最多两次修复",
+      "cases": {
+        "total": 12,
+        "heldOut": 4
+      },
+      "metrics": [
+        "可修复故障恢复率",
+        "停止判断正确率",
+        "修复调用数",
+        "伪成功数"
+      ],
+      "gates": [
+        "可修复故障恢复率高于 A",
+        "每案修复次数不超过 2",
+        "伪成功数为 0"
+      ],
+      "negativeControls": [
+        "403",
+        "超时",
+        "接口改名",
+        "缺依赖",
+        "空 JSON"
+      ],
+      "stop": [
+        "尝试改动主运行环境",
+        "超过两次修复",
+        "没有可用隔离环境"
+      ],
+      "licenseConstraint": "ToolMaker 许可未核实，不复制其代码",
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "RM",
+      "project": "ReMe",
+      "baseline": "现有调用统计、错误分类与路由",
+      "treatment": "验证过的程序性经验与有害经验淘汰",
+      "cases": {
+        "trainingTrajectories": 24,
+        "heldOutTasks": 12
+      },
+      "metrics": [
+        "任务正确率",
+        "重复失败数",
+        "错误经验采用数",
+        "调用费用"
+      ],
+      "gates": [
+        "正确率不低于 A",
+        "A 有重复失败时相对减少至少 20%",
+        "错误经验采用数为 0"
+      ],
+      "negativeControls": [
+        "空正文也算成功的污染经验",
+        "过期工具版本经验",
+        "不适用来源经验"
+      ],
+      "stop": [
+        "留出任务信息进入经验训练"
+      ],
+      "zeroBaselineRule": "A 的重复失败为 0 时报告绝对次数，B 必须保持为 0，不计算相对改善",
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "PS",
+      "project": "PolySkill",
+      "baseline": "现有工具名称及手工路由",
+      "treatment": "稳定能力契约与可替换实现、覆盖度后置条件",
+      "cases": {
+        "total": 16,
+        "heldOut": 8,
+        "backendVariants": 2
+      },
+      "metrics": [
+        "后端替换后正确率",
+        "契约变化数",
+        "工具调用数",
+        "覆盖度虚报数"
+      ],
+      "gates": [
+        "留出正确率不低于 A",
+        "能力契约变化数为 0",
+        "覆盖度虚报数为 0",
+        "平均工具调用数不高于 A 的 1.2 倍"
+      ],
+      "negativeControls": [
+        "仅标题",
+        "仅摘要",
+        "缺字幕",
+        "登录拦截",
+        "未见来源"
+      ],
+      "stop": [
+        "为留出任务专门改提示词"
+      ],
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "SP",
+      "project": "Sentipolis",
+      "baseline": "当前事件标签与衰减",
+      "treatment": "独立实现的上下文评价、快慢状态及实际时间衰减",
+      "cases": {
+        "eventSequences": 12
+      },
+      "metrics": [
+        "去重与重启不变量",
+        "时间连续性",
+        "事实错误数",
+        "盲评自然度"
+      ],
+      "gates": [
+        "状态不变量全部通过",
+        "事实错误数为 0",
+        "盲评自然度不低于 A"
+      ],
+      "negativeControls": [
+        "测试性玩笑与真实冲突",
+        "解释误会",
+        "跨日暂停",
+        "重复事件 ID"
+      ],
+      "stop": [
+        "同一事件重复改变关系",
+        "模拟状态改写记忆事实"
+      ],
+      "codeConstraint": "本轮未核实官方公开实现，仅设计独立机制实验",
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "D2A",
+      "project": "D2A",
+      "baseline": "当前计时检查与活动选择",
+      "treatment": "有依据的需求缺口、候选收益成本与结果反馈",
+      "cases": {
+        "streams": 3,
+        "virtualDaysPerStream": 7
+      },
+      "metrics": [
+        "目标相关且成功的自主行动数",
+        "每个有效行动费用",
+        "分享相关性",
+        "消息及预算违规数"
+      ],
+      "gates": [
+        "有效自主行动数高于 A",
+        "单位有效行动费用不高于 A",
+        "分享相关性不低于 A",
+        "消息及预算违规数为 0"
+      ],
+      "negativeControls": [
+        "连续未回复",
+        "免打扰",
+        "预算耗尽",
+        "无新内容",
+        "工具失败",
+        "已在被动对话分享过"
+      ],
+      "stop": [
+        "越过发送授权或预算",
+        "无可验证依据却声称已完成"
+      ],
+      "zeroBaselineRule": "若 A 没有有效行动，不算相对费用，报告 B 的绝对费用并遵守预算上限",
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "DPC",
+      "project": "Dynamic Persona Coherence",
+      "baseline": "当前稳定人格及分散动态状态",
+      "treatment": "单一状态所有者与 L/M/S 分层、版本化累积",
+      "cases": {
+        "dialogues": 2,
+        "turnsPerDialogue": 50,
+        "semanticParaphraseReplay": true
+      },
+      "metrics": [
+        "身份事实错误数",
+        "中期未解决事件保持",
+        "情绪连续性",
+        "盲评温柔自然度"
+      ],
+      "gates": [
+        "身份与事实错误数为 0",
+        "重启与模型切换不改变已确认关系",
+        "未解决事项保持",
+        "温柔自然度不低于 A"
+      ],
+      "negativeControls": [
+        "提示注入试图改身份",
+        "切换模型",
+        "重启",
+        "重复事件",
+        "暂时好心情覆盖未解误会"
+      ],
+      "stop": [
+        "直接依赖候选仓库的零值占位解析"
+      ],
+      "codeConstraint": "匿名官方地址访问失败；同名 MIT 候选不能视为完整官方实现",
+      "status": "designed_not_run",
+      "results": null
+    },
+    {
+      "id": "PF",
+      "project": "PersonaForge",
+      "baseline": "当前共享表达入口",
+      "treatment": "同版本心理状态与表达意图，关键事件才做额外语义评价",
+      "cases": {
+        "pairedContexts": 24
+      },
+      "metrics": [
+        "盲评偏好",
+        "主动被动同一人一致性",
+        "强行卖萌及追问数",
+        "重复表情数",
+        "平均费用",
+        "p95 延迟"
+      ],
+      "gates": [
+        "按全部配对计算 B 胜率至少 60%，另报平局",
+        "平均费用不高于 A 的 1.15 倍",
+        "强行口癖、追问与重复表情不增加",
+        "延迟超出体验目标时不晋级"
+      ],
+      "negativeControls": [
+        "短招呼",
+        "轻松交流",
+        "解释冲突",
+        "已分享信息",
+        "低情绪强度"
+      ],
+      "stop": [
+        "关键词绑定台词",
+        "每轮强制双模型调用",
+        "擅自向真实用户发送实验消息"
+      ],
+      "status": "designed_not_run",
+      "results": null
+    }
+  ]
+}

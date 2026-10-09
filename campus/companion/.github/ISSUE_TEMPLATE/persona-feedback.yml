@@ -1,0 +1,42 @@
+name: 她的表现反馈
+description: 记录一次让你觉得「不像她」「太像人机」「越界」或「做得好」的对话
+title: "[表现] "
+labels: ["persona-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        贴对话前请删掉真实姓名、学号、手机号、联系方式和别人的聊天内容。这里是公开仓库。
+  - type: dropdown
+    id: dimension
+    attributes:
+      label: 属于哪一方面
+      options:
+        - 语气（太客服 / 太卖萌 / 太冷 / 不像小煤渣）
+        - 行为（主动消息太多或太少、时机不对、沉默不合适）
+        - 边界与操纵（催关系进展、情绪施压、诱导依赖）
+        - 学习与记忆（忘了说过的事、记错、学了没用上）
+        - 工具使用（该查没查、没查说查了、来源不对）
+        - 像不像真人（节奏、连发、反应速度、编造经历）
+        - 做得好，想保留
+    validations:
+      required: true
+  - type: textarea
+    id: transcript
+    attributes:
+      label: 对话片段
+      description: 从你的话开始，到她让你觉得不对的那句为止。标出渠道（网页 / 微信 / 飞书）。
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你希望她怎么说或怎么做
+    validations:
+      required: true
+  - type: input
+    id: frequency
+    attributes:
+      label: 出现频率
+      placeholder: 第一次 / 偶尔 / 经常
