@@ -13,7 +13,7 @@ from . import github_api, github_guides
 from .core import Problem
 from .models import ExternalCache
 
-RESOLVER_VERSION = 2
+RESOLVER_VERSION = 3
 BAD = re.compile(r'shields\.io|badge|badgen|travis|codecov|actions/workflows|visitor|sponsor|donat|logo|avatar|icon|star-history|buymeacoffee|paypal|waitlist|contrib\.rocks|qrcodes?', re.I)
 GOOD = re.compile(r'screenshot|screen-shot|preview|demo|showcase|robot|hardware|overview|example|interface|features|animation|截图|演示|效果', re.I)
 
@@ -84,7 +84,10 @@ def probe(target):
                 im.verify()
     except (UnidentifiedImageError, OSError, SyntaxError, Image.DecompressionBombWarning, Image.DecompressionBombError) as exc:
         raise Problem('链接没有返回可验证的图片，已跳过。') from exc
-    return {'width':width,'height':height,'format':fmt,'bytes':len(raw),'resolvedUrl':final}
+    from .source_media import store
+    stored = store(raw, {'width':width,'height':height,'format':fmt,'bytes':len(raw),'originalUrl':final,
+                        'fit':'contain' if width/height<1.05 else 'cover', 'position':'50% 50%'}, target)
+    return {'width':width,'height':height,'format':fmt,'bytes':len(raw),'resolvedUrl':final,'cachedUrl':stored['url']}
 
 
 def collect(limit=24):
@@ -96,21 +99,25 @@ def collect(limit=24):
         community = json.loads((public_data()/'community.json').read_text('utf-8'))
         for p in community.get('projects',[]):
             if (p.get('repo') or {}).get('fullName'):
-                targets[github_guides.repository(p['repo']['fullName'])] = None
+                targets[github_guides.repository(p['repo']['fullName'])] = {'title':p.get('title','')}
     except (OSError, ValueError):
         pass
     for cache in ExternalCache.objects.filter(key__startswith='github:').order_by('-checked'):
         if cache.success and (cache.data.get('discovery') or cache.data.get('selection')):
             targets[cache.data['repository']] = cache.data
     errors, checked, cached, found = [], 0, 0, 0
-    for repo, data in list(targets.items())[:limit]:
+    # Cached first-page repositories must not starve the rest of the catalogue.
+    for repo, data in sorted(targets.items(), key=lambda item:out.get(item[0],{}).get('checkedAt') or ''):
+        if checked >= limit:
+            break
         now = timezone.now().isoformat()
         old = out.get(repo,{})
         try:
             if old.get('resolverVersion') == RESOLVER_VERSION and old.get('checkedAt') and old.get('status') in ('ok','missing'):
                 from django.utils.dateparse import parse_datetime
                 age = timezone.now()-parse_datetime(old['checkedAt'])
-                if age.total_seconds()<72*3600 and (not data or old.get('readmeSha')==data.get('readmeSha')):
+                known_sha = (data or {}).get('readmeSha')
+                if age.total_seconds()<72*3600 and (not known_sha or old.get('readmeSha')==known_sha):
                     cached += 1
                     continue
             checked += 1
@@ -121,6 +128,8 @@ def collect(limit=24):
                 text = base64.b64decode(info.get('content','')).decode('utf-8',errors='replace')[:80000]
                 readme, branch, path, sha = info.get('html_url',f'https://github.com/{repo}#readme'),'HEAD',info.get('path','README.md'),info.get('sha','')
             candidates = image_candidates(text,repo,branch,path)
+            from .source_media import matches_entity
+            candidates = [image for image in candidates if matches_entity((data or {}).get('title') or repo, image)]
             selected, failures = None, []
             for candidate in candidates[:3]:
                 try:
@@ -131,7 +140,7 @@ def collect(limit=24):
                     failures.append(str(exc)[:120])
             if candidates and not selected and failures:
                 raise Problem('候选图片未通过检查：'+'；'.join(failures))
-            out[repo] = {'image':selected['url'] if selected else '', 'alt':selected['alt'] if selected else '',
+            out[repo] = {'image':(selected.get('cachedUrl') or selected['url']) if selected else '', 'originalImage':selected['url'] if selected else '', 'alt':selected['alt'] if selected else '',
                          'readme':readme,'readmeSha':sha,'sourceUrl':f'https://github.com/{repo}',
                          'credit':f'{repo} · 项目 README 原图',
                          'usage':'引用项目原图链接；图像权利归原作者，代码许可证不自动视为图片授权。',

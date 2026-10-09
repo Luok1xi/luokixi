@@ -79,9 +79,10 @@
       <label>校区<select name="campus"><option value="all">全校</option><option value="xueyuanlu">学院路</option><option value="shahe">沙河</option></select></label>
     </div>
     <label class="cs-field"><span class="sr-only">标题</span><input name="title" maxlength="160" required placeholder="标题"></label>
-    <label class="cs-field"><span class="sr-only">正文</span><textarea name="body" rows="7" maxlength="20000" placeholder="经验、问题、进展，或者一个想一起实现的点子" required></textarea></label>
+    <label class="cs-field"><span class="sr-only">正文</span><textarea name="body" rows="7" maxlength="10000" placeholder="经验、问题、进展，或者一个想一起实现的点子" required></textarea></label>
     <label class="cs-field"><span class="sr-only">兴趣标签</span><input name="tags" placeholder="标签，用逗号隔开：机器人、摄影、选课"></label>
-    <label class="cs-photos">添加照片（选填，最多 9 张）<input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+    <label class="cs-photo-drop"><span><b>添加图片 <small data-photo-count>0 / 9</small></b><small>可连续选择、拖入或粘贴图片</small></span><input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-label="添加帖子图片"></label>
+    <div class="cs-photo-grid" data-photo-grid aria-label="待发图片，按顺序排列"></div>
     <label class="cs-check"><input type="checkbox" name="rights" required>这是我有权分享的内容，不含他人隐私。</label>
     <p id="post-status" class="cs-status" role="status"></p>
     <button class="as-get is-primary cs-submit" type="submit">提交审核</button>

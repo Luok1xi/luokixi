@@ -49,6 +49,9 @@ def serialize_workspace(w):
 
 def endpoint(request, route=''):
     try:
+        if request.method == 'GET' and route.startswith('source-media/'):
+            from .source_media import get as source_image
+            return source_image(route.split('/')[-1])
         if request.method not in ('GET','POST'):
             raise Problem('不支持此请求方式。',405)
         if request.method=='POST':
@@ -170,7 +173,7 @@ def get(request, route):
                 'checkedAt':state.get('checkedAt'),'githubUrl':f'https://github.com/{repository}'}
     if route=='health':
         from .operations import RELEASE
-        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'managementVersion':1,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
+        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'managementVersion':1,'socialMediaVersion':1,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
     if route=='categories':
         return {'categories':categories()}
     if route=='map/places':

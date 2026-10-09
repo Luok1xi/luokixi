@@ -6,6 +6,8 @@
 .home-frontier { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px; }
 .home-frontier-item { min-width:0; }
 .home-frontier-item .ds-frame { --ds-ratio:16/10;margin-bottom:16px; }
+.home-post-photos { display:block; min-width:0; }
+.home-post-photos.ds-track { display:grid; --ds-col:82%; }
 .home-frontier-item h3 { font-size:20px;line-height:1.4;margin-block:8px; }
 .home-frontier-item p { display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--fg-2);line-height:1.6; }
 .home-frontier-item small,.home-frontier-item>span,.home-logs time { color:var(--fg-2);font-size:12px; }

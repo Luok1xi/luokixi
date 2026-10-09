@@ -3,7 +3,7 @@ import {esc} from './data.js';
 import '../styles/robot-console.css';
 const client=createHubClient();
 const labels={queued:'排队',running:'执行中',done:'完成',failed:'失败',partial:'部分完成',published:'已上架',escalated:'待补充',withdrawn:'已下架'};
-const metrics={examined:'检查',discovered:'发现',collected:'新增',refreshed:'更新',skipped:'跳过',published:'上架',escalated:'待补充',classified:'分类',questions:'题目',generated:'导读',cached:'缓存',illustrated:'配图',broken:'失效'};
+const metrics={examined:'检查',discovered:'发现',collected:'新增',refreshed:'更新',skipped:'跳过',published:'上架',escalated:'待补充',classified:'分类',questions:'题目',generated:'导读',cached:'缓存',illustrated:'配图',sourceRecovered:'恢复原图',sourceChecks:'核对来源',broken:'失效'};
 const operations={run_robot:'运行机器人',review_content:'审核内容',edit_content:'编辑内容',withdraw_content:'下架内容',restore_content:'恢复内容',curate_project:'整理项目',code_candidate:'提交候选',code_test:'测试候选',code_apply:'应用修复',code_rollback:'回退修复',skill_review:'评估技能',skill_install:'安装技能',tool_install:'安装工具',tool_run:'试用工具',discuss:'找搭档讨论'};
 const num=n=>Number.isFinite(n)?n.toLocaleString('zh-CN'):'未测';
 export function mountRobotConsole(root){

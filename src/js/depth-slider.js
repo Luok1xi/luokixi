@@ -9,9 +9,8 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 const ARROW = { prev: '<path d="m14.5 5.5-6.5 6.5 6.5 6.5"/>', next: '<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>' };
 
 // 画框 + 照片的标记（地址和说明会转义）
-export function depthSlides(urls, alt = '照片') {
-  if (urls.length === 1) return `<span class="ds-frame is-still"><img class="ds-img" src="${esc(urls[0])}" alt="${esc(alt)}" loading="lazy" decoding="async" draggable="false"></span>`;
-  return urls.map((src, i) => `<span class="ds-frame" style="--i:${i}"><img class="ds-img" src="${esc(src)}" alt="${esc(alt)}，第 ${i + 1} 张" loading="lazy" decoding="async" draggable="false"></span>`).join('');
+export function depthSlides(urls, alt = '照片', { open = false } = {}) {
+  return urls.map((src, i) => `<span class="ds-frame${urls.length === 1 ? ' is-still' : ''}" style="--i:${i}"${open ? ` role="button" tabindex="0" data-image-open="${i}" aria-label="放大查看第 ${i + 1} 张图片"` : ''}><img class="ds-img" src="${esc(src)}" alt="${esc(alt)}，第 ${i + 1} 张" loading="lazy" decoding="async" draggable="false"></span>`).join('');
 }
 
 /** 给 .ds-track 装上拖拽、按钮和页码；返回卸载函数 */
@@ -58,6 +57,7 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
   const count = ui?.querySelector('.ds-count'), previous = ui?.querySelector('[data-ds="prev"]'), next = ui?.querySelector('[data-ds="next"]');
   const paint = () => {
     raf = 0;
+    if (!ui && !manual) return;
     const m = measure(), left = track.scrollLeft, i = index();
     if (ui) {
       if (i !== paintedIndex) { count.textContent = `${i + 1} / ${frames.length}`; paintedIndex = i; }
@@ -84,6 +84,7 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
   paint();
 
   // 键盘
+  track.closest('a')?.addEventListener('dragstart', event => event.preventDefault(), { signal });
   track.addEventListener('keydown', (e) => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
@@ -98,6 +99,8 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
   track.addEventListener('pointerdown', (e) => {
     if (e.pointerType !== 'mouse' || e.button !== 0) return;
     cancelAnimationFrame(glide);
+    glide = 0;
+    track.classList.remove('is-dragging');
     drag = { x: e.clientX, left: track.scrollLeft, lx: e.clientX, lt: e.timeStamp, v: 0, moved: false, id: e.pointerId };
   }, { signal });
   track.addEventListener('pointermove', (e) => {
@@ -145,4 +148,10 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
     ui?.remove();
     delete track.dataset.depthSlider;
   };
+}
+
+// The same rail is mounted after each asynchronous preview render.
+export function mountDepthPreviews(scope, options = {}) {
+  const disposers = [...scope.querySelectorAll('.ds-track')].map(track => mountDepthSlider(track, { controls:false, enter:false, ...options }));
+  return () => disposers.forEach(dispose => dispose());
 }

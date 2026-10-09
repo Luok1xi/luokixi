@@ -121,7 +121,8 @@ def card(entry, user, reasons=None):
         liked=user.is_authenticated and entry.circle_likes.filter(user=user, revision=entry.public_revision).exists(),
         replies=entry.reply_set.filter(state='published').count(),
         photos=([f'/api/hub/uploads/{uid}/photo' for uid in entry.published.get('uploads', [])] or
-                ([entry.published['autoMedia']['url']] if entry.published.get('autoMedia',{}).get('url','').startswith(('/art/','/api/hub/illustration/')) else [])),
+                ([entry.published['media']['src']] if entry.published.get('media',{}).get('src','').startswith(('https://','/api/hub/source-media/')) else
+                 [entry.published['autoMedia']['url']] if entry.published.get('autoMedia',{}).get('url','').startswith(('https://','/art/','/api/hub/illustration/','/api/hub/source-media/')) else [])),
         photoCredit=entry.published.get('autoMedia',{}).get('credit','') if not entry.published.get('uploads') else '',
         selection={'reason': chosen.reason, 'checkedAt': chosen.checked_at, 'revision': chosen.revision} if chosen else None,
         recommendationReasons=reasons or [],

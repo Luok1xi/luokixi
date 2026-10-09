@@ -133,13 +133,13 @@ function row(x,index) {
   return `<article class="mt-row" data-index="${index}">
     <div class="mt-cover-stage"><span class="mt-shelf-index" aria-hidden="true">${String(index+1).padStart(2,'0')} / ${String(filtered.length).padStart(2,'0')}</span><span class="mt-shelf-shadow" aria-hidden="true"></span><div class="mt-book-float"><div class="mt-book-tilt"><button type="button" class="mt-book-button" data-book="${esc(x.id)}" aria-label="翻开 ${esc(x.title)}">${cover(x)}<span class="mt-book-hint" aria-hidden="true">点击翻阅 ↗</span></button></div></div></div>
     <div class="mt-info"><p class="mt-kicker">${esc(x.course)} · ${x.isSuite?'真题套卷':esc(x.kind)}${x.year?` · ${esc(x.year)}`:''}</p>
-      <h3 class="mt-title">${esc(x.title)}</h3>
+      <h3 class="mt-title"><button class="mt-title-open" type="button" data-book="${esc(x.id)}">${esc(x.title)}</button></h3>
       ${x.schools?.length || x.discipline ? `<p class="mt-meta">${esc([...(x.schools||[]),x.discipline,x.priority].filter(Boolean).join(' · '))}</p>` : ''}
       ${x.paperId ? `<a class="ap-more" href="question-workshop.html?paper=${encodeURIComponent(x.paperId)}">编辑题目与排版 ↗</a>` : x.bankId ? '<a class="ap-more" href="question-workshop.html">到题目工坊编辑 ↗</a>' : ''}
       <div class="mt-suite-contents" aria-label="本册内容">${roles.map(([role,files])=>`<span><i aria-hidden="true">${role==='audio'?'◌':role==='answer'?'↳':'▱'}</i>${ROLE_NAMES[role]}<b>${files.length}</b></span>`).join('')}</div>
       ${x.isSuite?`<p class="mt-meta">${missing.length?`已收录 ${x.fileCount} 份文件 · 尚缺${missing.join('、')}`:`试卷、答案与听力已收齐 · ${x.fileCount} 份文件`}</p>`:x.note?`<p class="mt-meta">${esc(x.note)}</p>`:''}
       <p class="mt-byline"><span>${x.fileCount} ${x.external?'个来源':'份文件'}${x.pages?` · ${esc(x.pages)} 页`:''}</span>${x.uploader?`<span>上传者 ${esc(x.uploader)}</span>`:''}${x.uploadedAt?`<span>收录 ${esc(new Date(x.uploadedAt).toLocaleString('zh-CN'))}</span>`:''}<span>审核：${esc(x.reviewedBy||'历史审核者未记录')}</span>${!x.isCollection&&Number.isFinite(x.stars)?`<span>${x.stars} 人收藏</span>`:''}</p>
-      <div class="mt-actions"><button class="mt-view" type="button" data-book="${esc(x.id)}" aria-label="翻开 ${esc(x.title)}">${x.isCollection?'翻开这一册':'翻开资料'} ↗</button>
+      <div class="mt-actions">
         ${downloadableFiles(x).length?`<button class="mt-add${on?' is-on':''}" type="button" data-add="${esc(x.id)}" aria-pressed="${on}" aria-label="${on?'从资料袋拿出':'放入资料袋'}：${esc(x.title)}"><span aria-hidden="true">${on?'✓':'＋'}</span><em>${bagLabel(x)}</em></button>`:`<a class="ap-more" href="${esc(x.url)}" target="_blank" rel="noopener">前往原站 ↗</a>`}
       </div>
     </div></article>`;

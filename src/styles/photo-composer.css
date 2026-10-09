@@ -1,0 +1,24 @@
+.cs-photo-drop { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:16px; padding:20px; border:1px dashed var(--line); border-radius:16px; cursor:pointer; color:var(--fg-2); }
+.cs-photo-drop input { max-width:100%; }
+.cs-photo-drop b { display:block; color:var(--fg); font-weight:500; }
+.cs-photo-drop small { display:block; margin-top:4px; }
+.has-photo-drag .cs-photo-drop { border-color:var(--accent); background:var(--accent-soft); }
+.cs-photo-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.cs-photo-tile { position:relative; margin:0; aspect-ratio:1; border-radius:12px; overflow:hidden; background:var(--bg-alt); }
+.cs-photo-tile img { width:100%; height:100%; object-fit:contain; }
+.cs-photo-tile figcaption { position:absolute; left:8px; top:8px; border-radius:8px; padding:3px 7px; background:#0009; color:#fff; font-size:12px; }
+.cs-photo-tile > button { position:absolute; top:6px; right:6px; width:28px; height:28px; border:0; border-radius:50%; background:#0009; color:white; cursor:pointer; }
+.cs-photo-order { position:absolute; bottom:6px; right:6px; display:flex; gap:4px; }
+.cs-photo-order button { border:0; border-radius:8px; background:#0009; color:white; min-width:28px; height:26px; cursor:pointer; }
+.cs-photo-tile button:disabled { opacity:.3; cursor:default; }
+.cs-post[tabindex]:focus-visible, [data-image-open]:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+.cs-image-viewer { width:min(1100px,96vw); max-width:96vw; max-height:94dvh; padding:12px; border:0; border-radius:18px; background:var(--bg-elev); color:var(--fg); }
+.cs-image-viewer::backdrop { background:#000b; }
+.cs-image-viewer img { display:block; width:100%; height:min(74dvh,850px); object-fit:contain; }
+.cs-image-viewer nav { display:flex; justify-content:space-between; align-items:center; padding:10px; }
+.cs-image-viewer button { border:0; background:transparent; color:inherit; cursor:pointer; padding:10px; }
+.cs-post-title a { color:inherit; text-decoration:none; }
+.cs-op-photos [data-image-open] { cursor:zoom-in; }
+.cs-news-open { position:absolute; inset:0; z-index:2; }
+.cs-news-open:focus-visible { outline:3px solid var(--accent); outline-offset:-5px; border-radius:inherit; }
+.as-today-actions { position:relative; z-index:3; }

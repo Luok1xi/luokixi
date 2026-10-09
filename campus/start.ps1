@@ -100,7 +100,7 @@ try {
     $hubReviewMode = $false
     $health = $null
     try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17861/api/hub/health' -TimeoutSec 2 } catch {}
-    $hubReady = $health -and $health.version -eq '2.0' -and ($health.beikuangChatVersion -eq 34 -and $health.managementVersion -eq 1)
+    $hubReady = $health -and $health.version -eq '2.0' -and ($health.beikuangChatVersion -eq 34 -and ($health.managementVersion -eq 1 -and $health.socialMediaVersion -eq 1))
     if ($health -and $health.version -eq '2.0' -and -not $hubReady) {
             # Reload only this repository's community service after the chat repair.
             $hubScriptPath = Join-Path $PSScriptRoot 'run_hub.py'
@@ -121,7 +121,7 @@ try {
         Start-Process -FilePath $runtime -ArgumentList $hubArguments -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $dataDir 'hub.log') -RedirectStandardError (Join-Path $dataDir 'hub-error.log') | Out-Null
         for ($attempt = 0; $attempt -lt 30; $attempt++) {
             Start-Sleep -Milliseconds 300
-            try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17861/api/hub/health' -TimeoutSec 1; if ($health.version -eq '2.0' -and ($health.beikuangChatVersion -eq 34 -and $health.managementVersion -eq 1)) { $hubReady = $true; break } } catch {}
+            try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17861/api/hub/health' -TimeoutSec 1; if ($health.version -eq '2.0' -and ($health.beikuangChatVersion -eq 34 -and ($health.managementVersion -eq 1 -and $health.socialMediaVersion -eq 1))) { $hubReady = $true; break } } catch {}
         }
     }
     if (-not $hubReady) { throw '社区服务未启动，请检查 campus/.data/hub-error.log 并安装 hub-requirements.txt。' }
@@ -153,7 +153,7 @@ try {
     & (Join-Path $PSScriptRoot 'start-codex-companion.ps1') -NodePath $nodePath
     & (Join-Path $PSScriptRoot 'start-voice.ps1') -NoWait
     $ready = $false
-    try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17860/api/health' -TimeoutSec 2; $ready = $health.app -eq 'cumtb-campus-library' -and ($health.libraryPipelineVersion -eq 3 -and $health.managementVersion -eq 1) } catch {}
+    try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17860/api/health' -TimeoutSec 2; $ready = $health.app -eq 'cumtb-campus-library' -and ($health.libraryPipelineVersion -eq 3 -and ($health.managementVersion -eq 1 -and $health.socialMediaVersion -eq 1)) } catch {}
     if (-not $ready) {
         foreach ($processId in (@(Get-NetTCPConnection -State Listen -LocalPort 17860 -ErrorAction SilentlyContinue) | Select-Object -ExpandProperty OwningProcess -Unique)) {
             $existing = Get-CimInstance Win32_Process -Filter "ProcessId=$processId"
@@ -166,7 +166,7 @@ try {
         Start-Process -FilePath $runtime -ArgumentList @('-u', ('"' + $serverScript + '"'), '--port', '17860') -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $dataDir 'server.log') -RedirectStandardError (Join-Path $dataDir 'server-error.log') | Out-Null
         for ($attempt = 0; $attempt -lt 30; $attempt++) {
             Start-Sleep -Milliseconds 300
-            try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17860/api/health' -TimeoutSec 1; if ($health.app -eq 'cumtb-campus-library' -and $health.managementVersion -eq 1) { $ready = $true; break } } catch {}
+            try { $health = Invoke-RestMethod -Uri 'http://127.0.0.1:17860/api/health' -TimeoutSec 1; if ($health.app -eq 'cumtb-campus-library' -and ($health.managementVersion -eq 1 -and $health.socialMediaVersion -eq 1)) { $ready = $true; break } } catch {}
         }
     }
     if (-not $ready) { throw '知识库服务未启动，请查看 campus/.data/server-error.log。' }

@@ -4,6 +4,7 @@ import { CATEGORIES, ORIGINS } from './schema.js';
 import { coverHTML } from './cover.js';
 import { hubApi } from '../../campus/hub-client.js';
 import {applyEditorial} from './editorial-data.js';
+import {projectImage} from './project-image.js';
 
 let pending;
 export function loadCommunity() {
@@ -13,7 +14,7 @@ export function loadCommunity() {
   }), hubApi.available ? hubApi.projectMedia({ signal: AbortSignal.timeout(1200) }).catch(() => null) : null]).then(([data, media]) => ({
     ...data, projects: data.projects.map(p => {
       const image = media?.items?.[p.repo?.fullName];
-      return !p.cover && image?.image ? { ...p, cover:image.image, coverCredit:image.credit, coverSource:image.sourceUrl, coverStale:image.stale } : p;
+      return projectImage(p, image);
     }),
   })).then(d=>applyEditorial('community',d));
   return pending;

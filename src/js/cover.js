@@ -87,7 +87,7 @@ export function coverHTML(project) {
 }
 
 const escapeAttr = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const safeCover = (s) => typeof s === 'string' && (/^https:\/\/[^\s"<>]+$/.test(s) || /^(?:art|files)\/[\w/-]+\.(?:webp|png|jpg|avif)$/.test(s));
+const safeCover = (s) => typeof s === 'string' && (/^https:\/\/[^\s"<>]+$/.test(s) || /^(?:\/?art|files)\/[\w/-]+\.(?:webp|png|jpg|avif)$/.test(s) || /^\/api\/hub\/(?:source-media|illustration)\/[a-f0-9]{64}$/.test(s));
 // Capture also covers lazy images added by subsequent feed pages. A broken
 // remote or generated cover leaves the original vector visibly in place.
 if (typeof document !== 'undefined') {

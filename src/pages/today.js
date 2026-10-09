@@ -2,10 +2,12 @@ import { attachSearchSuggestions } from '../js/search-suggestions.js';
 import { loadLearningCatalogue } from '../js/learning-catalog.js';
 import {newsMediaLayout,bindNewsImage} from '../js/news-media.js';
 import {applyEditorial} from '../js/editorial-data.js';
+import {institutionIcon} from '../js/project-image.js';
+import { depthSlides, mountDepthPreviews } from '../js/depth-slider.js';
 // 首页“今日矿大”：第一屏是横向大轮播（Apple TV / App Store 首页），下面按 App Store 的货架排热帖、开源、竞赛和口碑。
 // 只用真实数据：学校新闻和宣讲会要等来源登记和编辑核对（data/featured.json），没有就不编；
 // 社区服务没连上、读取失败、确实没有内容，三种情况分别说明。
-// 配图一律由 Codex 交付（实拍或照片级图片，登记在 art/manifest.json），页面不自己画；没交付时只用底色。
+// 原图与来源由现有图片管道核验；明确标识的主题封面仅作为缺原图时的后备。
 import { initShell, observeReveal, reducedMotion } from '../js/shell.js';
 import { hubApi, hubState, loginURL } from '../js/hub.js';
 import { playOpening } from '../js/opening.js';
@@ -130,11 +132,11 @@ function catIcon(category) {
   return `<span class="v3-icon as-icon" style="--h:${c?.hue ?? 215}">${glyphSVG(category)}</span>`;
 }
 
-// 项目图标：用 GitHub 上作者自己的头像（真实图片），加载失败时退回分类图标
+// 项目封面与学校标识都依据项目本身；作者头像不能代替项目标识。
 function projectIcon(p) {
-  const owner = p.repo?.fullName?.split('/')[0];
-  if (!owner || !/^[\w.-]+$/.test(owner)) return catIcon(p.category);
-  return `<span class="v3-icon as-icon as-photo" style="--h:${CATEGORIES[p.category]?.hue ?? 215}">${glyphSVG(p.category)}<img src="https://github.com/${esc(owner)}.png?size=128" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()"></span>`;
+  const identity = institutionIcon(p), src = identity?.src || p.cover;
+  if (!src || !/^(?:https:\/\/|\/?art\/|\/api\/hub\/source-media\/)[^\s"<>]+$/.test(src)) return catIcon(p.category);
+  return `<span class="v3-icon as-icon as-photo${identity ? ' is-institution' : ''}" style="--h:${identity ? 276 : CATEGORIES[p.category]?.hue ?? 215}">${identity ? '' : glyphSVG(p.category)}<img src="${esc(src)}" alt="${esc(identity?.alt || p.title)}" style="object-fit:contain" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()"></span>`;
 }
 
 // ---------- 第一屏：横向大轮播 ----------
@@ -161,16 +163,15 @@ function slide({ id, eyebrow, title, dek, bg, art, media, primary, story }) {
   const ext = /^https?:/.test(primary.href) ? ' target="_blank" rel="noopener"' : '';
   const contentKey=id.startsWith('f-hub-')?'entry/'+id.slice(6):id.startsWith('f-')?'featured/'+id.slice(2):'';
   return `<article class="hc-slide" aria-roledescription="slide" data-id="${esc(id)}"${contentKey?` data-content-key="${esc(contentKey)}"`:''}>
-    <div class="hc-card" ${story ? `data-story="${esc(id)}"` : ''} style="--hc-bg:${bg}">
+    <div class="hc-card" ${story ? `data-story="${esc(id)}" role="button" tabindex="0" aria-label="${esc(eyebrow)}：打开详情"` : ''} style="--hc-bg:${bg}">
       <div class="hc-media"${art ? ` data-art="${esc(art)}"` : ''}${media?` data-fit="${picture.fit}" data-position="${picture.position}"`:''}>${media ? `<img class="art-img" src="${esc(media.src)}" alt="${esc(media.alt ?? '')}"${picture.width&&picture.height?` width="${picture.width}" height="${picture.height}"`:''} style="object-position:${picture.position}" loading="${media.priority ? 'eager' : 'lazy'}" fetchpriority="${media.priority ? 'high' : 'auto'}" decoding="async" referrerpolicy="no-referrer">` : ''}</div>
       <div class="hc-copy">
         <p class="hc-eyebrow">${esc(eyebrow)}</p>
         <h2 class="hc-title">${title}</h2>
         ${dek ? `<p class="hc-dek">${esc(dek)}</p>` : ''}
-        <div class="hc-actions">
+        ${story ? '' : `<div class="hc-actions">
           <a class="glass-pill is-solid" href="${esc(primary.href)}"${ext}>${esc(primary.label)}</a>
-          ${story ? '<button class="glass-pill" type="button" data-open-story>了解更多</button>' : ''}
-        </div>
+        </div>`}
       </div>
     </div>
   </article>`;
@@ -338,11 +339,15 @@ heroEl.addEventListener('click', (e) => {
   hero.querySelector('.hc-actions')?.remove();
   openStory(card, { label: story.label, body: story.body, hero: hero.innerHTML });
 });
+heroEl.addEventListener('keydown', event => {
+  if ((event.key === 'Enter' || event.key === ' ') && event.target.matches('.hc-card[data-story]')) { event.preventDefault(); event.target.click(); }
+});
 
 // ---------- 货架：App Store 的三行网格（Top Charts / 应用列表） ----------
 
 const grid = (items, cls = '') => `<div class="as-grid ${cls}">${items.join('')}</div>`;
 
+const postPhoto = p => p.photos?.length ? `<span class="td-post-preview${p.photos.length > 1 ? ' ds-track' : ''}">${depthSlides(p.photos.slice(0,9), p.photoCredit || '帖子配图')}</span>` : '';
 function lockup({ href, icon, title, sub, pill = '查看', rank, ext = false }) {
   return `<a class="as-lockup" href="${esc(href)}"${ext ? ' target="_blank" rel="noopener"' : ''}>
     ${rank ? `<span class="as-rank num">${rank}</span>` : ''}${icon}
@@ -360,7 +365,7 @@ async function hotShelf(limit = 9) {
   return grid(list.map((p, i) => lockup({
     href: postHref(p),
     rank: i + 1,
-    icon: `<span class="as-icon as-avatar" style="--h:${(i * 47 + 20) % 360}">${initial(p.owner?.name)}</span>`,
+    icon: postPhoto(p) || `<span class="as-icon as-avatar" style="--h:${(i * 47 + 20) % 360}">${initial(p.owner?.name)}</span>`,
     title: postTitle(p),
     sub: `${p.owner?.name ? `${p.owner.name} · ` : ''}回复 ${fmtNum(p.replies ?? 0)} · 赞 ${fmtNum(p.likes ?? 0)}`,
   })), 'is-ranked');
@@ -373,7 +378,7 @@ async function hotList(limit = 20) {
   const list = (r?.items ?? []).slice(0, limit);
   if (!list.length) return quiet('校圈还没有帖子。第一条动态、第一个话题，可以由你来发。');
   return `<ol class="v3-hot">${list
-    .map((p) => `<li><a class="v3-hot-title" href="${esc(postHref(p))}">${esc(postTitle(p))}</a>
+    .map((p) => `<li><a class="v3-hot-title" href="${esc(postHref(p))}">${postPhoto(p)}${esc(postTitle(p))}</a>
       <span class="v3-hot-heat">回复 ${fmtNum(p.replies ?? 0)} · 赞 ${fmtNum(p.likes ?? 0)}</span></li>`)
     .join('')}</ol>
     <p class="v3-note">按校圈的推荐规则排列（算法 ${esc(r.algorithmVersion ?? '')}），参考你主动选择的兴趣和维护者的核对，不是累计点赞榜。</p>`;
@@ -522,7 +527,7 @@ async function hotModule(limit = 5) {
   if (r?.error) return `<section class="td-mod">${modHead('校圈热帖', action)}${modNote(`暂时读不到：${esc(r.error)}`)}</section>`;
   const list = (r?.items ?? []).slice(0, limit);
   return `<section class="td-mod" aria-label="校圈热帖">${modHead('校圈热帖', '<a class="ap-more" href="circle.html">全部</a>')}
-    ${list.length ? `<ol class="ap-list">${list.map((p, i) => `<li><a class="ap-row" href="${esc(postHref(p))}"><span class="ap-rank">${i + 1}</span>
+    ${list.length ? `<ol class="ap-list">${list.map((p, i) => `<li><a class="ap-row" href="${esc(postHref(p))}"><span class="ap-rank">${i + 1}</span>${postPhoto(p)}
       <span class="ap-row-text"><b>${esc(postTitle(p))}</b><span>${p.owner?.name ? `${esc(p.owner.name)} · ` : ''}回复 ${fmtNum(p.replies ?? 0)} · 赞 ${fmtNum(p.likes ?? 0)}</span></span>${CHEV}</a></li>`).join('')}</ol>`
       : '<div class="ap-empty"><b>还没有公开的帖子。</b><p>第一条动态、第一个话题，可以由你来发。</p><a class="btn btn-primary btn-sm" href="circle.html?compose=1">发帖</a></div>'}
   </section>`;
@@ -609,7 +614,7 @@ const TABS = {
     const [feed, notes] = await Promise.all([load('following'), load('notices')]);
     const posts = feed?.error ? failed('关注的动态', feed.error)
       : (feed?.items ?? []).length
-        ? feed.items.slice(0, 20).map((p) => `<a class="v3-post" href="${esc(postHref(p))}"><span class="v3-post-title">${esc(postTitle(p))}</span>
+        ? feed.items.slice(0, 20).map((p) => `<a class="v3-post" href="${esc(postHref(p))}">${postPhoto(p)}<span class="v3-post-title">${esc(postTitle(p))}</span>
             <span class="v3-post-meta">${p.owner ? `<span>${esc(p.owner.name)}</span>` : ''}<span>回复 ${p.replies ?? 0}</span><span class="v3-lit">赞 ${p.likes ?? 0}</span><span>${timeAgo(p.updated)}</span></span></a>`).join('')
         : quiet('你还没有关注话题、吧或作者，或者他们最近没有新内容。');
     const updates = notes?.error ? failed('消息', notes.error)
@@ -670,6 +675,7 @@ function wireShelves(scope) {
 
 const ORDER = ['picks', 'following', 'hot', 'chances'];
 let serial = 0;
+let disposePostPreviews = () => {};
 let entered = Promise.resolve();
 async function show(tab) {
   const from = ORDER.indexOf(st.tab);
@@ -682,10 +688,12 @@ async function show(tab) {
   panel.classList.add('is-busy');
   const html = await TABS[st.tab]().catch((e) => quiet(`没有加载出来：${esc(e.message ?? '未知错误')}`));
   if (mine !== serial) return;
+  disposePostPreviews();
   // 推荐是通栏大块；其他标签页是窄栏阅读
   panel.innerHTML = st.tab === 'picks' ? html : `<div class="ap-wrap ap-wrap-text td-plain">${html.replaceAll('<section ', '<section data-reveal ')}</div>`;
   panel.classList.remove('is-busy');
   mountArt(panel);
+  disposePostPreviews = mountDepthPreviews(panel);
   $$('[data-kbd-mod]', panel).forEach((k) => (k.textContent = /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘K' : 'Ctrl K'));
   // 虎扑式左右切换：往右的标签从右边滑进来，往左的从左边
   const dir = Math.sign(ORDER.indexOf(st.tab) - from);

@@ -8,6 +8,7 @@ import { esc } from '../js/data.js';
 import { pop, rollTo, openFrom, closeTo, setSegment, refreshFx, disposeTilts } from '../js/fx.js';
 import { attachSearchSuggestions } from '../js/search-suggestions.js';
 import { depthSlides, mountDepthSlider } from '../js/depth-slider.js';
+import '../styles/photo-composer.css';
 import '../styles/circle-news.css';
 
 initShell();
@@ -107,15 +108,15 @@ function authorFollowHTML(p) {
 function postCard(p) {
   const d = p.data || {};
   const c = d.circle || {};
-  const photos = (p.photos || []).slice(0, 3);
-  return `<article class="cs-post fx-press" data-post="${esc(p.id)}" data-content-key="entry/${esc(p.id)}">
+  const photos = (p.photos || []).slice(0, 9);
+  return `<article class="cs-post fx-press" data-post="${esc(p.id)}" data-content-key="entry/${esc(p.id)}" tabindex="0" aria-label="打开帖子：${esc(d.title || '')}">
     <header class="cs-post-head">
       <span class="cs-avatar" aria-hidden="true">${face(p.owner)}</span>
       <span class="cs-post-who"><b>${esc(p.owner?.name || '同学')}</b><span>${esc(boardName(c.board))} · ${esc(CAMPUS[c.campus] || '全校')}</span></span>
       ${authorFollowHTML(p)}
       <time class="cs-post-time" datetime="${esc(c.publishedAt || p.created || '')}">${esc(timeAgo(c.publishedAt || p.created || ''))}</time>
     </header>
-    <h3 class="cs-post-title">${esc(d.title || '')}</h3>
+    <h3 class="cs-post-title"><a href="circle.html?post=${esc(p.id)}" data-open="${esc(p.id)}">${esc(d.title || '')}</a></h3>
     ${d.body || d.summary ? `<p class="cs-post-body">${esc(d.body || d.summary)}</p>` : ''}
     ${photos.length ? `<div class="cs-post-photos is-${photos.length}${photos.length > 1 ? ' ds-track' : ''}">${depthSlides(photos, p.photoCredit || '帖子配图')}</div>` : ''}
     ${p.recommendationReasons?.length ? `<p class="cs-feed-reason">${p.recommendationReasons.map(esc).join(' · ')}</p>` : ''}
@@ -128,6 +129,9 @@ function postCard(p) {
   </article>`;
 }
 let feedSliders = [], threadSlider = () => {};
+$('#circle-thread').addEventListener('close', () => {
+  threadSlider(); threadSlider = () => {};
+});
 function renderFeed() {
   feedSliders.forEach(dispose => dispose());
   $('#circle-feed').innerHTML = S.items.map(postCard).join('') || `<div class="as-empty">
@@ -230,7 +234,7 @@ async function loadNews() {
     const r = await hubApi.catalogue({ kind: 'news' });
     for (const e of r.items || []) {
       const d = e.data || {};
-      out.push({ title: d.title, dek: d.summary || '', url: safeHref(d.links?.source), source: d.sourceNote || '学校新闻', date: d.publishedAt || e.updated, media: d.media });
+      out.push({ title: d.title, dek: d.summary || '', url: `viewer.html?kind=entry&id=${encodeURIComponent(e.id)}`, source: d.sourceNote || '学校新闻', date: d.publishedAt || e.updated, media: d.media });
     }
   } catch { /* 社区服务未连接 */ }
   const seen = new Set();
@@ -251,11 +255,12 @@ async function loadNews() {
   const [lead, ...rest] = S.news;
   const img = lead.media?.src && safeHref(lead.media.src);
   box.innerHTML = `<article class="as-card as-today${img ? '' : ' is-plain'}" data-tilt>
+      <a class="cs-news-open" href="${esc(lead.url)}" aria-label="${esc(lead.title)}"></a>
       ${img ? `<img src="${esc(img)}" alt="${esc(lead.media.alt || lead.title)}" loading="eager" decoding="async" referrerpolicy="no-referrer">` : ''}
       <div class="as-today-top"><p class="as-eyebrow">校园头条 · ${esc(lead.source)}</p><h2>${esc(lead.title)}</h2></div>
       <div class="as-today-bottom">
         ${lead.dek ? `<p>${esc(lead.dek)}</p>` : ''}
-        <div class="as-today-actions"><a class="as-get is-primary" href="${esc(lead.url)}" target="_blank" rel="noopener">阅读原文</a><button class="as-get" type="button" data-discuss="0">讨论这条</button></div>
+        <div class="as-today-actions"><button class="as-see-all" type="button" data-discuss="0">讨论这条</button></div>
         <small>${lead.date ? esc(fmtDay(lead.date)) : ''}${lead.media?.credit ? ` · 图片：${esc(lead.media.credit)}` : ''}</small>
       </div>
     </article>
@@ -288,6 +293,11 @@ async function compose() {
   if (!s.user) { location.href = loginURL(); return; }
   const dlg = $('#circle-editor');
   dlg.showModal();
+  const locationUrl = new URL(location.href);
+  if (locationUrl.searchParams.has('compose')) { locationUrl.searchParams.delete('compose'); history.replaceState(null, '', locationUrl); }
+  photoComposer ??= import('../js/photo-composer.js').then(({mountPhotoComposer}) => mountPhotoComposer($('#circle-form')));
+  await photoComposer;
+  $('#circle-form [type=submit]').textContent = s.user.developer ? '发布' : '提交审核';
   $('#post-board').value = S.board || S.boards[0]?.id || '';
   $('#circle-form').elements.campus.value = $('#circle-campus').value;
   $('#circle-form').elements.title.focus();
@@ -303,27 +313,32 @@ async function discuss(i) {
   if (S.boards.some((b) => b.id === 'daily')) $('#post-board').value = 'daily';
   f.elements.body.focus();
 }
+let photoComposer, pendingPost = null;
 $('#circle-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.currentTarget;
   const btn = f.querySelector('[type=submit]');
   const v = Object.fromEntries(new FormData(f));
-  const photos = [...f.elements.photos.files];
-  if (photos.length > 9) { $('#post-status').textContent = '最多上传 9 张照片。'; return; }
+  if (btn.disabled) return;
   btn.disabled = true;
   try {
-    const uploads = [];
-    for (const file of photos) {
-      $('#post-status').textContent = `正在上传 ${file.name}`;
-      uploads.push((await hubApi.upload(file)).id);
-    }
-    const r = await hubApi.createCirclePost({
+    const composer = await photoComposer;
+    const uploads = composer ? await composer.uploadAll(file => hubApi.upload(file), (i,total) => {
+      $('#post-status').textContent = `正在上传图片 ${i} / ${total}`;
+    }) : [];
+    const data = {
       title: v.title, body: v.body, tags: v.tags.split(/[，,、\s]+/).filter(Boolean).slice(0, 10), uploads,
       rightsConfirmed: f.elements.rights.checked, circle: { format: 'thread', board: v.board, campus: v.campus, visibility: 'public' },
-    });
-    await hubApi.submit(r.id, r.editRevision);
-    $('#post-status').innerHTML = '已提交审核，通过后出现在帖子流里。<a href="me.html#entries">查看投稿进度 ›</a>';
+    };
+    const signature = JSON.stringify(data);
+    if (!pendingPost || pendingPost.signature !== signature) pendingPost = { signature, entry: await hubApi.createCirclePost(data) };
+    const r = pendingPost.entry.state === 'published' ? pendingPost.entry : await hubApi.submit(pendingPost.entry.id, pendingPost.entry.editRevision);
+    $('#post-status').innerHTML = r.state === 'published' ? `已发布。<a href="circle.html?post=${esc(r.id)}">打开帖子 ›</a>` : '已提交审核。<a href="me.html#entries">查看投稿进度 ›</a>';
+    pendingPost = null;
     f.reset();
+    $('#circle-editor').close();
+    status(r.state === 'published' ? '帖子已发布。' : '帖子已提交，审核后公开。');
+    await load();
   } catch (err) {
     $('#post-status').textContent = err.message;
   } finally {
@@ -352,12 +367,11 @@ function threadHTML(t) {
       <div class="cs-op-body">${esc(d.body || '')}</div>
       ${d.languageVersions?.original?`<details><summary>中外文对照 · 来源原文摘要</summary><h3>${esc(d.languageVersions.original.title||'')}</h3><div class="cs-op-body">${esc(d.languageVersions.original.body||'')}</div></details>`:''}
       ${d.maintenanceFacts?`<details><summary>查看执行记录和未解决事项</summary><ul>${d.maintenanceFacts.unresolved.map(r=>`<li>${esc(r.robot)}：${r.state==='failed'?'失败':'部分完成'} · ${esc(r.error||'')}</li>`).join('')||'<li>此次记录没有失败项；不代表全站没有问题。</li>'}</ul></details>`:''}
-      ${(p.photos || []).length ? `<div class="cs-op-photos${p.photos.length > 1 ? ' ds-track' : ''}">${depthSlides(p.photos, '同学上传的照片')}</div>` : ''}
+      ${(p.photos || []).length ? `<div class="cs-op-photos${p.photos.length > 1 ? ' ds-track' : ''}">${depthSlides(p.photos, p.photoCredit || '帖子图片', {open:true})}</div>` : ''}
       ${c.external?.url ? `<p><a class="as-see-all" href="${esc(safeHref(c.external.url))}" target="_blank" rel="noopener">阅读原文 ›</a></p>` : ''}
       ${p.selection ? `<p class="cs-post-pick"><span class="as-hot-badge">精选</span>${esc(p.selection.reason)}</p>` : ''}
       <footer class="as-review-foot">
         <a class="as-see-all" href="viewer.html?kind=entry&id=${esc(p.id)}">阅读 / 导出帖子</a>
-        ${(p.photos||[]).map((url,i)=>`<a class="as-see-all" href="${esc(url)}">查看配图 ${i+1}</a>`).join('')}
         <button type="button" data-like="${esc(p.id)}" aria-pressed="${Boolean(p.liked)}">${ICON.flame}<span class="num">${p.likes || 0}</span><span>亮</span></button>
         <button type="button" data-star="${esc(p.id)}" aria-pressed="${Boolean(p.starred)}">${ICON.star}<span>${p.starred ? '已收藏' : '收藏'}</span></button>
       </footer>
@@ -542,6 +556,12 @@ async function toggleStar(btn) {
 // ---------- 事件 ----------
 document.addEventListener('click', async (e) => {
   const t = e.target;
+  const image = t.closest('[data-image-open]');
+  if (image) {
+    const {openPhotoViewer} = await import('../js/photo-viewer.js');
+    openPhotoViewer([...image.parentElement.querySelectorAll('.ds-img')].map(img=>img.src), Number(image.dataset.imageOpen), image);
+    return;
+  }
   const close = t.closest('[data-close]');
   if (close) {
     const dlg = close.closest('dialog');
@@ -611,7 +631,8 @@ document.addEventListener('click', async (e) => {
     return;
   }
   const post = t.closest('[data-post], [data-open]');
-  if (post && !t.closest('a')) {
+  if (post && (t.closest('[data-open]') || !t.closest('a, button, input, select, textarea'))) {
+    e.preventDefault();
     const card = post.closest('.cs-post, .as-chart-row') || post;
     await openThread(post.dataset.post || post.dataset.open, card);
     return;
@@ -623,6 +644,7 @@ document.addEventListener('click', async (e) => {
   if (t.closest('#cs-hot-rule')) { status($('#cs-hot-rule').dataset.rule || '近 7 天发布的公开帖，按回复和点赞计算。'); return; }
 });
 document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.cs-post, [data-image-open]')) { e.preventDefault(); e.target.click(); return; }
   const board = e.target.closest?.('[data-board-id][role=button]');
   if (board && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); selectBoard(board.dataset.boardId); }
 });

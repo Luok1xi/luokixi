@@ -76,6 +76,8 @@ body[data-page="materials"] .fab { display:none; }
 .mt-info { min-width:0;position:relative;z-index:1; }
 .mt-kicker { font-size:11px;letter-spacing:.06em;color:var(--fg-2);font-weight:500; }
 .mt-title { font-size:clamp(25px,2.65vw,38px);line-height:1.3;letter-spacing:-.045em;margin-top:17px;overflow-wrap:anywhere; }
+.mt-title-open { display:block; border:0; padding:0; background:none; color:inherit; font:inherit; letter-spacing:inherit; text-align:inherit; cursor:pointer; }
+.mt-title-open:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
 .mt-meta { margin-top:19px;max-width:30em;color:var(--fg-2);font-size:var(--fs-small);line-height:1.75;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
 .mt-byline { display:flex;flex-wrap:wrap;gap:12px;margin-top:22px;font-size:var(--fs-micro);color:var(--fg-2); }
 .mt-actions { display:flex;align-items:center;gap:20px;margin-top:28px;flex-wrap:wrap; }

@@ -72,8 +72,10 @@
   from { transform: translate3d(0, -3%, 0) scale(1.08); }
   to { transform: translate3d(0, 3%, 0) scale(1.08); }
 }
-.cs-post-photos.ds-track { display: grid; grid-template-columns: none; }
+.cs-post .cs-post-photos.ds-track { display: grid; grid-template-columns: none; }
 .cs-post-photos .ds-frame { min-width: 0; }
+.cs-post .cs-post-photos.is-1 { grid-template-columns: minmax(0, 1fr); }
+.cs-post-photos .ds-frame > .ds-img { aspect-ratio: auto; border-radius: 0; }
 @media (prefers-reduced-motion: reduce) {
   .ds-frame > .ds-img { animation: none !important; transform: none !important; }
 }
