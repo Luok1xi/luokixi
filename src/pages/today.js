@@ -693,7 +693,7 @@ async function show(tab) {
   wireShelves(panel);
   // 开场还没结束时先不播入场，等开场把页面“交”出来再一起升起
   entered.then(() => observeReveal(panel));
-  history.replaceState(null, '', st.tab === 'picks' ? location.pathname : `${location.pathname}#${st.tab}`);
+  history.replaceState(null, '', `${location.pathname}${location.search}${st.tab === 'picks' ? '' : '#'+st.tab}`);
 }
 
 tabs.addEventListener('click', (e) => {

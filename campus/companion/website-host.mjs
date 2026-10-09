@@ -155,16 +155,20 @@ export async function createWebsiteHost({app:providedApp,token,owner,port=17862,
             await rpc({op:'content-progress',id:body.contentTask,state:'running',progress:'读取目标内容与当前权限'});
             try{
               await work.refresh(true);
-              const execution=await app.agent.withContentTask(body.contentTask,()=>app.agent.run({task:body.text+'\n这是站主在私聊窗口发起的具体内容任务。先 content_search 查目标并读取当前版本，再执行审核或编辑。不要只承诺稍后做，找不到明确目标时提出必要的澄清；失败留下实际错误。',
+              const execution=await app.agent.withContentTask(body.contentTask,()=>app.agent.run({task:body.text+'\n本次任务编号 '+body.contentTask+'。这是站主在私聊窗口发起的具体内容任务。先 content_search 查目标并读取当前版本，再执行审核或编辑。目标编号已给出时直接 content_read。不要只承诺稍后做，找不到明确目标时提出必要的澄清；失败留下实际错误。完成操作后调用 finish 汇总实际回执。',
                 mode:'deep',purpose:'website-maintenance',signal:job.controller.signal,
+                toolNames:['content_search','content_read','content_history','content_publish','content_review','content_task','read_page','read_paper'],
                 onProgress:p=>{void rpc({op:'content-progress',id:body.contentTask,state:'running',progress:p.text.slice(0,600)}).catch(()=>{});}}));
               const actionIds=execution.trace.filter(t=>t.ok&&t.receipt?.completed===true&&t.receipt.actionId).map(t=>t.receipt.actionId);
-              const taskState=await rpc({op:'content-progress',id:body.contentTask,state:actionIds.length?'completed':'failed',
-                progress:actionIds.length?'处理完成，已取得发布或审核回执':'执行结束，未取得成功回执',
-                result:{actionIds,trace:execution.trace,gaps:execution.gaps},error:actionIds.length?'':execution.gaps.join('；')||'未成功执行审核或发布。'});
+              // Formatting a research conclusion is distinct from publishing website content.
+              const reportWarnings=execution.gaps;
+              const complete=actionIds.length>0;
+              const taskState=await rpc({op:'content-progress',id:body.contentTask,state:complete?'completed':'failed',
+                progress:complete?'处理完成，已取得发布或审核回执':actionIds.length?'部分操作成功；仍有未解决事项':'执行结束，未取得成功回执',
+                result:{actionIds,trace:execution.trace,reportWarnings},error:complete?'':execution.gaps.join('；')||'未成功执行审核或发布。'});
               const reply=await app.chat.compose({trigger:'studio',message:body.text,material:{...chatMaterial,execution,contentTask:taskState,
                 instruction:'直接回复站主这次指令的实际结果。任务失败时不能说已经完成，不拿早上的旧错误当作刚刚的结果。'},
-                results:[{message:execution.answer,trace:execution.trace,gaps:execution.gaps}],isCurrent:()=>!job.cancelled});
+                results:[{message:taskState.progress,trace:execution.trace,gaps:execution.gaps}],isCurrent:()=>!job.cancelled});
               // Preserve the same original private conversation, rather than creating a separate work persona.
               app.service.store.transaction(()=>{app.service.store.addChat('user',body.text,app.service.clock());
                 if(!job.cancelled&&reply.text)app.service.store.addChat('assistant',reply.text,app.service.clock(),reply.messages);});

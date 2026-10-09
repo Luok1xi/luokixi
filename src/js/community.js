@@ -3,6 +3,7 @@ import { esc } from './data.js';
 import { CATEGORIES, ORIGINS } from './schema.js';
 import { coverHTML } from './cover.js';
 import { hubApi } from '../../campus/hub-client.js';
+import {applyEditorial} from './editorial-data.js';
 
 let pending;
 export function loadCommunity() {
@@ -14,13 +15,13 @@ export function loadCommunity() {
       const image = media?.items?.[p.repo?.fullName];
       return !p.cover && image?.image ? { ...p, cover:image.image, coverCredit:image.credit, coverSource:image.sourceUrl, coverStale:image.stale } : p;
     }),
-  }));
+  })).then(d=>applyEditorial('community',d));
   return pending;
 }
 
 let sitePending;
 export function loadSite() {
-  sitePending ??= fetch('data/site.json', { cache: 'no-cache' }).then((r) => r.json());
+  sitePending ??= fetch('data/site.json', { cache: 'no-cache' }).then((r) => r.json()).then(d=>applyEditorial('site',d));
   return sitePending;
 }
 

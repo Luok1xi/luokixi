@@ -116,6 +116,7 @@ def execute(owner, seat, operation, args, request_id=None, task_id=None):
         receipt, made = ExternalCache.objects.get_or_create(key=key, defaults={'data': {
             'hash': payload_hash, 'seat': seat, 'operation': operation, 'task': str(task_id) if task_id else None, 'state': 'running'}})
         if not made:
+            if receipt.data.get('task') != (str(task_id) if task_id else None): raise Problem('此操作属于另一项任务；请查询原任务回执。', 409)
             if receipt.data.get('hash') != payload_hash: raise Problem('同一操作编号不能用于不同内容。', 409)
             if receipt.data['state'] == 'done': return dict(receipt.data['result'], duplicate=True)
             raise Problem('操作仍在执行或已失败。先查操作记录，不自动重复写入。', 409)

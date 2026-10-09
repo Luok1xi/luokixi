@@ -106,3 +106,40 @@ class ContentManagementTests(TestCase):
         self.entry.draft['publishedAt']='2026-10-09T00:00:00Z';self.entry.draft['sourceDigest']='abc';self.entry.save()
         cm.publish(self.owner,{'key':'entry/'+str(self.entry.pk),'revision':1,'patch':{'body':'已编辑'},'reason':'更正'})
         self.entry.refresh_from_db();self.assertEqual(self.entry.published['sourceDigest'],'abc')
+
+    def test_unfold_form_writes_through_publication_service(self):
+        response=self.client.post('/manage/hub/entry/'+str(self.entry.pk)+'/change/',{
+            'expected_revision':1,'title':self.payload['title'],'summary':self.payload['summary'],
+            'body':'管理中心编辑正文','draft':json.dumps(self.entry.draft),'reason':'后台编辑','_save':'保存'})
+        self.assertEqual(response.status_code,302, response.content[:3000])
+        self.entry.refresh_from_db();self.assertEqual(self.entry.published['body'],'管理中心编辑正文')
+
+    def test_static_project_can_be_edited_without_an_upstream_cache(self):
+        catalogue=json.loads((__import__('django.conf',fromlist=['settings']).settings.BASE.parent/'public/data/community.json').read_text(encoding='utf8'))
+        project=next(p for p in catalogue['projects'] if p.get('repo',{}).get('fullName'))
+        key='github/'+project['repo']['fullName']
+        cm.publish(self.owner,{'key':key,'revision':0,'patch':{'description':'本站修订简介'},'reason':'修订静态目录'})
+        self.assertEqual(cm.read(self.owner,key)['data']['description'],'本站修订简介')
+        self.assertTrue(any(r['key']==key for r in cm.search(self.owner,project['repo']['fullName'])['items']))
+
+    @patch('hub.robot_actions.policy',return_value={'enabled':True})
+    def test_restart_reconciles_completed_writes_and_keeps_report_warning(self,_):
+        task=cm.ensure_task(self.owner,'beikuang','chat:format','请审核 entry/'+str(self.entry.pk))
+        aid=str(uuid.uuid4());execute(self.owner,'beikuang','content_review',{'key':'entry/'+str(self.entry.pk),'revision':1,'decision':'approve','reason':'已核对'},aid,str(task.pk))
+        cm.update_task(self.owner,'beikuang',{'id':str(task.pk),'state':'failed','error':'结论格式错误','result':{'actionIds':[aid],'gaps':['结论格式错误']}})
+        cm.reconcile_tasks();task.refresh_from_db()
+        self.assertEqual(task.state,'completed');self.assertEqual(task.result['reportWarnings'],['结论格式错误'])
+        self.assertTrue(Audit.objects.filter(action='content.task.reconciled',target=str(task.pk)).exists())
+
+    @patch('hub.robot_actions.policy',return_value={'enabled':True})
+    def test_one_receipt_cannot_complete_a_two_target_task(self,_):
+        second=save_entry(self.user,{'kind':'topic','data':dict(self.payload,title='另一个测试')})
+        task=cm.ensure_task(self.owner,'beikuang','chat:two','请审核 entry/'+str(self.entry.pk)+' 和 entry/'+str(second.pk))
+        aid=str(uuid.uuid4());execute(self.owner,'beikuang','content_review',{'key':'entry/'+str(self.entry.pk),'revision':1,'decision':'approve','reason':'已核对'},aid,str(task.pk))
+        r=cm.update_task(self.owner,'beikuang',{'id':str(task.pk),'state':'completed','result':{'actionIds':[aid]}})
+        self.assertEqual(r['state'],'failed');cm.reconcile_tasks();task.refresh_from_db();self.assertEqual(task.state,'failed')
+
+    def test_malformed_receipt_is_a_task_failure_not_a_server_error(self):
+        task=cm.ensure_task(self.owner,'beikuang','chat:invalid','请审核测试')
+        r=cm.update_task(self.owner,'beikuang',{'id':str(task.pk),'state':'completed','result':{'actionIds':['not-a-uuid']}})
+        self.assertEqual(r['state'],'failed')

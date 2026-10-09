@@ -54,7 +54,7 @@ export class ToolAgent{
     return rows.filter(r=>/^(web-search|scholar-search|wiki-search|read-page|read-paper|code-search|qa-search|community-search|citations)$/.test(r.capability)).slice(0,10)
       .map(r=>`- ${r.capability}/${r.implementation}${r.scope?'（'+r.scope+'）':''}：${r.successes}/${r.attempts} 成功，平均 ${r.latencyMs}ms${r.lastFailure?'，最近失败类型 '+r.lastFailure:''}`).join('\n');
   }
-  async run({task,mode='quick',allowedUrls=[],preload=[],onProgress=()=>{},signal,budget,purpose}){
+  async run({task,mode='quick',allowedUrls=[],preload=[],onProgress=()=>{},signal,budget,purpose,toolNames}){
     const lim=agentLimits[mode]||agentLimits.quick,cfg=this.config(),cap=budget??(mode==='deep'?cfg.researchRunLimit||2:cfg.agentQuickLimit||0.4);
     const maintenance=!!this.maintenancePolicy?.(),maxRisk=maintenance?'publish':'read';
     const ledger=new Ledger(allowedUrls),loaded=new Set(),trace=[],seen=new Map(),cached=new Map(),polls=new Map(),started=Date.now();let cost=0,calls=0,step=0,final=null,stopped='limit';
@@ -64,7 +64,8 @@ export class ToolAgent{
     if(!preload.length){const auto=this.skills?.match?.(task);if(auto)preload=[auto];}
     for(const name of preload){try{const s=this.skills.get(name);messages.push({role:'user',content:`已为本任务预先加载技能 ${s.name}，请按其做法执行：\n${s.body}`});loaded.add(s.name);}catch{}}
     // The executor is read-only; search_tools can add tools from search-only groups for the rest of the run.
-    const active=new Set(),tools=()=>[...this.toolkit.definitions({active,maxRisk}),finishTool];
+    const permitted=toolNames?new Set(toolNames):null;
+    const active=new Set(),tools=()=>[...this.toolkit.definitions({active,maxRisk}).filter(t=>!permitted||permitted.has(t.function.name)),finishTool];
     const ctx={ledger,skills:loaded,active,maxRisk,activate:names=>{for(const n of names)active.add(n);}};
     const step1=async(toolset,extraNote)=>{
       if(extraNote)messages.push({role:'user',content:extraNote});
@@ -89,6 +90,7 @@ export class ToolAgent{
           const name=t.function?.name,a=args(t),key=name+JSON.stringify(a);const begun=Date.now();let content;
           const refreshable=name==='campus_maintenance_read'&&['job_status','action_status','code_status','inventory'].includes(a?.operation)&&(polls.get(key)||0)<3;
           if(name==='finish')content=JSON.stringify({error:'finish 参数无效：需要 answer、findings、confidence。'});
+          else if(permitted&&!permitted.has(name))content=JSON.stringify({error:'该工具不属于本次内容管理目录。'});
           else if(!a)content=JSON.stringify({error:'参数不是有效 JSON 对象。'});
           else if(seen.has(key)&&!refreshable){const previous=isRead(t)&&cached.has(key)?await cached.get(key):null;content=JSON.stringify({note:'与第 '+seen.get(key)+' 步的调用完全相同，复用原结果；动态状态最多刷新三次，写入不会重复执行。',...(previous?{result:JSON.parse(previous)}:{})});}
           else{seen.set(key,step);if(refreshable)polls.set(key,(polls.get(key)||0)+1);calls++;let complete=()=>{};if(isRead(t))cached.set(key,new Promise(resolve=>{complete=resolve;}));try{

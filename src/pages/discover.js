@@ -180,7 +180,7 @@ function slideHTML(it, i) {
     ['核对于', it.verifiedAt ? timeAgo(it.verifiedAt) : '—'],
   ];
   const saved = isSaved(it);
-  return `<section class="slide" data-i="${i}" style="--h:${h}" aria-label="${esc(it.title)}">
+  return `<section class="slide" data-content-key="${esc(it.entryId?'entry/'+it.entryId:'github/'+it.repository)}" data-i="${i}" style="--h:${h}" aria-label="${esc(it.title)}">
     <div class="slide-glow" aria-hidden="true"></div>
     <div class="project-danmaku" aria-hidden="true"></div>
     <div class="slide-stage">
@@ -705,7 +705,7 @@ function detailHTML(it) {
   const dl = (d) => (safeURL(d.url) ? `<li><a href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.name)}</a>${d.version ? ` · ${esc(d.version)}` : ''}</li>` : '');
   return `
     <div class="dg-d-block"><p class="dg-d-kicker">${esc([it.shelf ? SHELF[it.shelf] : null, guideLabel(it)].filter(Boolean).join(' · '))}</p></div>
-    <div class="dg-d-block"><h2 class="dg-d-title" id="dg-d-title">${esc(it.title)}</h2></div>
+    <div class="dg-d-block" data-content-key="${esc(it.entryId?'entry/'+it.entryId:'github/'+it.repository)}"><h2 class="dg-d-title" id="dg-d-title">${esc(it.title)}</h2></div>
     <div class="dg-d-block"><p class="dg-d-repo num">${esc(it.repository)}${it.credit ? ` · ${esc(it.credit)}` : ''}</p></div>
     <dl class="dg-d-table"><div class="dg-rule"></div>${rows.map(([k, v]) => `<div class="dg-d-block"><dt>${k}</dt><dd class="num">${v}</dd></div><div class="dg-rule"></div>`).join('')}</dl>
     <div class="dg-d-actions dg-d-block">

@@ -38,7 +38,7 @@ def validate_media(media, user):
         if '..' in src or '\\' in src: raise Problem('图片路径无效。')
     else: url(src, True)
     focal = text(media.get('focal', '50% 50%'), 30)
-    if not re.fullmatch(r'(?:100|\d{1,2})(?:\.\d+)?% (?:100|\d{1,2})(?:\.\d+)?%', focal):
+    if not re.fullmatch(r'\d{1,3}(?:\.\d+)?% \d{1,3}(?:\.\d+)?%', focal) or any(float(v.rstrip('%')) > 100 for v in focal.split()):
         raise Problem('焦点使用两个 0–100% 的坐标。')
     fit = media.get('fit', 'cover')
     if fit not in ('cover', 'contain'): raise Problem('显示方式无效。')
@@ -61,6 +61,9 @@ def base(key):
     elif key.startswith('github/'):
         cache = ExternalCache.objects.filter(pk='github:'+key.removeprefix('github/')).first()
         row = cache.data if cache else None
+        if row is None:
+            catalogue = json.loads((settings.BASE.parent/'public/data/community.json').read_text(encoding='utf-8'))
+            row = next((p for p in catalogue.get('projects',[]) if p.get('repo',{}).get('fullName') == key.removeprefix('github/')), None)
     elif key.startswith('page/'):
         name = key.removeprefix('page/')
         if not re.fullmatch(r'[a-z0-9_-]+', name): raise Problem('页面编号无效。')
@@ -101,11 +104,15 @@ def search(user, query='', state='', kind=''):
     if not state and not kind:
         featured = json.loads((settings.BASE.parent/'public/data/featured.json').read_text(encoding='utf-8'))['items']
         keys = ['featured/'+r['id'] for r in featured if not query or query.lower() in json.dumps(r, ensure_ascii=False).lower()]
-        keys += ['github/'+r.key.removeprefix('github:') for r in ExternalCache.objects.filter(
-            key__startswith='github:').order_by('-checked') if not query or query.lower() in json.dumps(r.data, ensure_ascii=False).lower()][:40]
+        repositories = ExternalCache.objects.filter(key__startswith='github:').order_by('-checked')
+        if query: repositories = repositories.filter(Q(key__icontains=query)|Q(data__icontains=query))
+        keys += ['github/'+r.key.removeprefix('github:') for r in repositories[:40]]
+        catalogue = json.loads((settings.BASE.parent/'public/data/community.json').read_text(encoding='utf-8'))
+        keys += ['github/'+p['repo']['fullName'] for p in catalogue.get('projects',[]) if p.get('repo',{}).get('fullName') and (not query or query.lower() in json.dumps(p,ensure_ascii=False).lower())]
         keys += ['page/site'] if not query or query in '页面说明站点' else []
-        items += [read(user, key) for key in keys]
-    return {'items': items, 'total': qs.count()+len(items)-min(qs.count(), 60)}
+        items += [read(user, key) for key in dict.fromkeys(keys)]
+    total = qs.count()
+    return {'items': items, 'total': total+len(items)-min(total, 60)}
 
 
 def history(user, key):
@@ -156,8 +163,8 @@ def publish(user, body):
         row, _ = EditorialOverride.objects.select_for_update().get_or_create(key=key)
         if row.revision != body['revision']: raise Problem('内容版本已变化，请重新读取。', 409)
         if not row.revision: EditorialRevision.objects.create(override=row, number=0, data=before, editor=user, reason='编辑前原始版本')
-        row.data = dict(row.data, **patch)
-        if 'media' in patch: row.data['media'] = data['media']
+        row.data = ({} if body['restoreRevision'] == 0 else copy.deepcopy(patch)) if body.get('restoreRevision') is not None else dict(row.data, **patch)
+        if 'media' in patch and body.get('restoreRevision') != 0: row.data['media'] = data['media']
         row.revision += 1; row.editor = user; row.save()
         EditorialRevision.objects.create(override=row, number=row.revision, data=row.data, editor=user, reason=reason)
         result = read(user, key)
@@ -206,6 +213,29 @@ def task_data(t):
         'result': t.result, 'error': t.error, 'updated': t.updated.isoformat()}
 
 
+def verified_receipts(task, ids):
+    try: keys = ['robot-action:'+str(uuid.UUID(i)) for i in ids]
+    except (ValueError, TypeError, AttributeError): return []
+    receipts = list(ExternalCache.objects.filter(key__in=keys))
+    if len(receipts) != len(set(ids)) or not receipts or not all(r.data.get('task') == str(task.pk) and r.data.get('seat') == task.seat and r.data.get('state') == 'done' and r.data.get('result', {}).get('completed') is True for r in receipts): return []
+    requested=set(re.findall(r'(?:entry/[a-f0-9-]{36}|featured/[a-zA-Z0-9_-]+|github/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+)',task.goal))
+    changed=set(r.data['result'].get('key') or 'entry/'+str(r.data['result'].get('id','')) for r in receipts)
+    if not requested.issubset(changed): return []
+    return receipts
+
+
+def reconcile_tasks():
+    """After restart, recover successful writes from bound receipts, never repeat a tool."""
+    for t in ContentTask.objects.filter(state__in=('failed','running')).order_by('-created')[:100]:
+        ids=t.result.get('actionIds',[])
+        if not ids: continue
+        if verified_receipts(t,ids):
+            previous=t.error
+            t.result={**t.result,'reportWarnings':t.result.get('reportWarnings',t.result.get('gaps',[])), 'reconciled':True}
+            t.state='completed';t.error='';t.progress='已核验本次成功发布或审核回执，原告警保留在执行记录中';t.save()
+            Audit.objects.create(actor=t.owner,action='content.task.reconciled',target=str(t.pk),detail={'actionIds':ids,'previousError':previous})
+
+
 @transaction.atomic
 def update_task(owner, seat, args):
     t = ContentTask.objects.select_for_update().filter(pk=args['id'], owner=owner, seat=seat).first()
@@ -217,9 +247,7 @@ def update_task(owner, seat, args):
     if state == 'completed':
         # Completion must point to this seat's successful, persisted mutation receipt.
         ids = result.get('actionIds', [])
-        receipts = list(ExternalCache.objects.filter(key__in=['robot-action:'+str(uuid.UUID(i)) for i in ids]))
-        if len(receipts) != len(set(ids)) or not receipts or not all(r.data.get('task') == str(t.pk) and r.data.get('seat') == seat and r.data.get('state') == 'done' and
-            r.data.get('result', {}).get('completed') is True for r in receipts):
+        if not verified_receipts(t,ids):
             state = 'failed'; args = dict(args, error='没有本次成功发布或审核的回执；未标记完成。')
     t.state = state; t.progress = text(args.get('progress', ''), 600); t.result = result
     t.error = text(args.get('error', ''), 2000); t.save()
@@ -236,7 +264,10 @@ def apply_public(result):
         repo = value.get('repository') or value.get('fullName') or value.get('full_name')
         if not repo and isinstance(value.get('url'), str) and value['url'].startswith('https://github.com/'):
             repo = value['url'].removeprefix('https://github.com/').strip('/')
-        if repo in overrides: out.update(copy.deepcopy(overrides[repo]))
+        if repo in overrides:
+            patch = copy.deepcopy(overrides[repo]); out.update(patch)
+            if 'idea' in value and ('description' in patch or 'summary' in patch): out['idea'] = patch.get('summary',patch.get('description')); out['ideaLanguage'] = 'zh'
+            if patch.get('media',{}).get('src'): out['cover'] = patch['media']['src']; out['coverCredit'] = patch['media'].get('credit','')
         return out
     return walk(result)
 

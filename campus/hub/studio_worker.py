@@ -241,6 +241,11 @@ def run_one():
             waiting(run, message)
         StudioRun.objects.filter(pk=run.pk, claim=run.claim, state='running').update(
             state='cancelled' if current.stop_requested else 'reconnecting' if reconnect else 'failed', error=message[:300], updated=timezone.now())
+        if run.mode == 'chat' and not reconnect:
+            from .models import ContentTask
+            from .content_management import update_task
+            for pending in ContentTask.objects.filter(owner=run.room.owner,origin__startswith='studio:'+str(run.pk)+':',state__in=('queued','running')):
+                update_task(run.room.owner,pending.seat,{'id':str(pending.pk),'state':'failed','error':message,'progress':'执行未完成；消息与任务已保留'})
     finally:
         finished.set()
         heartbeat.join(timeout=1)

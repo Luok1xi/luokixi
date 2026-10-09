@@ -19,6 +19,35 @@ async function fixture({routing={},paid=false,rpcOverride}={}){
 }
 const id=n=>String(n).padStart(64,'0');
 
+test('explicit content chat executes immediately and writes the reply to the original memory',async()=>{
+  const events=[];
+  const f=await fixture({rpcOverride:async body=>{events.push(body);return body.op==='content-progress'?{id:body.id,state:body.state}:
+    {enabled:true,today:{},jobs:[],day:'2026-10-09',maintenance:{enabled:true}};}});
+  try{
+    f.host.app.agent.run=async options=>{assert.equal(options.purpose,'website-maintenance');return {answer:'已核对并发布',gaps:[],stats:{toolCalls:3},
+      trace:[{ok:true,receipt:{actionId:'real-receipt',completed:true,state:'published'}}]};};
+    await f.host.enqueue({id:id(301),owner:7,kind:'chat',text:'请审核校圈测试',contentTask:'content-task-1',material:{}});
+    await f.host.jobs.get(id(301)).promise;
+    const job=f.host.jobs.get(id(301));assert.equal(job.state,'done');assert.equal(job.result.contentTask.state,'completed');
+    assert.deepEqual(events.filter(e=>e.op==='content-progress').map(e=>e.state),['running','completed']);
+    assert.ok(JSON.stringify(f.host.app.store.chats()).includes('请审核校圈测试'));
+    assert.deepEqual(events.find(e=>e.state==='completed').result.actionIds,['real-receipt']);
+  }finally{await f.host.close();}
+});
+
+test('chat without an operation receipt cannot be marked complete',async()=>{
+  const events=[];
+  const f=await fixture({rpcOverride:async body=>{events.push(body);return body.op==='content-progress'?{id:body.id,state:body.state}:
+    {enabled:true,today:{},jobs:[],day:'2026-10-09',maintenance:{enabled:true}};}});
+  try{
+    f.host.app.agent.run=async()=>({answer:'我已经发布了',gaps:['没有执行工具'],trace:[],stats:{toolCalls:0}});
+    await f.host.enqueue({id:id(302),owner:7,kind:'chat',text:'请发布校圈测试',contentTask:'content-task-2',material:{}});
+    await f.host.jobs.get(id(302)).promise;
+    assert.equal(f.host.jobs.get(id(302)).result.contentTask.state,'failed');
+    assert.ok(!events.some(e=>e.op==='content-progress'&&e.state==='completed'));
+  }finally{await f.host.close();}
+});
+
 test('authorized studio uses original tool executor before the same persona writes its reply',async()=>{
   const f=await fixture({rpcOverride:async()=>({enabled:true,today:{queued:1},jobs:[],day:'2026-10-09',maintenance:{enabled:true}})});
   try{

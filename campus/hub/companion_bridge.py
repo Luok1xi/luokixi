@@ -14,6 +14,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
 from .core import Problem
 from .models import ExternalCache, StudioDay, Member, BeikuangMessage, Job
 
@@ -239,6 +240,9 @@ def studio_respond(run, sequence, material, stopped=lambda: False, seat='beikuan
                     'expression':next((m.get('expression') for m in output.get('messages', []) if m.get('expression')), (output.get('emotion') or {}).get('name','neutral'))},output.get('model','deepseek-flash' if seat=='beikuang' else 'codex-cli'),{'maintenance':output.get('maintenance')}
         time.sleep(.35)
     call('cancel',{'id':ident},seat=seat)
+    if content_task:
+        from .content_management import update_task
+        update_task(run.room.owner,seat,{'id':str(content_task.pk),'state':'failed','error':'执行超时；已保留操作回执，未重复提交。'})
     raise Problem('工作室发言超时，任务已取消。',504)
 
 
@@ -381,5 +385,5 @@ def endpoint(request):
         return JsonResponse(result, json_dumps_params={'ensure_ascii':False})
     except Problem as exc:
         return JsonResponse({'error':exc.message}, status=exc.status)
-    except (ValueError, TypeError, KeyError):
+    except (ValueError, TypeError, KeyError, ValidationError):
         return JsonResponse({'error':'连接请求格式错误。'}, status=400)

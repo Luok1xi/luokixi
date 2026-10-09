@@ -25,6 +25,21 @@ test('maintenance handoff is not truncated by the short research-task limit',asy
   assert.ok(models.seen[0].messages.some(m=>m.content.includes('task-current-99')));
 });
 
+test('content workflow restricts legacy tools without removing the original registry',async()=>{
+  const executed=[];
+  const models=fakeModels([
+    {tool_calls:[call('wrong','campus_maintenance_read',{operation:'content_list',arguments:{id:'entry/invalid'}})]},
+    {tool_calls:[call('right','content_read',{key:'entry/current'})]},
+    {tool_calls:[call('done','finish',{answer:'读到了',findings:[],confidence:'low',gaps:[]})]},
+  ]);
+  const toolkit={status:()=>({}),definitions:()=>['content_read','campus_maintenance_read'].map(name=>({type:'function',function:{name,parameters:{type:'object'}}})),
+    execute:async name=>{executed.push(name);return {key:'entry/current'};}};
+  const agent=new ToolAgent({models,toolkit,config:()=>({toolReflection:false})});
+  await agent.run({task:'读这项内容',toolNames:['content_read']});
+  assert.deepEqual(models.seen[0].tools,['content_read','finish']);assert.deepEqual(executed,['content_read']);
+  assert.equal(toolkit.definitions().length,2);
+});
+
 test('maintenance status polling refreshes queued results and preserves actual receipts',async()=>{
   let reads=0;
   const models=fakeModels([

@@ -16,6 +16,8 @@ if __name__=='__main__':
     parser.add_argument('--review-mode',action='store_true',help='Local acceptance: run backups, restoration checks and explicit local question jobs')
     args = parser.parse_args()
     call_command('migrate',interactive=False,verbosity=0)
+    from hub.content_management import reconcile_tasks
+    reconcile_tasks()
     stop = threading.Event()
     if not args.no_worker:
         from hub.worker import loop_review

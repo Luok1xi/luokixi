@@ -149,6 +149,11 @@ def reply(message_id):
         else:
             reason = beikuang.model_ready(msg.owner)[1] or '本机没有为这次对话启用模型'
         companion = context.get('_companion', {})
+        if generated != 'model':
+            from .models import ContentTask
+            from .content_management import update_task
+            for pending in ContentTask.objects.filter(owner=msg.owner, seat='beikuang', origin__in=['chat:'+str(m.pk) for m in messages], state__in=('queued','running')):
+                update_task(msg.owner, 'beikuang', {'id':str(pending.pk),'state':'failed','error':reason,'progress':'本次执行未完成；消息和任务已保留'})
         if companion.get('silent') and not body:
             BeikuangMessage.objects.filter(pk__in=ids).update(state='answered')
             return {'generated':'model','engine':'campus-companion','silent':True,'coalesced':len(messages)}

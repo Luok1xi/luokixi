@@ -1,0 +1,38 @@
+import {chromium} from 'playwright';
+import {readFileSync,writeFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const root=process.env.MANAGEMENT_QA_DIR||'campus/.data/management-qa-20261009';
+const config=JSON.parse(readFileSync(root+'/browser.json','utf8'));
+const base=process.env.MANAGEMENT_QA_ORIGIN||'http://127.0.0.1:17870';
+const browser=await chromium.launch({headless:true,channel:'msedge'});
+const context=await browser.newContext();await context.addCookies([{name:'luokixi_session',value:config.cookie,url:base,httpOnly:true,sameSite:'Lax'}]);
+const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+const checks=[];
+const headline='隔离浏览器核验：首页可编辑 '+Date.now();
+try{
+ await page.goto(base+'/manage/',{waitUntil:'domcontentloaded'});await page.getByRole('link',{name:'全部内容、首页精选、项目介绍与待审校圈 →'}).click();
+ await page.getByPlaceholder('搜索标题、项目、新闻').fill('管理流程隔离测试');await page.getByRole('button',{name:'搜索',exact:true}).click();
+ await page.getByRole('link',{name:'审核与完整表单'}).click();await page.getByLabel('正文',{exact:true}).fill('管理中心实际浏览器修改');
+ const saved=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().includes('/manage/hub/entry/'),{timeout:15000});
+ await page.locator('[name="_save"]').click();const saveResponse=await saved;if(saveResponse.status()!==302)throw Error((await saveResponse.text()).slice(0,600));
+ await page.waitForURL('**/manage/hub/entry/');
+ const formErrors=await page.locator('.errorlist').allTextContents();assert.deepEqual(formErrors,[],JSON.stringify(formErrors));
+ checks.push('Unfold owner session, search, form edit and publication');
+ await page.goto(base+'/index.html?edit='+encodeURIComponent('entry/'+config.entry),{waitUntil:'domcontentloaded'});
+ await page.locator('dialog[open] [name=body]').waitFor();assert.equal(await page.locator('dialog [name=body]').inputValue(),'管理中心实际浏览器修改');
+ await page.locator('dialog [name=body]').fill('原页面实际浏览器修改');await Promise.all([page.waitForNavigation({waitUntil:'domcontentloaded'}),page.getByRole('button',{name:'保存并公开',exact:true}).click()]);
+ await page.locator('dialog[open] [name=body]').waitFor();
+ assert.equal(await page.locator('dialog [name=body]').inputValue(),'原页面实际浏览器修改');checks.push('Inline edit persists after page refresh');
+ const historyResponse=page.waitForResponse(r=>r.url().includes('/management/history?'),{timeout:8000});
+ await page.locator('dialog [data-history]').click();const hr=await historyResponse;assert.equal(hr.status(),200);await page.locator('dialog [data-history-list] details').first().waitFor();
+ await page.locator('dialog [data-history-list] summary').first().click();await page.locator('dialog [data-restore]').first().waitFor();checks.push('Version history and restore controls visible');
+ await page.locator('dialog [data-history-list] details').last().locator('summary').click();
+ await Promise.all([page.waitForNavigation({waitUntil:'domcontentloaded'}),page.locator('dialog [data-restore="1"]').click()]);
+ await page.locator('dialog[open] [name=body]').waitFor();assert.equal(await page.locator('dialog [name=body]').inputValue(),'隔离测试正文');checks.push('Old public version restored through browser');
+ await page.locator('dialog [data-close]').click();
+ await page.goto(base+'/index.html?edit=featured%2Fcumtb-20261001-national-day',{waitUntil:'domcontentloaded'});await page.locator('dialog[open] [name=title]').waitFor();
+ await page.locator('dialog [name=title]').fill(headline);await page.locator('dialog [name=fit]').selectOption('contain');await page.locator('dialog [name=src]').fill('/art/beikuang/avatar.png');await Promise.all([page.waitForNavigation({waitUntil:'domcontentloaded'}),page.getByRole('button',{name:'保存并公开',exact:true}).click()]);
+ await page.locator('.hc-title').filter({hasText:headline}).waitFor();checks.push('Homepage editorial overlay actually rendered');
+ await page.screenshot({path:root+'/management-browser.png',fullPage:false});
+ assert.deepEqual(errors,[]);writeFileSync(root+'/browser-result.json',JSON.stringify({checks,errors,passed:true},null,2));console.log(JSON.stringify({checks,passed:true}));
+}catch(error){await page.screenshot({path:root+'/management-failure.png'});console.log(JSON.stringify({url:page.url(),errors,body:(await page.locator('body').innerText()).slice(-3500)}));throw error;}finally{await browser.close();}

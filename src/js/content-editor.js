@@ -24,8 +24,8 @@ function render(){
       <label>图片说明<input name="alt" value="${esc(m.alt||'')}"></label><label>出处<input name="sourceUrl" type="url" value="${esc(m.sourceUrl||'')}"></label>
       <label>署名<input name="credit" value="${esc(m.credit||'')}"></label>
       <label>显示方式<select name="fit"><option value="cover">焦点裁切</option><option value="contain" ${m.fit==='contain'?'selected':''}>完整显示</option></select></label>
-      <label>水平焦点<input name="fx" type="range" min="0" max="100" value="${parseFloat(m.focal)||50}"></label>
-      <label>纵向焦点<input name="fy" type="range" min="0" max="100" value="${parseFloat(m.focal?.split(' ')[1])||50}"></label></fieldset>
+      <label>水平焦点<input name="fx" type="range" min="0" max="100" value="${parseFloat(m.focal?.split(' ')[0]??'50%')}"></label>
+      <label>纵向焦点<input name="fy" type="range" min="0" max="100" value="${parseFloat(m.focal?.split(' ')[1]??'50%')}"></label></fieldset>
     <details><summary>完整字段、来源与分类</summary><textarea name="json" rows="14" spellcheck="false">${esc(JSON.stringify(d,null,2))}</textarea></details>
     <label>修改说明<input name="reason" required value="站内编辑并发布" maxlength="1500"></label>
     ${view.kind==='place'?'<label><input type="checkbox" name="locationChecked" required>已核对地点与来源</label>':''}
@@ -60,7 +60,7 @@ function render(){
   }catch(e){q('[data-status]').textContent=e.message;}};
 }
 function decorate(root){
-  for(const node of root.querySelectorAll('[data-content-key]')){
+  for(const node of [...(root.matches?.('[data-content-key]')?[root]:[]),...root.querySelectorAll('[data-content-key]')]){
     if(node.querySelector(':scope > [data-edit-content]'))continue;
     const b=document.createElement('button');b.type='button';b.className='ce-inline';b.dataset.editContent=node.dataset.contentKey;b.textContent='编辑';
     b.onclick=e=>{e.stopPropagation();e.preventDefault();void openContentEditor(b.dataset.editContent);};node.append(b);
@@ -77,11 +77,13 @@ export async function installContentEditor(){
       dialog.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>{dialog.close();void openContentEditor(b.dataset.key);});
     }catch(e){q('[data-list]').textContent=e.message;}};q('[data-search]').onsubmit=e=>{e.preventDefault();void search();};await search();
   };
-  decorate(document);let scheduled=false;new MutationObserver(records=>{if(!records.some(r=>r.addedNodes.length)||scheduled)return;scheduled=true;
-    requestAnimationFrame(()=>{scheduled=false;decorate(document);});}).observe(document.body,{childList:true,subtree:true});
+  decorate(document);let scheduled=false;const roots=new Set();new MutationObserver(records=>{
+    for(const r of records)for(const node of r.addedNodes)if(node.nodeType===1&&(node.matches('[data-content-key]')||node.querySelector('[data-content-key]')))roots.add(node);
+    if(!roots.size||scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;for(const root of roots)if(root.isConnected)decorate(root);roots.clear();});
+  }).observe(document.body,{childList:true,subtree:true});
   const initialKey=new URLSearchParams(location.search).get('edit');if(initialKey)void openContentEditor(initialKey);
 }
 export function taskProgressHTML(tasks){
   const labels={queued:'已接收',running:'执行中',completed:'完成',failed:'失败',merged:'合并处理'};
-  return (tasks||[]).slice(0,8).map(t=>`<details class="ce-task" ${['queued','running'].includes(t.state)?'open':''}><summary>${esc(labels[t.state]||t.state)} · ${esc(t.progress||'内容任务')} · ${esc(t.id.slice(0,8))}</summary><p>${esc(t.error||'')}</p><small>任务编号 ${esc(t.id)} · ${esc(t.updated)}</small></details>`).join('');
+  return (tasks||[]).slice(0,8).map(t=>`<details class="ce-task" ${['queued','running'].includes(t.state)?'open':''}><summary>${esc(labels[t.state]||t.state)} · ${esc(t.progress||'内容任务')} · ${esc(t.id.slice(0,8))}</summary><p>${esc(t.error||'')}</p>${t.result?.actionIds?.length?`<p>已保留 ${t.result.actionIds.length} 份操作回执</p>`:''}${t.result?.reportWarnings?.length?`<p>执行备注：${esc(t.result.reportWarnings.join('；'))}</p>`:''}<small>任务编号 ${esc(t.id)} · ${esc(t.updated)}</small></details>`).join('');
 }
