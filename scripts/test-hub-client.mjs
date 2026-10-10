@@ -2,3 +2,12 @@ import {test} from 'node:test';import assert from 'node:assert/strict';import {c
 test('concurrent GETs deduplicate but resolved private data is never cached',async()=>{let calls=0,done;const api=createHubClient({available:true,fetcher:async()=>{calls++;await new Promise(r=>done=r);return {ok:true,json:async()=>({user:calls,csrfToken:'fixture'})};}});const a=api.session(),b=api.session();await Promise.resolve();assert.equal(calls,1);done();assert.deepEqual(await a,await b);const c=api.session();await Promise.resolve();assert.equal(calls,2);done();await c;});
 test('mutations are distinct and keep CSRF; caller cancellation is respected',async()=>{const seen=[];const api=createHubClient({available:true,fetcher:async(url,opts)=>{seen.push(opts);return {ok:true,json:async()=>({csrfToken:'fixture'})};}});await api.session();await Promise.all([api.request('thing',{}),api.request('thing',{})]);assert.equal(seen.length,3);assert.equal(seen[1].headers['X-CSRFToken'],'fixture');assert.equal(seen[2].method,'POST');const c=new AbortController();await api.catalogue({}, {signal:c.signal});assert.equal(seen.at(-1).signal,c.signal);});
 test('failed requests release in-flight slot so retry is possible',async()=>{let n=0;const api=createHubClient({available:true,fetcher:async()=>{if(++n===1)throw Error('offline');return {ok:true,json:async()=>({ok:true})};}});await assert.rejects(api.health());assert.deepEqual(await api.health(),{ok:true});});
+test('ordinary star calls preserve collection while explicit moves include its name',async()=>{
+  const requests=[];const api=createHubClient({available:true,fetcher:async(url,options)=>{
+    requests.push({url,options});return {ok:true,json:async()=>({csrfToken:'fixture'})};
+  }});
+  await api.session();await api.star('item',true);await api.star('item',true,'嵌入式');await api.star('item',false);
+  const writes=requests.filter(r=>r.options.method==='POST');
+  assert.deepEqual(writes.map(r=>JSON.parse(r.options.body)),[{enabled:true},{enabled:true,collection:'嵌入式'},{enabled:false}]);
+  assert.ok(writes.every(r=>r.options.headers['X-CSRFToken']==='fixture'));
+});

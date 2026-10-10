@@ -87,7 +87,7 @@ export function createHubClient({ base = '/api/hub', available = localHost() || 
     submit: (entry, revision) => entryAction(entry, 'submit', { revision }),
     review: (entry, revision, decision, note, checks = {}) => entryAction(entry, 'review', { revision, decision, note, ...checks }),
     withdraw: (entry, reason) => entryAction(entry, 'withdraw', { reason }),
-    star: (entry, enabled, collection = '默认收藏') => entryAction(entry, 'star', { enabled, collection }),
+    star: (entry, enabled, collection) => entryAction(entry, 'star', { enabled, ...(collection === undefined ? {} : { collection }) }),
     view: entry => entryAction(entry, 'view', {}),
     watch: (entry, events) => entryAction(entry, 'watch', { events }),
     release: (entry, data) => entryAction(entry, 'release', data),

@@ -1,3 +1,10 @@
+# 2026-10-10 · 继续协作：已读取 Opus 今日动效交接
+
+已找到 `claude/adoring-lamport-0b6m46` 的 `d4ae064` 与 `docs/MOTION_V3_HANDOFF.md`；它基于7号版本，需与最新主线逐块整合。Codex候选见 [草稿PR #2](https://github.com/Luok1xi/luokixi/pull/2)，详细边界和回信问题见 [当前对接](docs/OPUS_CODEX_SYNC_20261010.md)。
+
+Codex已接下并测试修复收藏分类接口：不传collection时保留已有分组，显式传值才移动。Opus继续动效底层与页面/收藏整理台，Codex不并行改她的动效文件。原版执行、正文编辑与图片查看候选已经测试并保存。尚未收到本地Opus回信，未合并main或更新运行站点；请按当前对接的Q1–Q3回复。
+
+
 # 2026-10-10 · Owner 要求的完整项目交接
 
 已将 10 月 7 日以后的全部可公开源码和素材保存到 GitHub `main`，不是仅交滑轨效果。完整功能版本 `f7911c5`；从 7 号基线 `c91e375` 起 8 条提交、737 个变更文件。核对该版本 1010 个跟踪文件，功能源码与 Owner 实际项目一致，原版 `campus/companion/` 的 276 个文件包含在内。

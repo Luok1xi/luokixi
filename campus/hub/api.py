@@ -467,7 +467,10 @@ def post(request, route, body):
                 raise Problem('只能收藏或关注已公开内容。')
             if action=='star':
                 if body.get('enabled') is True:
-                    Star.objects.update_or_create(user=user,entry=entry,defaults={'collection':text(body.get('collection','默认收藏'),80,True)})
+                    if 'collection' in body:
+                        Star.objects.update_or_create(user=user,entry=entry,defaults={'collection':text(body['collection'],80,True)})
+                    else:
+                        Star.objects.get_or_create(user=user,entry=entry)
                 elif body.get('enabled') is False:
                     Star.objects.filter(user=user,entry=entry).delete()
                 else:

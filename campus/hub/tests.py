@@ -145,6 +145,31 @@ class HubTests(TestCase):
         self.assertEqual(Contribution.objects.filter(user=self.bob,active=True).count(),1)
         self.assertEqual(self.get(self.b,'notifications')['unread'],2)
 
+    def test_star_collection_changes_only_when_explicitly_requested(self):
+        eid = self.publish(self.draft())['id']
+        path = f'entries/{eid}/star'
+        self.assertEqual(self.post(self.b,path,{'enabled':True})['collection'],'默认收藏')
+        original_id = Star.objects.get(user=self.bob,entry_id=eid).pk
+        self.assertEqual(self.post(self.b,path,{'enabled':True,'collection':'嵌入式'})['collection'],'嵌入式')
+        self.assertEqual(self.post(self.b,path,{'enabled':True})['collection'],'嵌入式')
+        self.assertEqual(Star.objects.get(user=self.bob,entry_id=eid).pk,original_id)
+        self.assertEqual(Star.objects.filter(user=self.bob,entry_id=eid).count(),1)
+        self.assertEqual(self.post(self.a,path,{'enabled':True})['collection'],'默认收藏')
+        self.assertEqual(Star.objects.get(user=self.bob,entry_id=eid).collection,'嵌入式')
+        self.assertEqual(self.post(self.b,path,{'enabled':True,'collection':'默认收藏'})['collection'],'默认收藏')
+        self.assertFalse(self.post(self.b,path,{'enabled':False})['starred'])
+        self.assertFalse(Star.objects.filter(user=self.bob,entry_id=eid).exists())
+        self.assertEqual(self.post(self.b,path,{'enabled':True})['collection'],'默认收藏')
+
+    def test_invalid_star_collection_does_not_change_saved_collection(self):
+        eid = self.publish(self.draft())['id']
+        path = f'entries/{eid}/star'
+        self.post(self.b,path,{'enabled':True,'collection':'科研'})
+        for collection in ['', '   ', 'x'*81, None, 12]:
+            with self.subTest(collection=collection):
+                self.post(self.b,path,{'enabled':True,'collection':collection},400)
+                self.assertEqual(Star.objects.get(user=self.bob,entry_id=eid).collection,'科研')
+
     def test_unwatch_stops_notifications_and_digest(self):
         eid = self.publish(self.draft())['id']
         self.post(self.b,f'entries/{eid}/watch',{'events':['release']})
