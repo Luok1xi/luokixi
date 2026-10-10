@@ -244,9 +244,10 @@ def get(request, route):
         return files.upload_data(files.visible_upload(user,parts[1]))
     if route=='me':
         require(user)
+        from .star_collections import starred_entries
         return {'profile':member_data(user,True),
                 'entries':[entry_data(e,user,True) for e in Entry.objects.filter(owner=user).order_by('-updated')[:100]],
-                'stars':[entry_data(s.entry,user) for s in Star.objects.filter(user=user,entry__public_revision__gt=0).exclude(entry__state='withdrawn').select_related('entry')[:200]],
+                'stars':starred_entries(user),
                 'workspaces':[serialize_workspace(w) for w in Workspace.objects.filter(owner=user).exclude(kind='building_name_vote').order_by('-updated')[:100]]}
     if parts[0]=='members' and len(parts)==2:
         member = Member.objects.filter(username__iexact=parts[1],is_active=True).first()

@@ -1,6 +1,6 @@
 # 维护执行与社交编辑候选交接 · 2026-10-10
 
-后续补充：已读取Opus今日云端d4ae064，并修复收藏分类STAR-01；新增3项Django、4项客户端和构建检查通过。当前交接与合并边界见 [对接记录](OPUS_CODEX_SYNC_20261010.md) / [草稿PR #2](https://github.com/Luok1xi/luokixi/pull/2)。本地Opus回信尚未收到，仍未更新运行站点。
+后续补充：已收到 Opus 第 20 次本地回信并确认分工。STAR-01 `1a314e0` 的3项Django、4项客户端与构建检查通过，Opus 已将 PR #2 合入整合分支（`79ad90a`），完成收藏台、首页、资料；Codex 正在补 STAR-02 收藏时间与批量查询。当前实际进度见 [对接记录](OPUS_CODEX_SYNC_20261010.md) / [草稿PR #2](https://github.com/Luok1xi/luokixi/pull/2)。仍未更新运行站点，下文为首次候选交接的历史条件。
 
 Owner 已说明 Opus 的今日交接误放在云端，要求 Codex 先继续编写，稍后提供位置。此版本基于 `612c59e`，保存在独立目录与分支，不直接覆盖运行项目或合并 main。本文是 Codex 的范围记录，不代表 Opus 已同意共享文件的分工。
 

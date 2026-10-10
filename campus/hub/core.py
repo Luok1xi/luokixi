@@ -132,19 +132,26 @@ def record_view(request, entry):
     return entry.entryview_set.count()
 
 
-def entry_data(entry, user, own=False):
+def entry_data(entry, user, own=False, *, counts=None, interaction=None):
+    """Serialize an entry; list callers may supply already-batched public counts and user state."""
     editorial = user.is_authenticated and (entry.owner_id == user.pk or user.is_staff)
+    if counts is None:
+        counts = {'siteStars': entry.star_set.count(), 'views': entry.entryview_set.count(),
+                  'replyCount': entry.reply_set.filter(state='published').count()}
     data = {'id': str(entry.pk), 'slug': entry.slug, 'kind': entry.kind,
             'data': entry.published, 'revision': entry.public_revision,
             'owner': member_data(entry.owner) if entry.owner_id else None,
             'updated': entry.updated.isoformat(), 'created': entry.created.isoformat(),
             'canonical': str(entry.canonical_id) if entry.canonical_id else None,
-            'siteStars': entry.star_set.count(), 'starred': False, 'watch': [],
-            'views': entry.entryview_set.count(), 'replyCount': entry.reply_set.filter(state='published').count()}
+            'siteStars': counts['siteStars'], 'starred': False, 'watch': [],
+            'views': counts['views'], 'replyCount': counts['replyCount']}
     if user.is_authenticated:
-        star = entry.star_set.filter(user=user).first()
-        watch = entry.watch_set.filter(user=user).first()
-        data.update(starred=bool(star), collection=star.collection if star else '', watch=watch.events if watch else [])
+        if interaction is None:
+            star = entry.star_set.filter(user=user).first()
+            watch = entry.watch_set.filter(user=user).first()
+            interaction = {'starred': bool(star), 'collection': star.collection if star else '',
+                           'watch': watch.events if watch else []}
+        data.update(starred=interaction['starred'], collection=interaction['collection'], watch=interaction['watch'])
     if editorial and own:
         data.update(draft=entry.draft, editRevision=entry.revision, state=entry.state, reviewNote=entry.review_note)
     return data

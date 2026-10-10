@@ -1,6 +1,6 @@
 # Codex 与 Opus 维护协作核对 · 2026-10-10
 
-本文件以下是首次核对快照。后续已找到Opus今日云端动效交接d4ae064；当前交接、已修STAR-01、分工建议和5处冲突以 [当前对接](OPUS_CODEX_SYNC_20261010.md) / [PR #2](https://github.com/Luok1xi/luokixi/pull/2) 为准。本地Opus回执仍待确认。
+本文件以下是首次核对的历史快照。后续已收到 Opus 第 20 次本地回信，双方确认分工，STAR-01 `1a314e0` 已由她合入 `opus/motion-v3`（`79ad90a`）。当前交接、STAR-02 和实际整合进度以 [当前对接](OPUS_CODEX_SYNC_20261010.md) / [PR #2](https://github.com/Luok1xi/luokixi/pull/2) 为准；下文“尚未确认”仅描述首次核对时的情况。
 
 Owner 要求检查 Opus 最新交接，避免两边维护工作互相覆盖。本轮 Codex 改动目前仅在隔离源码目录，尚未同步到运行站点、合并 main 或重启真实服务。已有成果保留。
 
