@@ -336,3 +336,5 @@ body[data-page="reputation"] .footer { display: none; }
 .cs-accepted { color: var(--accent); }
 .cs-post-head > [data-follow-creator] { flex: none; }
 @media (max-width: 480px) { .cs-post-head { flex-wrap: wrap; } .cs-post-head > [data-follow-creator] { margin-left: auto; } }
+.cs-op-body.is-markdown{white-space:normal}.cs-op-body.is-markdown p{margin:0 0 .85em}.cs-op-body.is-markdown ul,.cs-op-body.is-markdown ol{padding-left:1.5em}
+.cs-op-body.is-markdown blockquote{border-left:3px solid var(--line,#ddd);padding-left:12px;margin:1em 0}.cs-op-body.is-markdown pre{overflow:auto;white-space:pre-wrap}

@@ -4,6 +4,7 @@ The framework supplies ownership, dependencies, acceptance and evidence. The exi
 studio remains the executor; recovery never refunds or repeats an uncertain payment.
 """
 import hashlib
+import re
 from datetime import timedelta
 from django.db import transaction
 from django.utils import timezone
@@ -34,6 +35,8 @@ def record(run, **values):
         row.data = {**row.data, **values}
         row.checked = timezone.now()
         row.save()
+    if hasattr(run, '_workflow_data'):
+        run._workflow_data = row.data
     return row.data
 
 
@@ -74,18 +77,44 @@ def settle_work(run):
     from .models import Job
     import uuid
     ids = set()
-    for item in task(run).get('evidence', []):
+    saved = task(run)
+    for item in saved.get('evidence', []):
         receipt = item.get('receipt', {})
         if receipt.get('operation') in ('run_robot', 'job_status') and receipt.get('id'):
             try: ids.add(str(uuid.UUID(receipt['id'])))
             except (ValueError, TypeError, AttributeError): pass
-    if not ids: return 'completed'
     jobs = list(Job.objects.filter(pk__in=ids, owner_id=run.room.owner_id))
     results = [{'id': str(j.pk), 'state': j.state, 'error': j.error, 'result': j.result} for j in jobs]
-    record(run, executionResults=results)
-    if len(jobs) != len(ids) or any(j.state in ('failed', 'partial') for j in jobs): return 'needs_attention'
+    gaps = saved.get('unresolved', [])
+    if ids and len(jobs) == len(ids) and all(j.state == 'done' for j in jobs):
+        gaps = [g for g in gaps if not re.fullmatch(r'(?:等待.*(?:任务|运行|机器人).*结果|已排队[，,；;\s]*尚未完成)[。.!！]?', g)]
+    failures = saved.get('failureEvidence', [])
+    missing = sorted(ids - {str(j.pk) for j in jobs})
+    job_problems = [{'id': str(j.pk), **failure(j.error or '机器人仅部分完成', 'job_status', str(j.pk))}
+                    for j in jobs if j.state in ('failed', 'partial')]
+    next_actions = [f['nextAction'] for f in failures + job_problems]
+    if missing: next_actions.append('查询缺失任务编号及归属，确认后再决定是否重新启动；不重复发起未知操作。')
+    record(run, executionResults=results, missingJobs=missing, unresolved=gaps,
+           nextActions=list(dict.fromkeys(next_actions)))
+    if missing or job_problems or failures: return 'needs_attention'
     if any(j.state != 'done' for j in jobs): return 'waiting_jobs'
+    if gaps: return 'needs_attention'
     return 'completed'
+
+
+def failure(message, operation='', target=''):
+    """A failed call needs a concrete recovery step, not another identical discussion."""
+    rules = (
+        ('budget', r'额度|预算|调用次数|429', '查看当前额度与任务状态，保留已预留预算；额度恢复后接续原任务。'),
+        ('permission', r'邮箱|验证|权限|未授权|停用|暂停|403', '读取当前身份和维护策略，修正实际权限入口；不重复同一写入。'),
+        ('conflict', r'版本|状态.*变化|已更新|409', '重新读取目标当前版本和允许操作；仅在原修改字段未变化时重试一次。'),
+        ('invalid_arguments', r'参数|格式|长度|填写|无效|400', '核对工具参数定义，修正具体参数后再执行。'),
+        ('transient', r'超时|连接|不可达|中断|502|503|504', '先查询原操作或任务编号；只有确认未执行才能重新发起。'),
+    )
+    category, next_action = next(((kind, action) for kind, pattern, action in rules if re.search(pattern, message)),
+        ('execution', '读取具体工具结果和对应源码，产生可测试的修复；提供证据前不标完成。'))
+    return {'operation': operation, 'target': target, 'category': category,
+            'error': message[:600], 'nextAction': next_action}
 
 
 def waiting(run, message):
@@ -102,8 +131,22 @@ def checkpoint(run, sequence, usage):
     data = task(run)
     evidence = list(data.get('evidence', []))
     evidence.extend({'sequence': sequence, 'receipt': r} for r in receipts)
+    failures = list(data.get('failureEvidence', []))
+    for index, row in enumerate(execution.get('trace', [])):
+        if not isinstance(row, dict): continue
+        receipt = row.get('receipt') or {}
+        operation = row.get('operation') or receipt.get('operation') or row.get('tool', '')
+        target = row.get('target') or receipt.get('key') or receipt.get('id') or ''
+        if row.get('ok') is False:
+            item = dict(failure(str(row.get('error') or '工具执行失败'), operation, str(target)), sequence=sequence, step=index)
+            failures = [f for f in failures if not (target and f['operation'] == operation and f['target'] == target)]
+            failures.append(item)
+        elif row.get('ok') is True and target:
+            # A successful state read does not settle a failed mutation. Only the
+            # same operation on the same target can repair that specific failure.
+            failures = [f for f in failures if not (f['operation'] == operation and f['target'] == target)]
     record(run, completedSequence=sequence, connectionFailures=0, retryAfter='', blocker='',
-           evidence=evidence[-30:], unresolved=execution.get('gaps', []))
+           evidence=evidence[-30:], failureEvidence=failures[-30:], unresolved=execution.get('gaps', data.get('unresolved', [])))
 
 
 def modules():
