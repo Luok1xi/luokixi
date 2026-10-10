@@ -3,9 +3,14 @@
 // 这里补：桌面拖拽 + 惯性、前后按钮和页码，以及不支持滚动驱动动画的浏览器的手动视差。
 // 原生横向滚动、吸附、触屏惯性、键盘（← →）都保留。
 import { esc } from './data.js';
+import { springStep } from './spring-step.js';
+import { SPRINGS } from './motion.js';
 import '../styles/depth-slider.css';
 
-const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const preference = matchMedia('(prefers-reduced-motion: reduce)');
+const reduced = () => preference.matches;
+const nativeParallax = CSS.supports('animation-timeline: view()');
+const snapSpring = { stiffness: ((2 * Math.PI) / SPRINGS.smooth.response) ** 2, damping: SPRINGS.smooth.damping };
 const ARROW = { prev: '<path d="m14.5 5.5-6.5 6.5 6.5 6.5"/>', next: '<path d="m9.5 5.5 6.5 6.5-6.5 6.5"/>' };
 
 // 画框 + 照片的标记（地址和说明会转义）
@@ -26,7 +31,7 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
   if (enter) track.classList.add('ds-enter');
   const ac = new AbortController();
   const { signal } = ac;
-  let raf = 0, glide = 0, drag = null, suppress = false;
+  let raf = 0, motion = null, drag = null, suppress = false, suppressTimer = 0;
   let geometry = null, paintedIndex = -1;
   const measure = () => geometry ??= {view: track.clientWidth, width: track.scrollWidth,
     frames: frames.map(f => ({left:f.offsetLeft, width:f.offsetWidth}))};
@@ -37,7 +42,7 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
     const w = step();
     return w > 0 ? Math.max(0, Math.min(frames.length - 1, Math.round(track.scrollLeft / w))) : 0;
   };
-  const go = (i) => track.scrollTo({ left: Math.max(0, Math.min(frames.length - 1, i)) * step(), behavior: reduced() ? 'auto' : 'smooth' });
+  const clamp = value => Math.max(0, Math.min(measure().width - measure().view, value));
 
   let ui = null;
   if (controls) {
@@ -52,19 +57,18 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
   }
 
   // 不支持滚动驱动动画时，手动算视差（只写 transform）
-  const manual = !CSS.supports('animation-timeline: view()') && !reduced();
+  const manual = () => !nativeParallax && !reduced();
   const imgs = frames.map((f) => f.querySelector('.ds-img'));
   const count = ui?.querySelector('.ds-count'), previous = ui?.querySelector('[data-ds="prev"]'), next = ui?.querySelector('[data-ds="next"]');
   const paint = () => {
-    raf = 0;
-    if (!ui && !manual) return;
+    if (!ui && !manual()) return;
     const m = measure(), left = track.scrollLeft, i = index();
     if (ui) {
       if (i !== paintedIndex) { count.textContent = `${i + 1} / ${frames.length}`; paintedIndex = i; }
       if (previous.disabled !== (left < 4)) previous.disabled = left < 4;
       if (next.disabled !== (left > m.width - m.view - 4)) next.disabled = left > m.width - m.view - 4;
     }
-    if (!manual) return;
+    if (!manual()) return;
     const view = m.view, x0 = m.frames[0].left;
     m.frames.forEach((f, k) => {
       const w = f.width, position = f.left - x0 - left;
@@ -74,15 +78,72 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
       imgs[k].style.transform = `translate3d(${(t * 10.9).toFixed(2)}%, 0, 0) scale(${(1 + Math.abs(t) * 0.06).toFixed(4)})`;
     });
   };
-  const schedule = () => { if (!raf) raf = requestAnimationFrame(paint); };
-  track.addEventListener('scroll', schedule, { passive: true, signal });
+  // One display-synced callback owns dragging, settling and the fallback paint.
+  const flushDrag = () => {
+    if (!drag?.pending) return;
+    drag.pending = false;
+    track.scrollLeft = clamp(drag.left - (drag.lx - drag.x));
+  };
+  const finish = target => {
+    motion = null;
+    track.scrollTo({ left: target, behavior: 'instant' });
+    track.classList.remove('is-dragging');
+  };
+  const tick = now => {
+    raf = 0;
+    flushDrag();
+    if (motion) {
+      const m = motion, dt = Math.max(0, (now - m.at) / 1000);
+      [m.position, m.velocity] = springStep(m.position, m.velocity, m.target, dt, snapSpring);
+      m.at = now;
+      const position = clamp(m.position);
+      const atEdge = position !== m.position;
+      if (atEdge || (Math.abs(m.position - m.target) < .5 && Math.abs(m.velocity) < 10)) finish(m.target);
+      else track.scrollLeft = position;
+    }
+    paint();
+    if (motion) schedule();
+  };
+  const schedule = () => {
+    if (!raf && !signal.aborted && (drag?.pending || motion || ui || manual())) raf = requestAnimationFrame(tick);
+  };
+  // Native scroll timelines already animate previews; don't enqueue empty JS frames.
+  if (ui || !nativeParallax) track.addEventListener('scroll', schedule, { passive: true, signal });
   // 从隐藏到显示、窗口变化：尺寸一变就重算
   const ro = new ResizeObserver(() => { geometry = null; schedule(); });
   ro.observe(track);
-  frames.forEach(frame => ro.observe(frame));
+  // Every frame has the same grid column width; the first frame covers column changes.
+  ro.observe(frames[0]);
   signal.addEventListener('abort', () => ro.disconnect());
   paint();
 
+  const releaseCapture = pointer => {
+    if (pointer && track.hasPointerCapture(pointer.id)) track.releasePointerCapture(pointer.id);
+  };
+  const interrupt = () => {
+    cancelAnimationFrame(raf); raf = 0;
+    const pointer = drag; drag = null; motion = null;
+    releaseCapture(pointer);
+    // Stop a browser smooth-scroll from the current presentation position too.
+    track.scrollTo({ left: track.scrollLeft, behavior: 'instant' });
+    track.classList.remove('is-dragging');
+  };
+  const snap = (target, velocity = 0) => {
+    const from = track.scrollLeft;
+    target = clamp(Number.isFinite(target) ? target : from);
+    if (reduced() || (Math.abs(from - target) < .5 && Math.abs(velocity) < 10)) {
+      finish(target); schedule(); return;
+    }
+    track.classList.add('is-dragging');
+    motion = { position: from, target, velocity, at: performance.now() };
+    schedule();
+  };
+  const go = i => {
+    interrupt(); geometry = null;
+    // Buttons and keys keep the browser's smooth scrolling; only mouse release needs a spring.
+    track.scrollTo({ left: clamp(Math.max(0, Math.min(frames.length - 1, i)) * step()),
+      behavior: reduced() ? 'instant' : 'smooth' });
+  };
   // 键盘
   track.closest('a')?.addEventListener('dragstart', event => event.preventDefault(), { signal });
   track.addEventListener('keydown', (e) => {
@@ -91,17 +152,17 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
     go(index() + (e.key === 'ArrowRight' ? 1 : -1));
   }, { signal });
 
-  // 桌面拖拽：拖的时候关掉吸附，松手后按速度滑一段，再吸到最近的一张
-  const settle = () => {
-    track.classList.remove('is-dragging');
-    go(index());
-  };
+  track.addEventListener('wheel', () => {
+    if (drag || motion) { interrupt(); schedule(); }
+  }, { passive: true, signal });
+  // Preserve pointer speed across release; momentum and snap now share one spring.
   track.addEventListener('pointerdown', (e) => {
-    if (e.pointerType !== 'mouse' || e.button !== 0) return;
-    cancelAnimationFrame(glide);
-    glide = 0;
-    track.classList.remove('is-dragging');
-    drag = { x: e.clientX, left: track.scrollLeft, lx: e.clientX, lt: e.timeStamp, v: 0, moved: false, id: e.pointerId };
+    if (e.pointerType !== 'mouse') { interrupt(); return; }
+    if (e.button !== 0) return;
+    interrupt(); geometry = null; measure();
+    track.classList.add('is-dragging');
+    drag = { x: e.clientX, left: track.scrollLeft, lx: e.clientX, lt: e.timeStamp,
+      samples: [{ x: e.clientX, t: e.timeStamp }], pending: false, moved: false, id: e.pointerId };
   }, { signal });
   track.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
@@ -110,41 +171,51 @@ export function mountDepthSlider(track, { controls = true, enter = true } = {}) 
     if (!drag.moved) {
       drag.moved = true;
       track.setPointerCapture(e.pointerId);
-      track.classList.add('is-dragging');
     }
-    track.scrollLeft = drag.left - dx;
-    const dt = Math.max(1, e.timeStamp - drag.lt);
-    drag.v = drag.v * 0.6 + ((e.clientX - drag.lx) / dt) * 0.4;
     drag.lx = e.clientX;
     drag.lt = e.timeStamp;
+    drag.samples.push({ x: e.clientX, t: e.timeStamp });
+    while (drag.samples.length > 2 && drag.samples[0].t < e.timeStamp - 80) drag.samples.shift();
+    drag.pending = true;
+    schedule();
   }, { signal });
-  const release = () => {
-    if (!drag) return;
-    const { moved, v } = drag;
-    drag = null;
-    if (!moved) return;
+  const release = e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    flushDrag();
+    const d = drag;
+    drag = null; releaseCapture(d);
+    if (!d.moved) { track.classList.remove('is-dragging'); schedule(); return; }
     suppress = true;
-    setTimeout(() => { suppress = false; }, 0);
-    let vel = -v, last = performance.now();
-    if (reduced() || Math.abs(vel) < .06) { settle(); return; }
-    const tick = (now) => {
-      const dt = Math.min(48, now - last), decay = Math.exp(-dt / 192); last = now;
-      track.scrollLeft += vel * 192 * (1 - decay);
-      vel *= decay;
-      if (Math.abs(vel) > .038) glide = requestAnimationFrame(tick);
-      else settle();
-    };
-    glide = requestAnimationFrame(tick);
+    clearTimeout(suppressTimer);
+    suppressTimer = setTimeout(() => { suppress = false; suppressTimer = 0; }, 0);
+    const first = d.samples[0], last = d.samples.at(-1);
+    const velocity = e.type === 'pointerup' && e.timeStamp - d.lt < 80
+      ? -(last.x - first.x) / Math.max(1, last.t - first.t) : 0;
+    const from = track.scrollLeft, projected = clamp(from + velocity * 192);
+    const distance = step(), target = distance > 0 ? Math.round(projected / distance) * distance : 0;
+    const outward = (from <= .5 && velocity <= 0) || (from >= clamp(Infinity) - .5 && velocity >= 0);
+    snap(target, outward ? 0 : velocity * 1000);
   };
   track.addEventListener('pointerup', release, { signal });
   track.addEventListener('pointercancel', release, { signal });
+  track.addEventListener('lostpointercapture', e => release({ pointerId: e.pointerId, type: 'pointercancel' }), { signal });
+  track.addEventListener('pointerleave', () => {
+    if (drag && !drag.moved) { interrupt(); schedule(); }
+  }, { signal });
   // 拖完松手不算点击
   track.addEventListener('click', (e) => { if (suppress) { e.preventDefault(); e.stopPropagation(); } }, { capture: true, signal });
+  preference.addEventListener('change', () => {
+    if (reduced() && motion) finish(motion.target);
+    imgs.forEach(image => { image.style.transform = ''; });
+    schedule();
+  }, { signal });
 
   return () => {
+    interrupt();
     ac.abort();
-    cancelAnimationFrame(raf);
-    cancelAnimationFrame(glide);
+    clearTimeout(suppressTimer);
+    track.classList.remove('ds-enter');
+    imgs.forEach(image => { image.style.transform = ''; });
     ui?.remove();
     delete track.dataset.depthSlider;
   };
