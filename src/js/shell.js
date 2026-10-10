@@ -8,7 +8,10 @@ import '../styles/navigation.css';
 import '../styles/apple.css';
 import '../styles/store.css';
 import '../styles/motion.css';
-import { initFx } from './fx.js';
+import '../styles/ui.css';
+import '../styles/liquid.css';
+import { initFx, pop } from './fx.js';
+import { DUR, EASE, spring, transition } from './motion.js';
 
 export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -66,6 +69,77 @@ function rememberDirection(href) {
   try { sessionStorage.setItem('lk-vt', JSON.stringify({ dir, at: Date.now() })); } catch { /* 隐私模式 */ }
 }
 
+// 前进 / 后退：回到上一页时动画方向和来时相反（来时推入，返回就推出）。
+// 每次真正换页时，记下“到达这一条历史记录时用的方向”；之后在历史里来回走，就按记录取反或沿用。
+const INVERT = { in: 'out', out: 'in', forward: 'back', back: 'forward', same: 'same' };
+function arrivals() {
+  try { return JSON.parse(sessionStorage.getItem('lk-vt-arrive') || '{}'); } catch { return {}; }
+}
+function saveArrival(key, dir) {
+  const m = arrivals();
+  delete m[key];
+  m[key] = dir;
+  const keys = Object.keys(m);
+  if (keys.length > 50) delete m[keys[0]];
+  try { sessionStorage.setItem('lk-vt-arrive', JSON.stringify(m)); } catch { /* 隐私模式 */ }
+}
+function writeDirection(dir) {
+  try { sessionStorage.setItem('lk-vt', JSON.stringify({ dir, at: Date.now() })); } catch { /* 隐私模式 */ }
+}
+function directionFor(activation) {
+  const to = new URL(activation.entry.url), from = new URL(location.href);
+  const dir = directionOf(from, to);
+  if (activation.navigationType === 'traverse' && activation.from) {
+    const m = arrivals();
+    if (activation.entry.index < activation.from.index) return m[activation.from.key] ? INVERT[m[activation.from.key]] : dir;
+    return m[activation.entry.key] ?? dir;
+  }
+  if (activation.entry.key) saveArrival(activation.entry.key, dir);
+  return dir;
+}
+
+// 返回上一页时回到离开时的位置。浏览器自己的恢复在“内容是异步渲染出来的”页面上会落空（列表还没出来就恢复了），
+// 所以从历史里回来时改为手动：内容高度够了再滚过去；用户已经动过页面就不再动它。
+const readyHooks = [];
+export function pageReady() { readyHooks.splice(0).forEach((f) => f()); }
+
+function initScrollMemory() {
+  const KEY = 'lk-scroll';
+  const read = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || '{}'); } catch { return {}; } };
+  const id = () => (globalThis.navigation?.currentEntry?.key ? `k:${navigation.currentEntry.key}` : `u:${location.href}`);
+  addEventListener('pagehide', () => {
+    const m = read();
+    delete m[id()];
+    m[id()] = Math.round(scrollY);
+    const keys = Object.keys(m);
+    if (keys.length > 40) delete m[keys[0]];
+    try { sessionStorage.setItem(KEY, JSON.stringify(m)); } catch { /* 隐私模式 */ }
+  });
+  const nav = performance.getEntriesByType?.('navigation')?.[0];
+  if (nav?.type !== 'back_forward') return;
+  const y = read()[id()];
+  if (!y) return;
+  history.scrollRestoration = 'manual';
+  let done = false, ro;
+  const stop = () => { done = true; ro?.disconnect(); };
+  ['wheel', 'touchstart', 'keydown'].forEach((t) => addEventListener(t, stop, { once: true, passive: true }));
+  const attempt = () => {
+    if (done) return;
+    if (document.documentElement.scrollHeight >= y + innerHeight * 0.6) {
+      scrollTo({ top: y, behavior: 'instant' });
+      stop();
+    }
+  };
+  readyHooks.push(attempt);
+  attempt();
+  if ('ResizeObserver' in window && document.body) {
+    ro = new ResizeObserver(attempt);
+    ro.observe(document.body);
+    setTimeout(stop, 4000);
+  }
+  addEventListener('load', attempt, { once: true });
+}
+
 function initPageTransitions() {
   let navTimer, navGuard;
   const progress = document.createElement('div'); progress.className = 'navigation-progress'; progress.hidden = true;
@@ -76,7 +150,8 @@ function initPageTransitions() {
     // A rapid navigation or a destination without opt-in can cancel the old page's transition.
     e.viewTransition?.ready.catch(() => {});
     e.viewTransition?.finished.catch(() => {});
-    if (e.viewTransition && e.activation?.entry?.url) rememberDirection(e.activation.entry.url);
+    if (!e.viewTransition || !e.activation?.entry?.url) return;
+    try { writeDirection(directionFor(e.activation)); } catch { rememberDirection(e.activation.entry.url); }
   });
   document.addEventListener('click', (e) => {
     const a = e.target.closest?.('a[href]');
@@ -108,33 +183,100 @@ function initNav() {
   addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  // “＋发布”：桌面在按钮下方弹出，手机从底部升起；只列出现在真的能用的发布流程
+  // 底部标签栏：换到另一个板块时，新板块的图标弹一下（SF Symbols 的 bounce）
+  const arrive = document.documentElement.dataset.vtArrive;
+  if (arrive === 'forward' || arrive === 'back') setTimeout(() => pop(document.querySelector('.tabbar a[aria-current="page"] svg')), 180);
+
+  initPublish();
+  initAccount();
+}
+
+// “＋发布”：桌面在按钮下方弹出，手机从底部升起（下面垫一层半透明的底）；只列出现在真的能用的发布流程。
+// 菜单挂到 body 上：顶栏有 backdrop-filter，会把里面 fixed 定位的东西困在 48px 高的顶栏里（手机上面板会跑到屏幕外）。
+function initPublish() {
   const menu = document.getElementById('gn-pub');
   const triggers = [...document.querySelectorAll('[data-publish]')];
-  let opener = null;
-  const setOpen = (open, from = null) => {
-    if (!menu) return;
-    menu.hidden = !open;
-    opener = open ? from : null;
-    menu.classList.toggle('is-sheet', Boolean(from?.classList.contains('fab')));
-    triggers.forEach((t) => t.setAttribute('aria-expanded', String(open && t === from)));
-    if (open) menu.querySelector('a[role="menuitem"]')?.focus();
+  if (!menu || !triggers.length) return;
+  if (menu.parentElement !== document.body) document.body.append(menu);
+  const items = () => [...menu.querySelectorAll('a[role="menuitem"]')];
+  let opener = null, scrim = null, closing = null;
+  const isOpen = () => !menu.hidden && !closing;
+
+  const open = (from) => {
+    closing?.cancel?.();
+    closing = null;
+    menu.getAnimations().forEach((a) => a.cancel());
+    const sheet = Boolean(from?.classList.contains('fab'));
+    opener = from;
+    menu.classList.toggle('is-sheet', sheet);
+    triggers.forEach((t) => t.setAttribute('aria-expanded', String(t === from)));
+    menu.hidden = false;
+    if (sheet) {
+      if (!scrim) {
+        scrim = document.createElement('div');
+        scrim.className = 'gn-pub-scrim';
+        scrim.addEventListener('click', () => close());
+        document.body.append(scrim);
+      }
+      scrim.hidden = false;
+    }
+    if (!reducedMotion()) {
+      if (sheet) {
+        menu.animate([{ transform: 'translateY(110%)' }, { transform: 'none' }], { duration: DUR.medium, easing: EASE.ios });
+        scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: DUR.standard, easing: 'ease-out' });
+      } else {
+        menu.style.transformOrigin = 'top right';
+        const s = spring('snappy');
+        menu.animate([{ opacity: 0, transform: 'translateY(-6px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: s.duration, easing: s.easing });
+      }
+      items().forEach((a, i) => a.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }],
+        { duration: 300, delay: 50 + i * 24, easing: EASE.out, fill: 'backwards' }));
+    }
+    items()[0]?.focus({ preventScroll: true });
   };
+
+  const close = (refocus = false) => {
+    if (menu.hidden || closing) return;
+    const back = opener;
+    opener = null;
+    triggers.forEach((t) => t.setAttribute('aria-expanded', 'false'));
+    const sheet = menu.classList.contains('is-sheet');
+    const finish = () => {
+      closing = null;
+      menu.hidden = true;
+      menu.getAnimations().forEach((a) => a.cancel());
+      if (scrim) { scrim.hidden = true; scrim.getAnimations().forEach((a) => a.cancel()); }
+    };
+    if (reducedMotion()) finish();
+    else {
+      const out = menu.animate(sheet
+        ? [{ transform: 'none' }, { transform: 'translateY(110%)' }]
+        : [{ opacity: 1 }, { opacity: 0, transform: 'translateY(-4px) scale(.98)' }],
+      { duration: sheet ? DUR.exitMedium : DUR.exit, easing: EASE.in, fill: 'forwards' });
+      if (sheet && scrim) scrim.animate([{ opacity: 1 }, { opacity: 0 }], { duration: DUR.exitMedium, easing: 'ease-in', fill: 'forwards' });
+      closing = out;
+      Promise.race([out.finished, new Promise((r) => setTimeout(r, 400))]).then(() => { if (closing === out) finish(); }, () => {});
+    }
+    if (refocus) back?.focus();
+  };
+
   triggers.forEach((t) => t.addEventListener('click', (e) => {
     e.stopPropagation();
-    setOpen(menu.hidden || opener !== t, t);
+    if (isOpen() && opener === t) close(); else open(t);
   }));
   document.addEventListener('click', (e) => {
-    if (menu && !menu.hidden && !menu.contains(e.target)) setOpen(false);
+    if (isOpen() && !menu.contains(e.target) && !triggers.some((t) => t.contains(e.target))) close();
   });
   addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && menu && !menu.hidden) {
-      const back = opener;
-      setOpen(false);
-      back?.focus();
-    }
+    if (!isOpen()) return;
+    if (e.key === 'Escape') { close(true); return; }
+    const list = items(), i = list.indexOf(document.activeElement);
+    if (e.key === 'Tab') { close(); return; }
+    const to = { ArrowDown: i + 1, ArrowUp: i - 1, Home: 0, End: list.length - 1 }[e.key];
+    if (to == null || !list.length) return;
+    e.preventDefault();
+    list[(to + list.length) % list.length].focus();
   });
-
   initAccount();
 }
 
@@ -175,7 +317,13 @@ function initTheme() {
   document.querySelectorAll('[data-theme-toggle]').forEach((btn) => {
     const label = () => btn.setAttribute('aria-label', isDark() ? '切换到浅色外观' : '切换到深色外观');
     label();
+    let turns = 0;
     btn.addEventListener('click', () => {
+      const svg = btn.querySelector('svg');
+      if (svg) { turns += 1; svg.style.rotate = `${turns * 180}deg`; }
+      transition(() => apply(), 'theme');
+    });
+    const apply = () => {
       const next = isDark() ? 'light' : 'dark';
       // 选回与系统一致的一侧时，清除手动设置，继续跟随系统
       if ((next === 'dark') === sysDark.matches) {
@@ -187,7 +335,7 @@ function initTheme() {
       }
       label();
       dispatchEvent(new CustomEvent('lk:theme'));
-    });
+    };
     sysDark.addEventListener('change', label);
   });
 }
@@ -247,6 +395,7 @@ function initSearch() {
 }
 
 export function initShell() {
+  initScrollMemory();
   initPageTransitions();
   initNav();
   initTheme();

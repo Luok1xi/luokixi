@@ -12,6 +12,7 @@ import { renderMarkdown } from '../js/markdown.js';
 import { esc } from '../js/data.js';
 import '../styles/community.css';
 import '../styles/project.css';
+import { toast } from '../js/fx.js';
 
 initShell();
 
@@ -52,18 +53,7 @@ const st = { online: false, user: null, entry: null, view: 'public', history: nu
 
 // ---------- 提示 ----------
 
-let toastTimer;
-function toast(msg, action) {
-  const el = $('#pd-toast');
-  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : ''}`;
-  el.hidden = false;
-  requestAnimationFrame(() => el.classList.add('is-on'));
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    el.classList.remove('is-on');
-    setTimeout(() => (el.hidden = true), 300);
-  }, 3600);
-}
+// 统一用顶栏下方的胶囊提示（src/js/toast.js）
 
 function blocked(action) {
   if (!st.user) return toast(`登录之后才能${action}。`, { href: loginURL(), label: '去登录' }), true;

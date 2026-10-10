@@ -100,11 +100,12 @@ button {
   border-radius: var(--r-pill);
   background: var(--fg);
   color: var(--bg);
-  transition: top var(--dur-2) var(--ease-out);
+  transform: translateY(-80px);
+  transition: transform var(--dur-2) var(--ease-out);
 }
 
 .skip:focus {
-  top: 12px;
+  transform: translateY(72px);
   text-decoration: none;
 }
 
@@ -205,14 +206,15 @@ button {
 
 /* ---------- 入场：只有 JS 可用时才先隐藏 ---------- */
 
-/* 苹果官网的标准入场：位移小（约 30px）、时长约 1 秒、缓出曲线平缓 */
+/* 区块入场（动效第三版）：位移 24px、0.64 秒、缓出；同一组最多错开 6 个、每个 50ms。
+   只给大区块用，长列表的每一行不要加 data-reveal（Apple 官网的做法）。 */
 .js [data-reveal] {
   opacity: 0;
-  transform: translate3d(0, 30px, 0);
+  transform: translate3d(0, 24px, 0);
   transition:
-    opacity 1s var(--ease-apple),
-    transform 1s var(--ease-apple);
-  transition-delay: calc(var(--reveal-i, 0) * 80ms);
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+  transition-delay: calc(var(--reveal-i, 0) * var(--stagger));
 }
 
 .js [data-reveal="scale"] {

@@ -80,7 +80,6 @@ html.has-story { overflow: hidden; }
 }
 
 .story-close:hover { transform: scale(1.08); }
-.story-close:active { transform: scale(0.92); }
 
 .story-close svg {
   width: 16px;

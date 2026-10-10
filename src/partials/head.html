@@ -19,7 +19,7 @@
       try {
         var v = JSON.parse(sessionStorage.getItem('lk-vt') || 'null');
         sessionStorage.removeItem('lk-vt');
-        if (v && Date.now() - v.at < 8000) d.dataset.vt = v.dir;
+        if (v && Date.now() - v.at < 8000) { d.dataset.vt = v.dir; d.dataset.vtArrive = v.dir; }
       } catch (e) {}
     }
     if (document.prerendering) document.addEventListener('prerenderingchange', readDir, { once: true });

@@ -171,7 +171,6 @@ body.ap-page {
 }
 
 .ap-pill:hover { background: var(--accent-hover); text-decoration: none; }
-.ap-pill:active { transform: scale(0.95); }
 .ap-pill.is-quiet { background: var(--fill-2); color: var(--fg); }
 
 @media (max-width: 760px) {
@@ -236,8 +235,6 @@ button.ap-card:hover,
   box-shadow: 2px 4px 16px rgba(0, 0, 0, 0.16);
 }
 
-a.ap-card:active,
-button.ap-card:active { transform: scale(0.985); }
 
 :root[data-theme="dark"] .ap-card { box-shadow: none; background: #1d1d1f; }
 

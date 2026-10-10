@@ -1,16 +1,16 @@
 import { initShell } from '../js/shell.js';
 import { campusApi as api, campusAvailable } from '../../campus/client.js';
 import '../styles/knowledge.css';
+import { toast } from '../js/fx.js';
 
 initShell();
 const $ = selector => document.querySelector(selector);
 const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const url = value => { try { const u = new URL(value); return /^https?:$/.test(u.protocol) ? u.href : ''; } catch { return ''; } };
 const date = value => new Date(value).toLocaleDateString('zh-CN');
-let mode='local', offset=0, meta, currentDoc, sequence=0, polling, toastTimer;
+let mode='local', offset=0, meta, currentDoc, sequence=0, polling;
 const tag = value => `<span class="tag">${e(value)}</span>`;
-function toast(message) { const node=$('#kb-toast');node.textContent=message;node.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.hidden=true,6000); }
-function showError(error) { toast(error.message || String(error)); }
+function showError(error) { toast(error.message || String(error), { tone: 'err' }); }
 function empty(title, detail) { return `<div class="kb-empty"><strong>${e(title)}</strong>${e(detail)}</div>`; }
 async function refreshMeta() {
   meta=await api.meta();

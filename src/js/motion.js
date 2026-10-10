@@ -4,7 +4,19 @@
 // 解析解采样成 CSS linear() 缓动，交给浏览器合成线程去跑；不支持 linear() 的浏览器退回近似的 cubic-bezier。
 // 预设与 SwiftUI 同名：smooth（不回弹）、snappy（轻微回弹）、bouncy（明显回弹）、interactive（跟手）。
 // 转场优先用 View Transitions（WebKit / Chromium 都已支持），只动 transform 和 opacity；系统要求减少动态效果时直接切换。
-const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// 与 tokens.css 同名的时长（毫秒）和曲线。JS 动画只从这里取值，不在页面里另写数字。
+export const DUR = {
+  instant: 90, fast: 160, standard: 280, medium: 420, slow: 640,
+  exitFast: 100, exit: 180, exitMedium: 260,
+};
+export const EASE = {
+  ios: 'cubic-bezier(0.32, 0.72, 0, 1)',
+  out: 'cubic-bezier(0.22, 1, 0.36, 1)',
+  in: 'cubic-bezier(0.4, 0, 1, 1)',
+  inOut: 'cubic-bezier(0.65, 0, 0.35, 1)',
+};
 
 export const SPRINGS = {
   smooth: { response: 0.5, damping: 1 },
@@ -54,6 +66,14 @@ export function spring(name = 'smooth') {
   const out = { easing, duration: Math.round(sec * 1000) };
   cache.set(key, out);
   return out;
+}
+
+// 给 GSAP 用的弹簧：{ duration(秒), ease(t) }，和 CSS 的 var(--spring-*) 是同一条曲线
+export function springEase(name = 'smooth') {
+  const params = typeof name === 'string' ? SPRINGS[name] ?? SPRINGS.smooth : name;
+  const sec = settle(params);
+  const x = curve(params);
+  return { duration: sec, ease: (t) => (t >= 1 ? 1 : x(t * sec)) };
 }
 
 // 把弹簧写成 CSS 变量，样式表里用 var(--spring-snappy) / var(--spring-snappy-dur)

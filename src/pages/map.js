@@ -18,6 +18,7 @@ import { esc } from '../js/data.js';
 import '../styles/community.css';
 import '../styles/map.css';
 import '../styles/atlas.css';
+import { toast } from '../js/fx.js';
 
 initShell();
 
@@ -68,18 +69,7 @@ const centerOf = (b) => [b.properties.center[1], b.properties.center[0]];
 
 // ---------- 提示 ----------
 
-let toastTimer;
-function toast(msg, action) {
-  const el = $('#cx-toast');
-  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : ''}`;
-  el.hidden = false;
-  requestAnimationFrame(() => el.classList.add('is-on'));
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    el.classList.remove('is-on');
-    setTimeout(() => (el.hidden = true), 300);
-  }, 3600);
-}
+// 统一用顶栏下方的胶囊提示（src/js/toast.js）
 
 // 收藏、关注、反馈、投稿都要：服务在线 + 已登录 + 邮箱已验证
 function blocked(action) {

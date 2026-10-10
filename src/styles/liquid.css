@@ -1,0 +1,214 @@
+/* ==========================================================================
+   液态金属按钮 .lm（Opus · 2026-10-10）
+   视觉模型和交互参数改编自 ThreeUI 的 LiquidMetalButton / Sylva 首屏按钮
+   （MIT License，Copyright (c) 2026 Meng To，https://github.com/MengTo/threeui；见 THIRD_PARTY_NOTICES.md）。
+   原作用 WebGL 着色器一直在画；这里用几层 CSS 渐变重做：静止时一动不动，
+   只有 opacity / transform / rotate / translate 会过渡，交给合成线程。
+   按压的缩放由 fx.js 的按压引擎统一处理，这里不再写 :active。
+   ========================================================================== */
+
+.lm {
+  --lm-h: 48px;
+  --lm-plate: #1d1d1f;
+  --lm-ink: #fff;
+  --lm-hair: rgba(255, 255, 255, 0);
+  --lm-drop: 0 1px 2px rgba(0, 0, 0, 0.16), 0 12px 26px -12px rgba(0, 0, 0, 0.55);
+  --lm-glow: 0.5;
+  --lm-rest: 0.42;          /* rim lobe opacity at rest */
+  --lm-a: 318deg;           /* rest bearing of the lead lobe: studio light from top-left */
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: var(--lm-h);
+  padding: 0 calc(var(--lm-h) * 0.5);
+  border: 0;
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--lm-ink);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.lm:hover { text-decoration: none; }
+
+/* bloom: under the plate, outside the pill. Static gradients; only opacity moves */
+.lm::before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: -80% -24% -110%;
+  border-radius: 50%;
+  background:
+    radial-gradient(40% 30% at 50% 56%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 100%),
+    radial-gradient(28% 26% at 30% 58%, color-mix(in srgb, var(--g1) 55%, transparent), transparent 100%),
+    radial-gradient(28% 26% at 70% 58%, color-mix(in srgb, var(--g4) 50%, transparent), transparent 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 330ms var(--ease-out);
+}
+
+/* plate: the button's solid body + drop shadow (never transitioned) */
+.lm::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 44%, rgba(255, 255, 255, 0) 64%),
+    var(--lm-plate);
+  box-shadow: var(--lm-drop), 0 0 0 1px var(--lm-hair), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+
+.lm > .lm-label { position: relative; z-index: 3; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.22); }
+
+/* molten face: clipped to the pill, veiled through the label band (Sylva uDim 0.44, smoothstep .46-.88) */
+.lm-metal {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 0 6%, rgba(0, 0, 0, 0.5) 27% 73%, #000 94%);
+  mask-image: linear-gradient(180deg, #000 0 6%, rgba(0, 0, 0, 0.5) 27% 73%, #000 94%);
+}
+
+.lm-pool {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: 0;
+  bottom: -12%;
+  background:
+    radial-gradient(30% 64% at 50% 100%, #fff 0 34%, rgba(255, 255, 255, 0.9) 48%, rgba(255, 255, 255, 0) 100%),
+    radial-gradient(40% 82% at 44% 100%, transparent 54%, color-mix(in srgb, var(--g1) 55%, #fff) 62%, transparent 72%),
+    radial-gradient(48% 98% at 62% 100%, transparent 60%, color-mix(in srgb, var(--g4) 55%, #fff) 66%, transparent 74%),
+    linear-gradient(180deg, transparent 40%, rgba(255, 255, 255, 0.16));
+  opacity: 0;
+  transform: translateY(36%) scaleX(0.84);
+  transition:
+    opacity 330ms var(--ease-out),
+    transform 330ms var(--ease-out),
+    translate 260ms cubic-bezier(0.2, 1, 0.3, 1);
+}
+
+/* chromatic rim: static floor ring (top-biased) + two travelling lobes on a rotated child */
+.lm-rim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  padding: 1px;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.16));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+.lm-rim > i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 112%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  rotate: var(--lm-a);
+  background: conic-gradient(from -24deg,
+    transparent 0deg, color-mix(in srgb, var(--g4) 80%, #fff) 12deg, #fff 24deg, color-mix(in srgb, var(--g1) 80%, #fff) 36deg, transparent 58deg,
+    transparent 168deg, color-mix(in srgb, var(--g2) 70%, #fff) 184deg, rgba(255, 255, 255, 0.85) 204deg, transparent 236deg,
+    transparent 360deg);
+  opacity: var(--lm-rest);
+  transition: opacity 330ms var(--ease-out), rotate 320ms var(--ease-out);
+}
+
+/* hot = hover (fine pointer) / keyboard focus / press. Bloom in 450ms, die in 330ms (Sylva tau 149/111ms x3) */
+.lm.is-hot::before { opacity: var(--lm-glow); transition-duration: 450ms; }
+.lm.is-hot .lm-pool { opacity: 1; transform: none; transition-duration: 450ms, 520ms, 260ms; }
+.lm.is-hot .lm-rim > i { opacity: 0.9; }
+
+/* press snaps on (~50ms, Sylva tau 48ms) and lets go slowly (~540ms, tau 181ms) */
+.lm.is-press .lm-pool { transform: scale(1.06, 1.14); transition-duration: 330ms, 60ms, 260ms; }
+.lm.is-press .lm-rim > i { opacity: 1; transition-duration: 50ms, 320ms; }
+.lm.is-press::before { opacity: calc(var(--lm-glow) * 1.25); transition-duration: 60ms; }
+
+/* press ripple: crest ring from the contact point; grow and fade only */
+.lm-ripple {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--lm-h) * 4.4);
+  aspect-ratio: 1;
+  margin: calc(var(--lm-h) * -2.2) 0 0 calc(var(--lm-h) * -2.2);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, transparent 78%, rgba(255, 255, 255, 0.8) 92%, rgba(255, 255, 255, 0) 100%);
+  animation: lm-grow 900ms cubic-bezier(0.25, 0.6, 0.35, 1) both, lm-fade 900ms cubic-bezier(0.3, 0.6, 0.4, 1) both;
+}
+
+@keyframes lm-grow { from { transform: scale(0.04); } to { transform: scale(1); } }
+@keyframes lm-fade { from { opacity: 1; } to { opacity: 0; } }
+
+/* busy: real request in flight (auth submit, studio start). Rim orbits; stops when aria-busy is removed */
+.lm[aria-busy="true"] .lm-rim > i { opacity: 1; animation: lm-orbit 1.4s linear infinite; }
+@keyframes lm-orbit { from { rotate: 0deg; } to { rotate: 360deg; } }
+
+/* 首页主按钮可以加 data-live：在屏幕里时边缘高光缓缓绕一圈（约 18 秒，像原作那样“活着”），离屏即停 */
+.lm[data-live].is-live:not(.is-hot):not([aria-busy="true"]) .lm-rim > i { animation: lm-drift 18s linear infinite; }
+@keyframes lm-drift { from { rotate: var(--lm-a); } to { rotate: calc(var(--lm-a) + 360deg); } }
+
+
+.lm:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; } /* keeps the pill radius (ThreeUI's page-level button:focus-visible squares it) */
+.lm.is-glass:focus-visible { outline-color: #fff; }
+
+.lm:is(:disabled, [aria-disabled="true"]) { cursor: default; }
+/* disabled-because-busy keeps its orbiting rim; plain disabled goes flat */
+.lm:is(:disabled, [aria-disabled="true"]):not([aria-busy="true"]) > .lm-label { opacity: 0.42; }
+.lm:is(:disabled, [aria-disabled="true"]):not([aria-busy="true"]) :is(.lm-metal, .lm-rim > i) { display: none; }
+
+/* glass variant: over hero cards / imagery (Sylva's in-page plate, no backdrop-filter) */
+.lm.is-glass {
+  --lm-plate: rgba(10, 12, 10, 0.42);
+  --lm-drop:
+    0 calc(var(--lm-h) * 0.08) calc(var(--lm-h) * 0.18) rgba(0, 0, 0, 0.38),
+    0 calc(var(--lm-h) * 0.24) calc(var(--lm-h) * 0.5) rgba(0, 0, 0, 0.28),
+    0 calc(var(--lm-h) * 0.48) calc(var(--lm-h) * 0.96) rgba(0, 0, 0, 0.16);
+  --lm-glow: 0.75;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .lm:not(.is-glass) {
+    --lm-plate: #1c1c1e;
+    --lm-hair: rgba(255, 255, 255, 0.1);
+    --lm-drop: 0 10px 26px -8px rgba(0, 0, 0, 0.8);
+    --lm-glow: 0.7;
+    --lm-rest: 0.55;
+  }
+}
+
+:root[data-theme="dark"] .lm:not(.is-glass) {
+  --lm-plate: #1c1c1e;
+  --lm-hair: rgba(255, 255, 255, 0.1);
+  --lm-drop: 0 10px 26px -8px rgba(0, 0, 0, 0.8);
+  --lm-glow: 0.7;
+  --lm-rest: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lm::before, .lm-pool, .lm-rim > i { transition-duration: 1ms !important; }
+  .lm-ripple { display: none; }
+  .lm[aria-busy="true"] .lm-rim > i,
+  .lm[data-live] .lm-rim > i { animation: none !important; }
+}

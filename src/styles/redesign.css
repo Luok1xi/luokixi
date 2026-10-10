@@ -1,12 +1,9 @@
 /* Shared interaction polish. Small transitions, no navigation delay. */
 :root{--ease-interface:cubic-bezier(.23,1,.32,1)}
 button,a,input,select,textarea{touch-action:manipulation}
-:where(button,.btn):active:not(:disabled){transform:scale(.97)}
 :where(a,button,input,select,textarea):focus-visible{outline:3px solid color-mix(in srgb,var(--accent) 65%,transparent);outline-offset:4px}
 .tabbar{grid-template-columns:repeat(6,minmax(0,1fr))}.gn-links a{transition:color 140ms ease,background-color 140ms ease}
 /* 页面转场与弹窗进出场改由 motion.css 统一处理（Opus 第 16 次回信）。 */
-@media(prefers-reduced-motion:no-preference){.gn-pub:not([hidden]){transform-origin:top right;animation:lk-dialog-in 160ms var(--ease-interface)}}
-@keyframes lk-dialog-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 @media(max-width:760px){input,select,textarea{font-size:16px!important}.tabbar a{font-size:10px;min-width:0}}
 body[data-page="reputation"] .rp-grid{grid-template-columns:1fr;max-width:960px;margin-inline:auto;gap:16px}
 body[data-page="reputation"] .rp-card{padding:26px 30px 26px 170px;min-height:198px;box-shadow:0 1px 0 var(--line-soft);border:1px solid var(--line-soft)}

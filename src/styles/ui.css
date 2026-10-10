@@ -1,0 +1,317 @@
+/* ==========================================================================
+   全站交互组件（Opus · 2026-10-10）：提示条、按钮的“处理中 / 已完成”、底部面板的小横条、
+   iOS 提醒框 / 操作表。脚本在 src/js/toast.js、src/js/fx.js、src/js/sheet.js。
+   只动 transform 和 opacity；系统要求减少动态效果时由 base.css 统一关掉过渡。
+   ========================================================================== */
+
+/* ---------- 提示条：顶栏下方的一枚深色胶囊（灵动岛） ---------- */
+
+.lk-toast {
+  position: fixed;
+  inset: calc(var(--nav-h) + 10px + env(safe-area-inset-top, 0px)) auto auto 50%;
+  z-index: 300;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 32px));
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: var(--r-pill);
+  overflow: visible;
+  background: rgba(24, 24, 26, 0.96);
+  color: #fff;
+  box-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.55), inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.005em;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.lk-toast-text { min-width: 0; overflow-wrap: anywhere; }
+
+.lk-toast-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+}
+
+.lk-toast-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lk-toast[data-tone="ok"] .lk-toast-icon { color: #30d158; }
+.lk-toast[data-tone="err"] .lk-toast-icon { color: #ff453a; }
+
+.lk-toast-act {
+  flex: none;
+  margin-left: 4px;
+  padding: 6px 2px;
+  color: #64d2ff;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.lk-toast-act:hover { text-decoration: none; color: #8fe0ff; }
+
+/* ---------- 按钮：处理中（iOS 菊花）和“✓ 已完成” ---------- */
+/* fx.act() 先写好 --busy-ink（按钮原来的文字颜色），再把字变透明，菊花用原来的颜色画 */
+
+:is(.btn, .as-get, .ap-pill, .gn-publish, .glass-pill, .lk-alert-ok, .lk-busy)[aria-busy="true"],
+:is(.btn, .as-get, .ap-pill, .gn-publish, .glass-pill, .lk-alert-ok, .lk-busy)[data-done] {
+  position: relative;
+  color: transparent !important;
+  pointer-events: none;
+}
+
+:is(.btn, .as-get, .ap-pill, .gn-publish, .glass-pill, .lk-alert-ok, .lk-busy)[aria-busy="true"] > *,
+:is(.btn, .as-get, .ap-pill, .gn-publish, .glass-pill, .lk-alert-ok, .lk-busy)[data-done] > * {
+  opacity: 0;
+}
+
+:is(.btn, .as-get, .ap-pill, .gn-publish, .glass-pill, .lk-alert-ok, .lk-busy)[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 18px;
+  height: 18px;
+  margin: auto;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, color-mix(in srgb, var(--busy-ink, var(--fg-2)) 12%, transparent), var(--busy-ink, var(--fg-2)));
+  -webkit-mask:
+    repeating-conic-gradient(from -9deg, #000 0 18deg, transparent 18deg 45deg),
+    radial-gradient(circle, transparent 0 34%, #000 36%);
+  -webkit-mask-composite: source-in;
+  mask:
+    repeating-conic-gradient(from -9deg, #000 0 18deg, transparent 18deg 45deg) intersect,
+    radial-gradient(circle, transparent 0 34%, #000 36%);
+  transform: none;
+  animation: lk-spin 800ms steps(8) infinite;
+}
+
+:is(.btn, .as-get, .ap-pill, .gn-publish, .glass-pill, .lk-alert-ok, .lk-busy)[data-done]::after {
+  content: "✓\00a0" attr(data-done);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--busy-ink, var(--fg));
+  white-space: nowrap;
+  transform: none;
+  animation: lk-done-in 360ms var(--ease-out) both;
+}
+
+@keyframes lk-spin { to { rotate: 360deg; } }
+@keyframes lk-done-in { from { opacity: 0; scale: 0.82; } }
+
+.btn:disabled:not([aria-busy="true"]):not([data-done]),
+.as-get:disabled:not([aria-busy="true"]):not([data-done]) {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ---------- 底部面板：顶上的小横条、拖动时关掉过渡 ---------- */
+
+.sheet-grabber { display: none; }
+
+dialog.is-instant,
+dialog.is-instant::backdrop { transition: none !important; }
+
+@media (max-width: 760px) {
+  dialog > .sheet-grabber {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    z-index: 20;
+    display: block;
+    width: 36px;
+    height: 5px;
+    margin-left: -18px;
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--fg) 22%, transparent);
+    pointer-events: none;
+  }
+
+  dialog.is-dragging { transition: none !important; }
+}
+
+/* ---------- 提醒框（桌面）/ 操作表（手机）：代替 confirm() / prompt() ---------- */
+
+.lk-alert {
+  width: min(320px, calc(100vw - 48px));
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.4), inset 0 0 0 0.5px var(--line-soft);
+  text-align: center;
+}
+
+.lk-alert::backdrop { background: rgba(0, 0, 0, 0.32); }
+
+.lk-alert-body {
+  display: grid;
+  gap: 6px;
+  padding: 20px 18px 18px;
+}
+
+.lk-alert-body h2 {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.lk-alert-body p {
+  color: var(--fg-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lk-alert-field { display: block; margin-top: 10px; }
+
+.lk-alert-field :is(input, textarea) {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+}
+
+.lk-alert-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 0.5px solid var(--line);
+}
+
+.lk-alert-actions button {
+  min-height: 46px;
+  color: var(--accent);
+  font-size: 17px;
+}
+
+.lk-alert-actions button + button { border-left: 0.5px solid var(--line); }
+.lk-alert-ok { font-weight: 600; }
+.lk-alert-ok.is-destructive { color: var(--ios-hot); }
+.lk-alert-ok:disabled { opacity: 0.35; }
+
+@media (hover: hover) and (pointer: fine) {
+  .lk-alert-actions button:hover { background: var(--fill); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lk-alert {
+    opacity: 0;
+    transform: scale(1.1);
+    transition: opacity 200ms ease-out, transform 260ms var(--ease-out), overlay 200ms allow-discrete, display 200ms allow-discrete;
+  }
+
+  .lk-alert[open] { opacity: 1; transform: none; }
+
+  @starting-style {
+    .lk-alert[open] { opacity: 0; transform: scale(1.1); }
+  }
+
+  .lk-alert:not([open]) { transition-duration: 160ms, 160ms, 160ms, 160ms; transform: none; }
+
+  .lk-alert::backdrop { opacity: 0; transition: opacity 220ms ease-out, overlay 220ms allow-discrete, display 220ms allow-discrete; }
+  .lk-alert[open]::backdrop { opacity: 1; }
+
+  @starting-style {
+    .lk-alert[open]::backdrop { opacity: 0; }
+  }
+}
+
+/* 手机：底部操作表。说明和主按钮一组，取消单独一组 */
+@media (max-width: 760px) {
+  .lk-alert {
+    width: calc(100% - 16px);
+    max-width: none;
+    margin: auto 8px calc(8px + env(safe-area-inset-bottom));
+    border-radius: 0;
+    overflow: visible;
+    background: none;
+    box-shadow: none;
+  }
+
+  .lk-alert form { display: grid; gap: 8px; }
+
+  .lk-alert-body {
+    border-radius: 14px 14px 0 0;
+    background: var(--bg-elev);
+  }
+
+  .lk-alert-actions { display: contents; }
+
+  .lk-alert-actions button {
+    min-height: 56px;
+    border: 0 !important;
+    border-radius: 14px;
+    background: var(--bg-elev);
+    font-size: 20px;
+  }
+
+  .lk-alert-ok {
+    order: 1;
+    margin-top: -8px;
+    border-top: 0.5px solid var(--line) !important;
+    border-radius: 0 0 14px 14px !important;
+  }
+
+  .lk-alert-cancel { order: 2; font-weight: 600; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lk-alert { opacity: 1; transform: translateY(110%); transition: transform 380ms var(--ease-ios), overlay 300ms allow-discrete, display 300ms allow-discrete; }
+    .lk-alert[open] { transform: none; }
+
+    @starting-style {
+      .lk-alert[open] { opacity: 1; transform: translateY(110%); }
+    }
+
+    .lk-alert:not([open]) { transform: translateY(110%); transition-duration: 240ms, 240ms, 240ms; transition-timing-function: var(--ease-in), linear, linear; }
+  }
+}
+
+/* ---------- 悬浮“发布”按钮：给页面底部的操作条让位；打开时 ＋ 转成 × ---------- */
+
+.fab {
+  translate: 0 calc(-1 * var(--bottom-accessory-h, 0px));
+  transition: translate var(--dur-medium) var(--ease-ios);
+}
+
+.fab svg,
+.gn-publish svg { transition: rotate var(--settle-dur) var(--settle); }
+
+.fab[aria-expanded="true"] svg,
+.gn-publish[aria-expanded="true"] svg { rotate: 45deg; }
+
+/* 发布菜单在手机上是底部面板，下面垫一层半透明的底 */
+.gn-pub-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 69;
+  background: rgba(0, 0, 0, 0.32);
+}
+
+/* 深浅色切换：半月形图标转半圈 */
+.gn-theme svg { transition: rotate var(--settle-dur) var(--settle); }

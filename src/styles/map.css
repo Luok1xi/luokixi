@@ -151,10 +151,6 @@
   background: var(--fill-2);
 }
 
-.cx-theme:active {
-  transform: scale(0.97);
-}
-
 .cx-theme-glyph {
   display: grid;
   place-items: center;
@@ -388,10 +384,6 @@
 
 .cx-add-btn:hover {
   background: var(--accent-hover);
-}
-
-.cx-add-btn:active {
-  transform: scale(0.9);
 }
 
 .cx-add-btn svg {
@@ -873,10 +865,6 @@
   background: var(--fill-2);
 }
 
-.cx-act:active {
-  transform: scale(0.95);
-}
-
 .cx-act:disabled {
   opacity: 0.6;
 }
@@ -1132,26 +1120,6 @@
 .cx-preview-bar {
   grid-template-columns: 1fr auto;
   align-items: center;
-}
-
-.cx-toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(28px + var(--tabbar-h, 0px));
-  z-index: 60;
-  max-width: min(92vw, 520px);
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-size: 14px;
-  overflow-wrap: anywhere;
-  opacity: 0;
-  transform: translate(-50%, 10px);
-  transition: opacity 240ms var(--ease-out), transform 300ms var(--ease-out);
-}
-
-.cx-toast.is-on {
-  opacity: 1;
-  transform: translate(-50%, 0);
 }
 
 /* ---------- 投稿与审核对话框 ---------- */
@@ -2210,10 +2178,6 @@ body[data-page="map"] {
     linear-gradient(135deg, color-mix(in srgb, var(--g1) 16%, transparent), color-mix(in srgb, var(--g2) 14%, transparent) 60%, color-mix(in srgb, var(--g4) 12%, transparent));
   text-align: left;
   transition: transform var(--dur-2) var(--ease-spring);
-}
-
-.cx-player:active {
-  transform: scale(0.98);
 }
 
 .cx-ring {

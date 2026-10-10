@@ -11,25 +11,35 @@
    - 滚动：只有大区块进入视口时浮上来，长列表的每一项不动（Apple 官网的做法）。
    只动 transform 和 opacity；系统要求减少动态效果时全部关闭。
    不处理：首页开场 / 轮播 / 故事卡片（Codex 的 carousel、opening、story 自带动效）。
+   第三版（2026-10-10）：换页只留这一套规则（删掉了 components.css / v3.css 里互相打架的旧规则）；
+   同板块换页时旧页不再同时淡出（不再透出白底“闪一下”）；顶栏和标签栏原地不动；
+   按压改由 fx.js 的按压引擎统一处理（独立的 scale 属性，松手走弹簧）；所有弹窗在手机上都从底部升起。
    ========================================================================== */
 
 /* ---------- 换页 ---------- */
 
 @media (prefers-reduced-motion: no-preference) {
   #main { view-transition-name: none; }
+  /* 顶栏和底部标签栏原地不动，只换正文 */
+  .gn { view-transition-name: gn; }
+  .tabbar { view-transition-name: tabbar; }
   /* 每页最多一个分段控件写 data-vt-seg，名字唯一 */
   .as-seg[data-vt-seg] > .as-seg-thumb { view-transition-name: page-seg; }
+
+  ::view-transition-group(gn),
+  ::view-transition-group(tabbar) { animation: none; }
 
   ::view-transition-old(root),
   ::view-transition-new(root) {
     mix-blend-mode: normal;
   }
 
-  ::view-transition-old(root) { animation: fx-fade-out 160ms ease-out both; }
-  ::view-transition-new(root) { animation: fx-fade-in 300ms var(--ease-ios) both; }
+  /* 旧页留在下面不动，新页盖上来：交叉的过程中不会透出底色 */
+  ::view-transition-old(root) { animation: none; }
+  ::view-transition-new(root) { animation: fx-fade-in 240ms var(--ease-out) both; }
 
-  html[data-vt="forward"]::view-transition-new(root) { animation: fx-from-right 340ms var(--ease-ios) both; }
-  html[data-vt="back"]::view-transition-new(root) { animation: fx-from-left 340ms var(--ease-ios) both; }
+  html[data-vt="forward"]::view-transition-new(root) { animation: fx-from-right 300ms var(--ease-ios) both; }
+  html[data-vt="back"]::view-transition-new(root) { animation: fx-from-left 300ms var(--ease-ios) both; }
 
   html[data-vt="in"]::view-transition-old(root) { animation: fx-push-under 400ms var(--ease-ios) both; }
   html[data-vt="in"]::view-transition-new(root) { animation: fx-push-over 400ms var(--ease-ios) both; }
@@ -46,6 +56,14 @@
     animation: none;
     mix-blend-mode: normal;
   }
+
+  /* 切换深浅色：整页淡过去（motion.js transition(apply, 'theme')） */
+  html.vt-theme::view-transition-old(root),
+  html.vt-theme::view-transition-old(gn),
+  html.vt-theme::view-transition-old(tabbar) { animation: none; }
+  html.vt-theme::view-transition-new(root),
+  html.vt-theme::view-transition-new(gn),
+  html.vt-theme::view-transition-new(tabbar) { animation: fx-theme-in 360ms var(--ease-out) both; }
 }
 
 /* 手机：真正的 iOS 推入。新页整屏从右边滑进来盖住旧页，旧页往左退三成；返回反过来 */
@@ -56,8 +74,8 @@
   html[data-vt="out"]::view-transition-new(root) { animation: fx-back-under-full 380ms var(--ease-ios) both; }
 }
 
-@keyframes fx-fade-out { to { opacity: 0; } }
 @keyframes fx-fade-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes fx-theme-in { from { opacity: 0; } }
 @keyframes fx-from-right { from { opacity: 0; transform: translateX(14px); } }
 @keyframes fx-from-left { from { opacity: 0; transform: translateX(-14px); } }
 @keyframes fx-push-over { from { opacity: 0; transform: translateX(48px); } }
@@ -70,50 +88,50 @@
 @keyframes fx-back-under-full { from { transform: translateX(-30%); } }
 
 /* ---------- 弹窗 ---------- */
-/* .dlg（全站搜索）和 .story（Codex 的故事卡片）有各自的动画；data-motion="flip" 的弹窗由 fx.js 从被点的卡片“长”出来 */
+/* .spot（全站搜索）、.story（故事卡片）和 .lk-alert（提醒框）有各自的动画；data-motion="flip" 的弹窗由 sheet.js 从被点的卡片“长”出来 */
 
 @media (prefers-reduced-motion: no-preference) {
-  dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+  dialog:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
     opacity: 0;
     transform: translateY(16px) scale(0.97);
     transition: opacity 220ms ease-out, transform 360ms var(--ease-ios);
   }
 
-  dialog[open]:not(.dlg):not(.story):not([data-motion="flip"]) {
+  dialog[open]:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
     opacity: 1;
     transform: none;
   }
 
   @starting-style {
-    dialog[open]:not(.dlg):not(.story):not([data-motion="flip"]) {
+    dialog[open]:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
       opacity: 0;
       transform: translateY(16px) scale(0.97);
     }
   }
 
-  dialog:not(.dlg):not(.story)::backdrop {
+  dialog:not(.spot):not(.story):not(.lk-alert)::backdrop {
     opacity: 0;
     transition: opacity 280ms ease-out;
   }
 
-  dialog[open]:not(.dlg):not(.story)::backdrop { opacity: 1; }
+  dialog[open]:not(.spot):not(.story):not(.lk-alert)::backdrop { opacity: 1; }
 
   @starting-style {
-    dialog[open]:not(.dlg):not(.story)::backdrop { opacity: 0; }
+    dialog[open]:not(.spot):not(.story):not(.lk-alert)::backdrop { opacity: 0; }
   }
 
   /* 关闭动画需要 overlay 属性把弹窗留在顶层；不支持的浏览器直接关，避免闪到页面里 */
   @supports (overlay: auto) {
-    dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+    dialog:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
       transition: opacity 220ms ease-out, transform 360ms var(--ease-ios), overlay 220ms allow-discrete, display 220ms allow-discrete;
     }
 
-    dialog:not([open]):not(.dlg):not(.story):not([data-motion="flip"]) {
+    dialog:not([open]):not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
       transition-duration: 160ms, 220ms, 220ms, 220ms;
       transition-timing-function: ease-in, cubic-bezier(0.4, 0, 1, 1), linear, linear;
     }
 
-    dialog:not(.dlg):not(.story)::backdrop {
+    dialog:not(.spot):not(.story):not(.lk-alert)::backdrop {
       transition: opacity 240ms ease-out, overlay 240ms allow-discrete, display 240ms allow-discrete;
     }
   }
@@ -121,55 +139,36 @@
 
 /* 手机：整张从屏幕底部升起，不淡入 */
 @media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
-  dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+  dialog:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
     opacity: 1;
     transform: translateY(100%);
     transition: transform 420ms var(--ease-ios);
   }
 
   @starting-style {
-    dialog[open]:not(.dlg):not(.story):not([data-motion="flip"]) {
+    dialog[open]:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
       opacity: 1;
       transform: translateY(100%);
     }
   }
 
   @supports (overlay: auto) {
-    dialog:not(.dlg):not(.story):not([data-motion="flip"]) {
+    dialog:not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
       transition: transform 420ms var(--ease-ios), overlay 300ms allow-discrete, display 300ms allow-discrete;
     }
 
-    dialog:not([open]):not(.dlg):not(.story):not([data-motion="flip"]) {
+    dialog:not([open]):not(.spot):not(.story):not(.lk-alert):not([data-motion="flip"]) {
       transition-duration: 280ms, 280ms, 280ms;
       transition-timing-function: cubic-bezier(0.4, 0, 1, 1), linear, linear;
     }
   }
 }
 
-/* ---------- 按压：按下收一点，松手顺回去 ---------- */
+/* ---------- 按压 ---------- */
+/* 按钮、卡片、列表行的按压由 fx.js 的按压引擎处理：用独立的 scale 属性，手指一碰就收，松手走弹簧弹回。
+   这里只留底部标签栏：iOS 的标签栏只有图标压一下。 */
 
 @media (prefers-reduced-motion: no-preference) {
-  :where(button, .btn, .ap-pill, .as-get, .as-seg a, .as-seg button) {
-    transition: transform 320ms var(--ease-ios);
-  }
-
-  :where(button, .btn, .ap-pill, .as-get):active:not(:disabled) {
-    transform: scale(0.96);
-    transition-duration: 80ms;
-    transition-timing-function: ease-out;
-  }
-
-  :where(.fx-press, .ap-card.is-hoverable, .ap-row, .as-card, .as-lockup, .as-chart-row, .rp-cell, .cs-post, .mt-row) {
-    transition: transform 380ms var(--ease-ios);
-  }
-
-  :where(.fx-press, .ap-card.is-hoverable, .ap-row, .as-card, .as-lockup, .as-chart-row, .rp-cell, .cs-post, .mt-row):active {
-    transform: scale(0.98);
-    transition-duration: 100ms;
-    transition-timing-function: ease-out;
-  }
-
-  /* 底部标签栏：点下去图标先压一下 */
   .tabbar a svg { transition: transform 320ms var(--ease-ios); }
   .tabbar a:active svg { transform: scale(0.84); transition-duration: 80ms; }
 }
@@ -249,7 +248,7 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .as-skeleton::after { animation: fx-shimmer 1.4s ease-in-out infinite; }
+  .as-skeleton::after { animation: fx-shimmer 1.4s ease-in-out 6; }
 }
 
 @media (prefers-color-scheme: dark) {

@@ -72,7 +72,6 @@
 }
 
 .mt-upload-btn:hover { box-shadow: 0 10px 24px -10px rgba(255, 106, 31, 0.95); }
-.mt-upload-btn:active { transform: scale(0.96); }
 
 .mt-upload-btn svg {
   width: 26px;
@@ -277,7 +276,6 @@
   transition: transform 400ms var(--spring-bouncy), background 160ms;
 }
 
-.mt-add:active span { transform: scale(0.86); }
 .mt-add em { font-style: normal; }
 .mt-add.is-on span { background: var(--ok); box-shadow: none; font-size: 17px; }
 .mt-add.is-on em { color: var(--ok); }
@@ -426,7 +424,6 @@
 }
 
 .mt-bagbar-go:disabled { background: rgba(255, 255, 255, 0.14); color: #a1a1a6; cursor: default; }
-.mt-bagbar-go:active:not(:disabled) { transform: scale(0.95); }
 .mt-bagbar-go b { margin-left: 4px; }
 
 /* ---------- 手机：分类栏变窄，图标在上、名字在下（美团买菜、山姆那样） ---------- */
@@ -583,7 +580,6 @@
   transition: background 160ms, color 160ms, transform 300ms var(--spring-bouncy);
 }
 
-.mt-chip:active { transform: scale(0.94); }
 .mt-chip[aria-pressed="true"] { background: var(--accent); color: #fff; }
 .mt-upload-status { min-height: 1.3em; font-size: 14px; }
 .mt-gate { background: var(--bg-alt); }

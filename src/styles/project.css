@@ -93,10 +93,6 @@
   background: var(--fill-2);
 }
 
-.pd-act:active {
-  transform: scale(0.96);
-}
-
 .pd-act svg {
   width: 18px;
   height: 18px;
@@ -666,25 +662,6 @@
 
 .pd-report form {
   margin-top: 10px;
-}
-
-.pd-toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(28px + var(--tabbar-h, 0px));
-  z-index: 60;
-  max-width: min(92vw, 520px);
-  padding: 12px 18px;
-  border-radius: 14px;
-  font-size: 14px;
-  opacity: 0;
-  transform: translate(-50%, 10px);
-  transition: opacity 240ms var(--ease-out), transform 300ms var(--ease-out);
-}
-
-.pd-toast.is-on {
-  opacity: 1;
-  transform: translate(-50%, 0);
 }
 
 @media (max-width: 900px) {

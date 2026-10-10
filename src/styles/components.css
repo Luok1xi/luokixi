@@ -149,7 +149,6 @@
 }
 
 .gn-publish:hover { background: var(--accent-hover); }
-.gn-publish:active { transform: scale(0.95); }
 
 .gn-publish svg,
 .fab svg {
@@ -213,7 +212,7 @@
 
 /* 发布菜单 */
 .gn-pub {
-  position: absolute;
+  position: fixed;
   top: calc(var(--nav-h) + 6px);
   right: max(var(--gutter), calc((100vw - var(--wrap)) / 2));
   z-index: 70;
@@ -366,10 +365,7 @@
     background: var(--accent);
     color: #fff;
     box-shadow: 0 10px 24px -8px rgba(0, 113, 227, 0.6);
-    transition: transform var(--dur-2) var(--ease-out);
   }
-
-  .fab:active { transform: scale(0.92); }
 
   .fab svg {
     width: 24px;
@@ -444,10 +440,6 @@
 
 .btn:hover {
   text-decoration: none;
-}
-
-.btn:active {
-  transform: scale(0.97);
 }
 
 .btn-primary {
@@ -569,9 +561,7 @@
   border-radius: var(--r-l);
   background: var(--card-bg);
   box-shadow: var(--card-shadow), inset 0 0 0 1px var(--card-border);
-  transition:
-    transform var(--dur-3) var(--ease-out),
-    box-shadow var(--dur-3) var(--ease-out);
+  transition: transform var(--dur-medium) var(--ease-ios);
 }
 
 a.card {
@@ -582,9 +572,11 @@ a.card:hover {
   text-decoration: none;
 }
 
-.card-hover:hover {
-  transform: translateY(-4px) scale(1.008);
-  box-shadow: var(--card-shadow-hover), inset 0 0 0 1px var(--card-border);
+@media (hover: hover) and (pointer: fine) {
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-shadow-hover), inset 0 0 0 1px var(--card-border);
+  }
 }
 
 /* 流光描边（Apple Intelligence 风格），只用在最想让人点的那一张卡片上。
@@ -683,10 +675,6 @@ a.card:hover {
   background: var(--fg);
   color: var(--bg);
   transition: transform var(--dur-2) var(--ease-spring);
-}
-
-.player-btn:active {
-  transform: scale(0.9);
 }
 
 .player-btn svg {
@@ -818,10 +806,6 @@ a.card:hover {
   background: color-mix(in srgb, var(--fg) 14%, transparent);
 }
 
-.paddle:active:not(:disabled) {
-  transform: scale(0.92);
-}
-
 .paddle:disabled {
   opacity: 0.36;
   cursor: default;
@@ -937,49 +921,29 @@ a.card:hover {
   border-radius: 24px;
   color: var(--fg);
   overflow: hidden;
-  opacity: 0;
-  transform: translateY(-12px) scale(0.97);
-  transition:
-    opacity 220ms var(--ease-out),
-    transform 320ms var(--ease-out),
-    overlay 320ms allow-discrete,
-    display 320ms allow-discrete;
 }
 
-.dlg[open] {
-  opacity: 1;
-  transform: none;
-}
-
-@starting-style {
-  .dlg[open] {
-    opacity: 0;
-    transform: translateY(-12px) scale(0.97);
-  }
-}
-
+/* 进出场由 motion.css 统一处理（桌面轻轻浮起，手机从底部升起）；背景只淡入淡出 */
 .dlg::backdrop {
-  background: rgba(0, 0, 0, 0);
-  transition:
-    background 280ms var(--ease-out),
-    overlay 280ms allow-discrete,
-    display 280ms allow-discrete;
-}
-
-.dlg[open]::backdrop {
   background: rgba(0, 0, 0, 0.32);
-}
-
-@starting-style {
-  .dlg[open]::backdrop {
-    background: rgba(0, 0, 0, 0);
-  }
 }
 
 .dlg-wide {
   width: min(1040px, calc(100vw - 32px));
   margin-top: 5vh;
   max-height: 90vh;
+}
+
+/* 手机：所有 .dlg 都是贴底的 iOS 面板 */
+@media (max-width: 760px) {
+  .dlg,
+  .dlg-wide {
+    width: 100%;
+    max-width: none;
+    max-height: calc(100dvh - 24px - env(safe-area-inset-top, 0px));
+    margin: auto 0 0;
+    border-radius: 20px 20px 0 0;
+  }
 }
 
 .dlg-close {
@@ -1477,77 +1441,7 @@ a.card:hover {
   .promo { min-height: 520px; }
 }
 
-/* ==========================================================================
-   页面之间的过渡（跨文档 View Transitions）
-   顶栏和底部标签栏原地不动，只有正文换页：
-   - 往导航里右边的板块走：新页从右边推进来，旧页往左退（像 iOS 推入）；往左边走反过来
-   - 同一个板块里换页、或者方向未知：旧页淡出，新页从下方浮上来
-   悬停链接时浏览器会先在后台把下一页渲染好（head.html 的 speculationrules），点下去基本是瞬间切换。
-   不支持的浏览器直接换页；系统要求减少动态效果时关闭。缓动用 tokens.css 里的弹簧。
-   ========================================================================== */
-
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition {
-    navigation: auto;
-  }
-
-  .gn { view-transition-name: gn; }
-  .tabbar { view-transition-name: tabbar; }
-  #main { view-transition-name: page; }
-
-  ::view-transition-group(gn),
-  ::view-transition-group(tabbar) {
-    animation: none;
-  }
-
-  ::view-transition-group(page) {
-    animation-duration: var(--spring-snappy-dur);
-    animation-timing-function: var(--spring-snappy);
-  }
-
-  ::view-transition-old(page) {
-    animation: lk-page-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
-  }
-
-  ::view-transition-new(page) {
-    animation: lk-page-in var(--spring-smooth-dur) var(--spring-smooth) both;
-  }
-
-  html[data-vt="forward"]::view-transition-old(page) { animation: lk-push-out-left 340ms cubic-bezier(0.4, 0, 0.6, 1) both; }
-  html[data-vt="forward"]::view-transition-new(page) { animation: lk-push-in-right var(--spring-snappy-dur) var(--spring-snappy) both; }
-  html[data-vt="back"]::view-transition-old(page) { animation: lk-push-out-right 340ms cubic-bezier(0.4, 0, 0.6, 1) both; }
-  html[data-vt="back"]::view-transition-new(page) { animation: lk-push-in-left var(--spring-snappy-dur) var(--spring-snappy) both; }
-
-  /* 正文以外（背景、页脚）只做很短的交叉淡化 */
-  html[data-vt]::view-transition-old(root),
-  html[data-vt]::view-transition-new(root) {
-    animation-duration: 240ms;
-  }
-}
-
-@keyframes lk-page-out {
-  to { opacity: 0; transform: scale(0.985); }
-}
-
-@keyframes lk-page-in {
-  from { opacity: 0; transform: translateY(18px); }
-}
-
-@keyframes lk-push-out-left {
-  to { opacity: 0; transform: translateX(-9%) scale(0.98); }
-}
-
-@keyframes lk-push-in-right {
-  from { opacity: 0; transform: translateX(16%); }
-}
-
-@keyframes lk-push-out-right {
-  to { opacity: 0; transform: translateX(9%) scale(0.98); }
-}
-
-@keyframes lk-push-in-left {
-  from { opacity: 0; transform: translateX(-16%); }
-}
+/* 页面之间的过渡统一在 motion.css（第三版删掉了这里互相打架的旧规则）。 */
 
 /* 地图和沉浸式发现流自带发布入口和右侧操作栏，不再叠一个悬浮按钮 */
 body[data-page="map"] .fab,

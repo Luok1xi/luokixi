@@ -250,10 +250,6 @@ button.res:hover {
   text-decoration: none;
 }
 
-a.res:active,
-button.res:active {
-  transform: scale(0.95);
-}
 
 .res svg {
   width: 22px;

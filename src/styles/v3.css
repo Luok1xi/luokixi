@@ -101,7 +101,6 @@
 }
 
 .v3-today:hover { transform: scale(1.012); }
-.v3-today:active { transform: scale(0.985); }
 
 .v3-today img,
 .v3-today .v3-today-art {
@@ -303,7 +302,6 @@
 }
 
 .v3-pill:hover { text-decoration: none; background: color-mix(in srgb, var(--fg) 12%, transparent); }
-.v3-pill:active { transform: scale(0.94); }
 .v3-pill[aria-pressed="true"] { background: var(--accent); color: #fff; }
 
 /* ---------- 评分块（App Store 评分与评论） ---------- */
@@ -734,13 +732,6 @@
 
 @media (min-width: 761px) {
   .v3-fab { display: none; }
-}
-
-/* View Transitions：卡片放大成文章 */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: 420ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {

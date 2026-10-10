@@ -106,6 +106,26 @@
   --dur-3: 520ms;
   --dur-4: 900ms;
 
+  /* 动效第三版（Opus · 2026-10-10）：一套时长、三条曲线、四个弹簧，全站只用这些。
+     进场按大小选：大面（整页、弹窗、卡片、列表行）用 --ease-ios 或 --surface，不回弹；
+     只有 64px 以内、被手指直接点的小东西（点赞、收藏、勾）才用 --confirm 弹一下。
+     出场比进场快（约 0.6 倍），一律用 --ease-in。JS 里的同名常量在 src/js/motion.js（DUR / EASE）。 */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-instant: 90ms;      /* 按下、高亮 */
+  --dur-fast: 160ms;        /* 悬停变色、开关、小标签 */
+  --dur-standard: 280ms;    /* 菜单、提示条、列表项进场 */
+  --dur-medium: 420ms;      /* 弹窗、换页推入、卡片展开、列表重排 */
+  --dur-slow: 640ms;        /* 区块入场（每块只一次） */
+  --dur-exit-fast: 100ms;
+  --dur-exit: 180ms;
+  --dur-exit-medium: 260ms;
+  --stagger-tight: 30ms;    /* 行，最多 6 个 */
+  --stagger: 50ms;          /* 卡片，最多 6 个 */
+  /* 按压：小按钮 / 普通按钮 / 卡片和列表行。src/js/fx.js 的按压引擎按元素面积自动选 */
+  --press-sm: 0.94;
+  --press-md: 0.96;
+  --press-lg: 0.985;
+
   /* Apple 式弹簧（SwiftUI 的 response / dampingFraction 口径，由 src/js/motion.js 的 spring() 采样生成）。
      不支持 linear() 的浏览器用下面的近似曲线；改参数时用 motion.js 重新生成，两边保持一致。 */
   --spring-smooth: cubic-bezier(0.22, 1, 0.36, 1);
@@ -116,6 +136,13 @@
   --spring-bouncy-dur: 725ms;
   --spring-interactive: cubic-bezier(0.2, 1, 0.3, 1);
   --spring-interactive-dur: 229ms;
+  /* 按用途起的别名：弹簧必须配它自己的时长一起用（不要写 400ms var(--spring-bouncy)） */
+  --settle: var(--spring-snappy);
+  --settle-dur: var(--spring-snappy-dur);
+  --confirm: var(--spring-bouncy);
+  --confirm-dur: var(--spring-bouncy-dur);
+  --surface: var(--spring-smooth);
+  --surface-dur: var(--spring-smooth-dur);
 
   /* iOS 系统色（App Store 组件 as-* 用，见 store.css）：分隔线、次级文字、灰底胶囊、热榜红、评分橙 */
   --ios-fill: rgba(118, 118, 128, 0.12);

@@ -10,6 +10,7 @@ import { esc } from '../js/data.js';
 import '../styles/community.css';
 import '../styles/discover.css';
 import '../styles/feed-redesign.css';
+import { toast } from '../js/fx.js';
 
 initShell();
 
@@ -47,18 +48,7 @@ try { notebook = createNotebook(); } catch { /* 浏览器存储不可用 */ }
 
 // ---------- 提示 ----------
 
-let toastTimer;
-function toast(msg, action) {
-  const el = $('#dc-toast');
-  el.innerHTML = `${esc(msg)}${action ? ` <a href="${esc(action.href)}">${esc(action.label)}</a>` : ''}`;
-  el.hidden = false;
-  el.classList.add('is-on');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    el.classList.remove('is-on');
-    setTimeout(() => (el.hidden = true), 300);
-  }, 3200);
-}
+// 统一用顶栏下方的胶囊提示（src/js/toast.js）
 
 // ---------- 数据 ----------
 
