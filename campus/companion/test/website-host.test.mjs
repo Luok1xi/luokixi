@@ -29,7 +29,7 @@ test('explicit content chat executes immediately and writes the reply to the ori
     await f.host.enqueue({id:id(301),owner:7,kind:'chat',text:'请审核校圈测试',contentTask:'content-task-1',material:{}});
     await f.host.jobs.get(id(301)).promise;
     const job=f.host.jobs.get(id(301));assert.equal(job.state,'done');assert.equal(job.result.contentTask.state,'completed');
-    assert.deepEqual(events.filter(e=>e.op==='content-progress').map(e=>e.state),['running','completed']);
+    assert.deepEqual(events.filter(e=>e.op==='content-progress').map(e=>e.state),['running','running','running','completed']);
     assert.ok(JSON.stringify(f.host.app.store.chats()).includes('请审核校圈测试'));
     assert.deepEqual(events.find(e=>e.state==='completed').result.actionIds,['real-receipt']);
   }finally{await f.host.close();}
@@ -45,6 +45,102 @@ test('chat without an operation receipt cannot be marked complete',async()=>{
     await f.host.jobs.get(id(302)).promise;
     assert.equal(f.host.jobs.get(id(302)).result.contentTask.state,'failed');
     assert.ok(!events.some(e=>e.op==='content-progress'&&e.state==='completed'));
+  }finally{await f.host.close();}
+});
+
+test('a completed write cannot hide a different failed operation in the same chat task',async()=>{
+  const events=[],f=await fixture({rpcOverride:async body=>{events.push(body);return body.op==='content-progress'?{id:body.id,state:body.state}:
+    {enabled:true,today:{},jobs:[],day:'2026-10-10',maintenance:{enabled:true}};}});
+  try{
+    f.host.app.agent.run=async()=>({answer:'其中一项已完成',gaps:[],stats:{toolCalls:2},trace:[
+      {ok:true,operation:'content_publish',target:'page/site',receipt:{operation:'content_publish',key:'page/site',actionId:'real-receipt',completed:true,publication:{verified:true}}},
+      {ok:false,operation:'content_review',target:'entry/other',error:'权限拒绝'}]});
+    await f.host.enqueue({id:id(303),owner:7,kind:'chat',text:'请修改页面并审核帖子',contentTask:'content-task-3'});
+    await f.host.jobs.get(id(303)).promise;
+    assert.equal(f.host.jobs.get(id(303)).result.contentTask.state,'failed');
+    assert.ok(!events.some(e=>e.op==='content-progress'&&e.state==='completed'));
+  }finally{await f.host.close();}
+});
+
+test('studio cannot mark a failed tool complete when the final answer omits gaps',async()=>{
+  const f=await fixture({rpcOverride:async()=>({enabled:true,today:{},jobs:[],day:'2026-10-10',maintenance:{enabled:true}})});
+  try{
+    f.host.app.agent.run=async()=>({answer:'检查结束',gaps:[],stats:{toolCalls:1},
+      trace:[{ok:false,operation:'content_review',target:'entry/test',error:'权限拒绝'}]});
+    await f.host.enqueue({id:id(308),owner:7,kind:'studio',text:'',material:{goal:'审核测试帖子',maintenance:{enabled:true}}});
+    await f.host.jobs.get(id(308)).promise;
+    const job=f.host.jobs.get(id(308));assert.equal(job.state,'done',job.error);
+    assert.equal(job.result.verification.complete,false);
+    assert.deepEqual(job.result.verification.failures,[{operation:'content_review',target:'entry/test',error:'权限拒绝'}]);
+    const writer=f.calls.find(c=>c.options.purpose==='studio-collaboration');assert.ok(writer);
+    assert.match(JSON.stringify(writer.messages),/权限拒绝/);
+  }finally{await f.host.close();}
+});
+
+test('a nonoverlapping version conflict retries once without leaving an ambiguous receipt',async()=>{
+  let writes=0;const f=await fixture({rpcOverride:async body=>{
+    if(body.op==='maintenance'&&body.operation==='content_publish'){
+      writes++;if(writes===1){const error=Error('内容版本已变化，请重新读取。');error.status=409;throw error;}
+      return {completed:true,key:'page/site',revision:3,publication:{verified:true}};
+    }
+    if(body.operation==='content_read')return {key:'page/site',revision:2,data:{body:'原正文'}};
+    return {};
+  }});
+  try{
+    const jobId=id(304);f.host.journal.put(jobId,{state:'running'});
+    const result=await f.host.app.agent.withWebsiteJob(jobId,()=>f.host.app.registry.execute('content_publish',{
+      key:'page/site',revision:1,patch:{body:'新正文'},before:{body:'原正文'},reason:'修订'},{maxRisk:'publish'}));
+    assert.equal(result.retried,true);assert.equal(writes,2);
+    assert.deepEqual(f.host.journal.actions(jobId).map(r=>r.state).sort(),['done','failed']);
+  }finally{await f.host.close();}
+});
+
+test('ambiguous timeout queries the same action without repeating a publication',async()=>{
+  let writes=0,queries=0;const f=await fixture({rpcOverride:async body=>{
+    if(body.operation==='content_publish'){writes++;throw Error('连接中断，结果未确认');}
+    if(body.operation==='action_status'){queries++;return {state:'running'};}
+    return {};
+  }});
+  try{
+    const jobId=id(305);f.host.journal.put(jobId,{state:'running'});
+    const args={key:'page/site',revision:1,patch:{body:'新正文'},reason:'修订'};
+    const call=()=>f.host.app.agent.withWebsiteJob(jobId,()=>f.host.app.registry.execute('content_publish',args,{maxRisk:'publish'}));
+    await assert.rejects(call(),/结果未确认/);await assert.rejects(call(),/结果尚未确认/);
+    assert.equal(writes,1);assert.equal(queries,1);
+  }finally{await f.host.close();}
+});
+
+test('a duplicate transport identifier cannot be reused for a different chat instruction',async()=>{
+  const f=await fixture();try{
+    const body={id:id(306),owner:7,kind:'chat',text:'原指令'};
+    await f.host.enqueue(body);await f.host.jobs.get(body.id).promise;
+    await assert.rejects(f.host.enqueue({...body,text:'不同指令'}),/不同指令/);
+  }finally{await f.host.close();}
+});
+
+test('the original agent can execute the registered review tool and return a verified receipt to the private chat',async()=>{
+  const events=[],target='entry/00000000-0000-4000-a000-000000000001';
+  const f=await fixture({rpcOverride:async body=>{
+    events.push(body);
+    if(body.op==='maintenance'&&body.operation==='content_review')return {key:target,completed:true,state:'published',revision:1,publication:{verified:true}};
+    if(body.op==='content-progress')return {id:body.id,state:body.state,progress:body.progress};
+    return {enabled:true,today:{},jobs:[],day:'2026-10-10',maintenance:{enabled:true}};
+  }});
+  try{
+    let turns=0;f.host.app.models.chat=async()=>({message:{role:'assistant',content:'',tool_calls:[{
+      id:'tool-'+turns,type:'function',function:turns++===0?
+        {name:'content_review',arguments:JSON.stringify({key:target,revision:1,decision:'approve',reason:'已核对正文和来源'})}:
+        {name:'finish',arguments:JSON.stringify({answer:'已通过审核',findings:[],confidence:'high',gaps:[]})}
+    }]},usage:{}});
+    await f.host.enqueue({id:id(307),owner:7,kind:'chat',text:'请审核 '+target,contentTask:'content-task-7'});
+    await f.host.jobs.get(id(307)).promise;
+    const job=f.host.jobs.get(id(307));assert.equal(job.state,'done',job.error);
+    assert.equal(job.result.contentTask.state,'completed');
+    const write=events.find(e=>e.operation==='content_review');assert.ok(write);
+    assert.equal(write.contentTask,'content-task-7');
+    assert.equal(f.host.journal.actions(id(307))[0].state,'done');
+    assert.equal(job.result.maintenance.trace[0].receipt.publication.verified,true);
+    assert.ok(JSON.stringify(f.host.app.store.chats()).includes('请审核 '+target));
   }finally{await f.host.close();}
 });
 

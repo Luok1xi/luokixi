@@ -161,6 +161,10 @@ def validate_payload(kind, data, user, submit=False):
               'deadline':40, 'ruleVersion':100, 'category':80, 'doi':200}
     for key, limit in limits.items():
         result[key] = text(data.get(key, ''), limit, required=key=='title')
+    if 'bodyFormat' in data:
+        if data['bodyFormat'] not in ('plain', 'markdown'):
+            raise Problem('正文格式只能为纯文本或 Markdown。')
+        result['bodyFormat'] = data['bodyFormat']
     if result['category'] and result['category'] not in categories():
         raise Problem('请选择网站现有分类。')
     result['tags'] = string_list(data.get('tags', []))

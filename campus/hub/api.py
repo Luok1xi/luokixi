@@ -173,7 +173,7 @@ def get(request, route):
                 'checkedAt':state.get('checkedAt'),'githubUrl':f'https://github.com/{repository}'}
     if route=='health':
         from .operations import RELEASE
-        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'managementVersion':1,'socialMediaVersion':1,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
+        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'managementVersion':2,'socialMediaVersion':1,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
     if route=='categories':
         return {'categories':categories()}
     if route=='map/places':

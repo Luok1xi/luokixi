@@ -8,6 +8,7 @@ import { esc } from '../js/data.js';
 import { pop, rollTo, openFrom, closeTo, setSegment, refreshFx, disposeTilts } from '../js/fx.js';
 import { attachSearchSuggestions } from '../js/search-suggestions.js';
 import { depthSlides, mountDepthSlider } from '../js/depth-slider.js';
+import { renderMarkdown } from '../js/markdown.js';
 import '../styles/photo-composer.css';
 import '../styles/circle-news.css';
 
@@ -117,7 +118,7 @@ function postCard(p) {
       <time class="cs-post-time" datetime="${esc(c.publishedAt || p.created || '')}">${esc(timeAgo(c.publishedAt || p.created || ''))}</time>
     </header>
     <h3 class="cs-post-title"><a href="circle.html?post=${esc(p.id)}" data-open="${esc(p.id)}">${esc(d.title || '')}</a></h3>
-    ${d.body || d.summary ? `<p class="cs-post-body">${esc(d.body || d.summary)}</p>` : ''}
+    ${d.body || d.summary ? `<p class="cs-post-body">${esc(d.summary || d.body)}</p>` : ''}
     ${photos.length ? `<div class="cs-post-photos is-${photos.length}${photos.length > 1 ? ' ds-track' : ''}">${depthSlides(photos, p.photoCredit || '帖子配图')}</div>` : ''}
     ${p.recommendationReasons?.length ? `<p class="cs-feed-reason">${p.recommendationReasons.map(esc).join(' · ')}</p>` : ''}
     ${p.selection ? `<p class="cs-post-pick"><span class="as-hot-badge">精选</span>${esc(p.selection.reason)}</p>` : ''}
@@ -297,6 +298,7 @@ async function compose() {
   if (locationUrl.searchParams.has('compose')) { locationUrl.searchParams.delete('compose'); history.replaceState(null, '', locationUrl); }
   photoComposer ??= import('../js/photo-composer.js').then(({mountPhotoComposer}) => mountPhotoComposer($('#circle-form')));
   await photoComposer;
+  await prepareBodyEditor();
   $('#circle-form [type=submit]').textContent = s.user.developer ? '发布' : '提交审核';
   $('#post-board').value = S.board || S.boards[0]?.id || '';
   $('#circle-form').elements.campus.value = $('#circle-campus').value;
@@ -309,11 +311,18 @@ async function discuss(i) {
   const f = $('#circle-form');
   if (!$('#circle-editor').open) return;
   f.elements.title.value = `【讨论】${n.title}`.slice(0, 160);
-  if (!f.elements.body.value) f.elements.body.value = `原文：${n.url}\n\n`;
+  if (!f.elements.body.value) {
+    const body=`原文：${n.url}\n\n`;f.elements.body.value=body;postBodyEditor?.setContent(body);
+  }
   if (S.boards.some((b) => b.id === 'daily')) $('#post-board').value = 'daily';
-  f.elements.body.focus();
+  postBodyEditor?.focus();
 }
-let photoComposer, pendingPost = null;
+let photoComposer, pendingPost = null,postBodyEditor,bodyEditorLoading;
+function prepareBodyEditor(){
+  return bodyEditorLoading??=(async()=>{try{
+    const {mountRichBody}=await import('../js/rich-body.js');postBodyEditor=mountRichBody($('#circle-form').elements.body);
+  }catch{/* Original textarea remains available. */}})();
+}
 $('#circle-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const f = e.currentTarget;
@@ -327,7 +336,7 @@ $('#circle-form').addEventListener('submit', async (e) => {
       $('#post-status').textContent = `正在上传图片 ${i} / ${total}`;
     }) : [];
     const data = {
-      title: v.title, body: v.body, tags: v.tags.split(/[，,、\s]+/).filter(Boolean).slice(0, 10), uploads,
+      title: v.title, body: v.body, bodyFormat:postBodyEditor?.getFormat()||'plain', tags: v.tags.split(/[，,、\s]+/).filter(Boolean).slice(0, 10), uploads,
       rightsConfirmed: f.elements.rights.checked, circle: { format: 'thread', board: v.board, campus: v.campus, visibility: 'public' },
     };
     const signature = JSON.stringify(data);
@@ -364,7 +373,7 @@ function threadHTML(t) {
       <p class="as-review-meta"><span class="as-tag">${esc(boardName(c.board))}</span>${esc(CAMPUS[c.campus] || '全校')} · ${esc(timeAgo(c.publishedAt || p.created || ''))}</p>
       <h2>${esc(d.title || '')}</h2>
       <p class="cs-op-who"><span class="cs-avatar" aria-hidden="true">${face(p.owner)}</span><b>${esc(p.owner?.name || '同学')}</b><span class="cs-op">楼主</span>${authorFollowHTML(p)}</p>
-      <div class="cs-op-body">${esc(d.body || '')}</div>
+      <div class="cs-op-body${d.bodyFormat==='markdown'?' is-markdown':''}">${d.bodyFormat==='markdown'?renderMarkdown(d.body||''):esc(d.body || '')}</div>
       ${d.languageVersions?.original?`<details><summary>中外文对照 · 来源原文摘要</summary><h3>${esc(d.languageVersions.original.title||'')}</h3><div class="cs-op-body">${esc(d.languageVersions.original.body||'')}</div></details>`:''}
       ${d.maintenanceFacts?`<details><summary>查看执行记录和未解决事项</summary><ul>${d.maintenanceFacts.unresolved.map(r=>`<li>${esc(r.robot)}：${r.state==='failed'?'失败':'部分完成'} · ${esc(r.error||'')}</li>`).join('')||'<li>此次记录没有失败项；不代表全站没有问题。</li>'}</ul></details>`:''}
       ${(p.photos || []).length ? `<div class="cs-op-photos${p.photos.length > 1 ? ' ds-track' : ''}">${depthSlides(p.photos, p.photoCredit || '帖子图片', {open:true})}</div>` : ''}
