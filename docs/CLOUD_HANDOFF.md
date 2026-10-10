@@ -1,5 +1,15 @@
 # 云端 Opus 接手：先确认版本，再启动资料页
 
+## 2026-10-10 最新：整个项目接手
+
+请先读 [完整项目交接](OPUS_FULL_HANDOFF_20261010.md)。GitHub main 已包含至 `f7911c5` 的整个项目功能源码和公开素材：原版双角色、工作室、资料/组题、统一管理、聊天执行、九图/来源配图及性能更新。从 7 号基线 `c91e375` 起 8 条提交、737 个文件变化，已核对无可公开源码遗漏。
+
+先保存自己的改动并 `git fetch origin`，合并最新 `origin/main`；干净且未分叉的 main 可 `git pull --ff-only origin main`。不要用下方 `7c5f85c` 历史页面证据当当前更新终点。完整 AI 要 Node 24+，根项目与 `campus/companion/` 分别安装依赖，Python 新增 Unfold 0.108.0，迁移至 `0022_content_management`，更新源码后重建。
+
+当前健康字段：网站 `libraryPipelineVersion=3` / `managementVersion=1` / `socialMediaVersion=1`；Hub `beikuangChatVersion=34` / 管理与媒体版本 1；两个原版桥接 `bridgeVersion=28`。云端的数据与配置独立，Owner localhost、记忆、资料原件和语音模型不会自动出现在云端。完整启动与实测限制见新交接。
+
+## 以下为 2026-10-07 历史核验记录
+
 核对日期：2026-10-07（北京时间）。目标仓库为 [Luok1xi/luokixi](https://github.com/Luok1xi/luokixi)，分支为 `main`。
 
 ## 已确认的版本
