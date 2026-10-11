@@ -173,7 +173,7 @@ def get(request, route):
                 'checkedAt':state.get('checkedAt'),'githubUrl':f'https://github.com/{repository}'}
     if route=='health':
         from .operations import RELEASE
-        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'managementVersion':1,'socialMediaVersion':1,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
+        return {'ok':True,'version':'2.0','build':RELEASE,'beikuangChatVersion':34,'managementVersion':2,'socialMediaVersion':1,'accounts':True,'ai':github_guides.ai_capabilities(),**accounts.capabilities()}
     if route=='categories':
         return {'categories':categories()}
     if route=='map/places':
@@ -244,9 +244,10 @@ def get(request, route):
         return files.upload_data(files.visible_upload(user,parts[1]))
     if route=='me':
         require(user)
+        from .star_collections import starred_entries
         return {'profile':member_data(user,True),
                 'entries':[entry_data(e,user,True) for e in Entry.objects.filter(owner=user).order_by('-updated')[:100]],
-                'stars':[entry_data(s.entry,user) for s in Star.objects.filter(user=user,entry__public_revision__gt=0).exclude(entry__state='withdrawn').select_related('entry')[:200]],
+                'stars':starred_entries(user),
                 'workspaces':[serialize_workspace(w) for w in Workspace.objects.filter(owner=user).exclude(kind='building_name_vote').order_by('-updated')[:100]]}
     if parts[0]=='members' and len(parts)==2:
         member = Member.objects.filter(username__iexact=parts[1],is_active=True).first()
@@ -467,7 +468,10 @@ def post(request, route, body):
                 raise Problem('只能收藏或关注已公开内容。')
             if action=='star':
                 if body.get('enabled') is True:
-                    Star.objects.update_or_create(user=user,entry=entry,defaults={'collection':text(body.get('collection','默认收藏'),80,True)})
+                    if 'collection' in body:
+                        Star.objects.update_or_create(user=user,entry=entry,defaults={'collection':text(body['collection'],80,True)})
+                    else:
+                        Star.objects.get_or_create(user=user,entry=entry)
                 elif body.get('enabled') is False:
                     Star.objects.filter(user=user,entry=entry).delete()
                 else:

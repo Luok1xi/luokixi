@@ -51,7 +51,34 @@ def entry_view(e):
     return {'key': 'entry/'+str(e.pk), 'id': str(e.pk), 'kind': e.kind, 'state': e.state,
         'revision': e.revision, 'publicRevision': e.public_revision, 'data': e.draft,
         'published': e.published, 'updated': e.updated.isoformat(), 'reviewNote': e.review_note,
-        'source': e.draft.get('links', {}), 'duplicate': str(e.canonical_id) if e.canonical_id else None}
+        'source': e.draft.get('links', {}), 'duplicate': str(e.canonical_id) if e.canonical_id else None,
+        'allowedActions': (['restore_content'] if e.state == 'withdrawn' else
+            ['content_publish', 'withdraw_content'] +
+            (['content_review'] if e.state in ('draft', 'pending', 'rejected') else [])),
+        'reviewRequirements': [name for name, required in (
+            ('locationChecked', e.kind == 'place'),
+            ('supervisorQuestionsResolved', e.kind == 'announcement' and e.slug.startswith('beikuang-') and bool(e.draft.get('supervisorQuestions')))) if required]}
+
+
+def check_version(body, current):
+    """Run again after acquiring the write lock; a pre-lock read is only a preview."""
+    if type(body.get('revision')) is not int or body['revision'] != current['revision']:
+        raise Problem('内容版本已变化，请重新读取。', 409)
+    if body.get('state') is not None and body['state'] != current['state']:
+        raise Problem('内容状态已变化，请重新读取。', 409)
+
+
+def publication(result, expected_state='published'):
+    """Receipt from the stored copy, not from the candidate patch or model wording."""
+    public_revision = result.get('publicRevision', result['revision'])
+    verified = result['state'] == expected_state and (
+        expected_state != 'published' or public_revision == result['revision'])
+    if not verified:
+        raise Problem('保存后的公开版本未通过核验，请查询当前内容，勿重复提交。', 409)
+    return dict(result, completed=True, publication={
+        'verified': True, 'key': result['key'], 'state': result['state'],
+        'revision': result['revision'], 'publicRevision': public_revision,
+        'visible': bool(public_revision) and result['state'] != 'withdrawn'})
 
 
 def base(key):
@@ -90,7 +117,8 @@ def read(user, key):
     source = base(key)
     row = EditorialOverride.objects.filter(pk=key).first()
     return {'key': key, 'kind': key.split('/')[0], 'state': 'published', 'revision': row.revision if row else 0,
-        'data': merged(key, source), 'sourceData': source, 'updated': row.updated.isoformat() if row else None}
+        'data': merged(key, source), 'sourceData': source, 'updated': row.updated.isoformat() if row else None,
+        'allowedActions': ['content_publish'], 'reviewRequirements': []}
 
 
 def search(user, query='', state='', kind=''):
@@ -134,7 +162,7 @@ def publish(user, body):
     key = text(body.get('key', ''), 240, True)
     reason = text(body.get('reason', '站内编辑并发布'), 1500, True)
     current = read(user, key)
-    if body.get('revision') != current['revision']: raise Problem('内容版本已变化，请重新读取。', 409)
+    check_version(body, current)
     patch = body.get('patch', {})
     if not isinstance(patch, dict) or len(json.dumps(patch, ensure_ascii=False)) > 90000: raise Problem('修改内容过大或格式无效。')
     if body.get('restoreRevision') is not None:
@@ -142,14 +170,20 @@ def publish(user, body):
         if target is None: raise Problem('历史版本不存在。', 404)
         patch = target['data']
     before = current['data']
-    data = dict(before, **patch)
+    restoring = body.get('restoreRevision') is not None
+    data = copy.deepcopy(patch) if restoring else dict(before, **patch)
+    if 'bodyFormat' in patch and patch['bodyFormat'] not in ('plain', 'markdown'):
+        raise Problem('正文格式只能为纯文本或 Markdown。')
     if 'media' in patch: data['media'] = validate_media(patch['media'], user)
     if key.startswith('entry/'):
         from .core import save_entry, submit_entry, review_entry
         e = Entry.objects.select_for_update().get(pk=current['id'])
+        check_version(body, entry_view(e))
+        if 'content_publish' not in entry_view(e)['allowedActions']:
+            raise Problem('已撤回内容不能直接编辑，请先恢复并重新读取。', 409)
         e = save_entry(user, {'revision': e.revision, 'data': data}, e)
         # Keep collector provenance and timestamps which are outside the submission form.
-        preserved = {k: v for k, v in before.items() if k not in e.draft}
+        preserved = {k: v for k, v in before.items() if k not in e.draft and not (restoring and k == 'bodyFormat')}
         if preserved:
             e.draft.update(preserved); e.save(update_fields=['draft'])
             Revision.objects.filter(entry=e, number=e.revision).update(data=e.draft)
@@ -157,6 +191,7 @@ def publish(user, body):
         e = review_entry(user, e, {'revision': e.revision, 'decision': 'approve', 'note': reason,
             'locationChecked': body.get('locationChecked') is True,
             'supervisorQuestionsResolved': body.get('supervisorQuestionsResolved') is True})
+        e.refresh_from_db()
         result = entry_view(e)
     else:
         # Save only explicitly changed fields: collector statistics and downloads stay fresh.
@@ -171,17 +206,20 @@ def publish(user, body):
     Audit.objects.create(actor=user, action='content.publish', target=key, detail={
         'revision': result['revision'], 'reason': reason, 'before': before, 'after': result['data'],
         'changed': [k for k in set(before)|set(result['data']) if before.get(k) != result['data'].get(k)]})
-    return dict(result, completed=True)
+    return publication(result)
 
 
 @transaction.atomic
 def review(user, body):
     authorize(user)
     from .core import review_entry, submit_entry
-    key = body['key']; current = read(user, key)
+    key = text(body.get('key', ''), 240, True); current = read(user, key)
     if not key.startswith('entry/'): raise Problem('此内容没有待审投稿。')
-    if body.get('revision') != current['revision']: raise Problem('审核版本已变化。', 409)
+    check_version(body, current)
     e = Entry.objects.select_for_update().get(pk=current['id'])
+    check_version(body, entry_view(e))
+    if 'content_review' not in entry_view(e)['allowedActions']:
+        raise Problem('当前内容没有可执行的待审操作，请重新读取状态。', 409)
     if e.state in ('draft', 'rejected'): e = submit_entry(user, e, e.revision)
     e = review_entry(user, e, {'revision': e.revision, 'decision': body.get('decision'),
         'note': body.get('reason', ''), 'locationChecked': body.get('locationChecked') is True,
@@ -190,7 +228,8 @@ def review(user, body):
     BeikuangTask.objects.filter(target=str(e.pk), state__in=('queued','escalated')).update(
         state='published' if e.state == 'published' else 'dismissed', decided=timezone.now(),
         decided_by=user.username, note=body.get('reason', ''))
-    return dict(entry_view(e), completed=True)
+    e.refresh_from_db()
+    return publication(entry_view(e), 'published' if body.get('decision') == 'approve' else 'rejected')
 
 
 def overlays():
@@ -214,21 +253,63 @@ def task_data(t):
 
 
 def verified_receipts(task, ids):
+    if not isinstance(ids, list) or not ids: return []
     try: keys = ['robot-action:'+str(uuid.UUID(i)) for i in ids]
     except (ValueError, TypeError, AttributeError): return []
     receipts = list(ExternalCache.objects.filter(key__in=keys))
-    if len(receipts) != len(set(ids)) or not receipts or not all(r.data.get('task') == str(task.pk) and r.data.get('seat') == task.seat and r.data.get('state') == 'done' and r.data.get('result', {}).get('completed') is True for r in receipts): return []
-    requested=set(re.findall(r'(?:entry/[a-f0-9-]{36}|featured/[a-zA-Z0-9_-]+|github/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+)',task.goal))
+    if len(receipts) != len(set(keys)) or not all(successful_content_receipt(r, task) for r in receipts): return []
+    requested=requested_targets(task)
     changed=set(r.data['result'].get('key') or 'entry/'+str(r.data['result'].get('id','')) for r in receipts)
     if not requested.issubset(changed): return []
     return receipts
+
+
+def requested_targets(task):
+    return set(re.findall(r'(?:entry/[a-f0-9-]{36}|featured/[a-zA-Z0-9_-]+|github/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+|page/[a-z0-9_-]+)', task.goal))
+
+
+def successful_content_receipt(row, task):
+    data = row.data
+    result = data.get('result', {})
+    proof = result.get('publication') if isinstance(result, dict) else None
+    return bool(data.get('task') == str(task.pk) and data.get('seat') == task.seat and
+        data.get('operation') in ('content_publish', 'content_review', 'edit_content', 'review_content', 'withdraw_content', 'restore_content') and
+        data.get('state') == 'done' and isinstance(result, dict) and result.get('completed') is True and
+        (proof is None or isinstance(proof, dict) and proof.get('verified') is True))
+
+
+def unresolved_tool_failures(result):
+    trace = result.get('trace', [])
+    if not isinstance(trace, list): return True
+    def identity(row):
+        receipt = row.get('receipt') or {}
+        return (row.get('operation') or receipt.get('operation') or row.get('tool', ''),
+                row.get('target') or receipt.get('key') or receipt.get('id') or '')
+    repaired = {identity(r) for r in trace if isinstance(r, dict) and r.get('ok') is True and
+                isinstance(r.get('receipt'), dict) and r['receipt'].get('completed') is True}
+    return any(isinstance(r, dict) and r.get('ok') is False and
+               (not identity(r)[1] or identity(r) not in repaired) for r in trace)
 
 
 def reconcile_tasks():
     """After restart, recover successful writes from bound receipts, never repeat a tool."""
     for t in ContentTask.objects.filter(state__in=('failed','running')).order_by('-created')[:100]:
         ids=t.result.get('actionIds',[])
+        reported = bool(ids)
+        bound = list(ExternalCache.objects.filter(key__startswith='robot-action:', data__task=str(t.pk), data__seat=t.seat))
+        recovered_ids = [r.key.removeprefix('robot-action:') for r in bound if successful_content_receipt(r, t)]
+        if recovered_ids:
+            ids = list(dict.fromkeys([*(ids if isinstance(ids, list) else []), *recovered_ids]))
         if not ids: continue
+        # A write can finish before the transport reports its ID. Restore the evidence,
+        # but a broad unfinished request cannot be declared complete from one write.
+        if ids != t.result.get('actionIds'):
+            t.result = {**t.result, 'actionIds': ids, 'recoveredReceipts': True}
+            t.progress = '已找回本次实际内容操作回执，正在核验任务范围'
+            t.save(update_fields=['result', 'progress', 'updated'])
+        if not reported and not requested_targets(t): continue
+        if any(r.data.get('state') == 'running' for r in bound): continue
+        if unresolved_tool_failures(t.result) or t.result.get('unknownActions'): continue
         if verified_receipts(t,ids):
             previous=t.error
             t.result={**t.result,'reportWarnings':t.result.get('reportWarnings',t.result.get('gaps',[])), 'reconciled':True}
@@ -247,7 +328,7 @@ def update_task(owner, seat, args):
     if state == 'completed':
         # Completion must point to this seat's successful, persisted mutation receipt.
         ids = result.get('actionIds', [])
-        if not verified_receipts(t,ids):
+        if not verified_receipts(t,ids) or unresolved_tool_failures(result) or result.get('unknownActions'):
             state = 'failed'; args = dict(args, error='没有本次成功发布或审核的回执；未标记完成。')
     t.state = state; t.progress = text(args.get('progress', ''), 600); t.result = result
     t.error = text(args.get('error', ''), 2000); t.save()

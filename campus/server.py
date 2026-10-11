@@ -322,7 +322,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.proxy_hub()
             if path=='/api/community' or path.startswith('/api/community/'):
                 return self.send_json(community.handle('GET',path,query,None,connection))
-            if path=='/api/health': return self.send_json({'ok':True,'app':'cumtb-campus-library','version':'1.1','libraryPipelineVersion':3,'managementVersion':1,'socialMediaVersion':1,'local_only':True,'community':'local-workbench-v1'})
+            if path=='/api/health': return self.send_json({'ok':True,'app':'cumtb-campus-library','version':'1.1','libraryPipelineVersion':3,'managementVersion':2,'socialMediaVersion':1,'local_only':True,'community':'local-workbench-v1'})
             if path=='/api/library/feed':
                 from library_pipeline import catalogue as library_feed
                 return self.send_json(library_feed(DATA))

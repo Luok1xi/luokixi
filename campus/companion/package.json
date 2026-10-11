@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.1",
+    "@langchain/langgraph": "1.4.21",
+    "@langchain/langgraph-checkpoint": "1.1.4",
     "@larksuiteoapi/node-sdk": "^1.73.3",
     "@modelcontextprotocol/sdk": "1.32.1",
     "@mozilla/readability": "^0.6.0",

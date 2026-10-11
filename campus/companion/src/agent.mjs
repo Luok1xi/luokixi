@@ -95,10 +95,12 @@ export class ToolAgent{
           else if(seen.has(key)&&!refreshable){const previous=isRead(t)&&cached.has(key)?await cached.get(key):null;content=JSON.stringify({note:'与第 '+seen.get(key)+' 步的调用完全相同，复用原结果；动态状态最多刷新三次，写入不会重复执行。',...(previous?{result:JSON.parse(previous)}:{})});}
           else{seen.set(key,step);if(refreshable)polls.set(key,(polls.get(key)||0)+1);calls++;let complete=()=>{};if(isRead(t))cached.set(key,new Promise(resolve=>{complete=resolve;}));try{
             const result=await this.toolkit.execute(name,a,ctx);content=JSON.stringify(result);
-            const receipt=(name.startsWith('campus_maintenance')||name.startsWith('content_'))?{operation:a.operation||name,id:result.id||result.key,actionId:result.actionId,state:result.state,completed:result.completed,
+            const receipt=(name.startsWith('campus_maintenance')||name.startsWith('content_'))?{operation:a.operation||name,id:result.id||result.key,key:result.key,revision:result.revision,actionId:result.actionId,state:result.state,completed:result.completed,publication:result.publication,allowedActions:result.allowedActions,
               ...(a.operation==='job_status'?{kind:result.kind,result:result.result,error:result.error}: {})}:null;
-            trace.push({step,tool:name,args:describe(name,a),ok:true,ms:Date.now()-begun,...(receipt?{receipt}: {})});}
-            catch(e){content=JSON.stringify({error:e.message});trace.push({step,tool:name,args:describe(name,a),ok:false,error:clip(e.message,160),ms:Date.now()-begun});}
+            trace.push({step,tool:name,operation:a.operation||name,target:(a.arguments||a).key||(a.arguments||a).id||(a.arguments||a).repository,
+              args:describe(name,a),ok:true,ms:Date.now()-begun,...(receipt?{receipt}: {})});}
+            catch(e){content=JSON.stringify({error:e.message});trace.push({step,tool:name,operation:a.operation||name,target:(a.arguments||a).key||(a.arguments||a).id||(a.arguments||a).repository,
+              args:describe(name,a),ok:false,error:clip(e.message,160),ms:Date.now()-begun});}
             finally{complete(content);if(!isRead(t)){for(const k of cached.keys())if(k!==key){cached.delete(k);seen.delete(k);}}}}
           return {role:'tool',tool_call_id:t.id,content:content.length>9000?content.slice(0,9000)+'…[结果过长已截断]':content};
         });

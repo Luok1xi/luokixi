@@ -143,3 +143,92 @@ class ContentManagementTests(TestCase):
         task=cm.ensure_task(self.owner,'beikuang','chat:invalid','请审核测试')
         r=cm.update_task(self.owner,'beikuang',{'id':str(task.pk),'state':'completed','result':{'actionIds':['not-a-uuid']}})
         self.assertEqual(r['state'],'failed')
+
+    def test_publish_rechecks_revision_after_locking_target(self):
+        key = 'entry/'+str(self.entry.pk)
+        preview = cm.read(self.owner, key)
+        Entry.objects.filter(pk=self.entry.pk).update(revision=2, draft=dict(self.payload, body='另一编辑者的版本'))
+        with patch.object(cm, 'read', return_value=preview), self.assertRaises(Problem) as raised:
+            cm.publish(self.owner, {'key': key, 'revision': 1, 'patch': {'body': '过时指令'}, 'reason': '测试竞争'})
+        self.assertEqual(raised.exception.status, 409)
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.draft['body'], '另一编辑者的版本')
+        self.assertFalse(self.entry.public_revision)
+
+    def test_review_rechecks_revision_after_locking_target(self):
+        key = 'entry/'+str(self.entry.pk)
+        preview = cm.read(self.owner, key)
+        Entry.objects.filter(pk=self.entry.pk).update(revision=2, state='pending', draft=dict(self.payload, body='尚未审核的新正文'))
+        with patch.object(cm, 'read', return_value=preview), self.assertRaises(Problem) as raised:
+            cm.review(self.owner, {'key': key, 'revision': 1, 'decision': 'approve', 'reason': '旧审核'})
+        self.assertEqual(raised.exception.status, 409)
+        self.entry.refresh_from_db()
+        self.assertEqual(self.entry.state, 'pending')
+        self.assertFalse(self.entry.public_revision)
+
+    def test_preflight_and_receipt_distinguish_reviewable_and_public_content(self):
+        key = 'entry/'+str(self.entry.pk)
+        self.assertIn('content_review', cm.read(self.owner, key)['allowedActions'])
+        result = cm.review(self.owner, {'key': key, 'revision': 1, 'decision': 'approve', 'reason': '核对'})
+        self.assertEqual(result['publication'], {'verified': True, 'key': key, 'state': 'published', 'revision': 1, 'publicRevision': 1, 'visible': True})
+        self.assertNotIn('content_review', cm.read(self.owner, key)['allowedActions'])
+        with self.assertRaises(Problem):
+            cm.review(self.owner, {'key': key, 'revision': 1, 'decision': 'reject', 'reason': '不重复审核已公开版本'})
+
+    def test_expected_state_prevents_write_with_unchanged_revision(self):
+        submit_entry(self.user, self.entry, 1)
+        with self.assertRaises(Problem) as raised:
+            cm.publish(self.owner, {'key': 'entry/'+str(self.entry.pk), 'revision': 1, 'state': 'draft', 'patch': {'body': '旧草稿'}, 'reason': '检查'})
+        self.assertEqual(raised.exception.status, 409)
+
+    def test_markdown_format_survives_validation_publication_and_restore(self):
+        key = 'entry/'+str(self.entry.pk)
+        result = cm.publish(self.owner, {'key': key, 'revision': 1, 'patch': {'body': '## 正文\n\n**重点**', 'bodyFormat': 'markdown'}, 'reason': '结构化编辑'})
+        self.assertEqual(result['published']['bodyFormat'], 'markdown')
+        with self.assertRaises(Problem):
+            cm.publish(self.owner, {'key': key, 'revision': 2, 'patch': {'bodyFormat': 'html'}, 'reason': '无效格式'})
+        restored = cm.publish(self.owner, {'key': key, 'revision': 2, 'restoreRevision': 1, 'reason': '恢复纯文本'})
+        self.assertNotIn('bodyFormat', restored['published'])
+
+    @patch('hub.robot_actions.policy', return_value={'enabled': True})
+    def test_recovery_finds_bound_receipt_before_progress_report(self, _):
+        key = 'entry/'+str(self.entry.pk)
+        task = cm.ensure_task(self.owner, 'beikuang', 'chat:lost-progress', '请审核 '+key)
+        task.state = 'running'; task.save()
+        ident = str(uuid.uuid4())
+        execute(self.owner, 'beikuang', 'content_review', {'key': key, 'revision': 1, 'decision': 'approve', 'reason': '核对'}, ident, str(task.pk))
+        cm.reconcile_tasks(); task.refresh_from_db()
+        self.assertEqual(task.state, 'completed')
+        self.assertEqual(task.result['actionIds'], [ident])
+
+    @patch('hub.robot_actions.policy', return_value={'enabled': True})
+    def test_broad_unfinished_request_recovers_evidence_without_guessing_complete(self, _):
+        task = cm.ensure_task(self.owner, 'beikuang', 'chat:unfinished-many', '请审核所有待审校圈')
+        task.state = 'running'; task.save()
+        ident = str(uuid.uuid4())
+        execute(self.owner, 'beikuang', 'content_review', {'key': 'entry/'+str(self.entry.pk), 'revision': 1, 'decision': 'approve', 'reason': '核对一条'}, ident, str(task.pk))
+        cm.reconcile_tasks(); task.refresh_from_db()
+        self.assertEqual(task.state, 'running')
+        self.assertEqual(task.result['actionIds'], [ident])
+
+    def test_other_completed_tools_cannot_complete_content_task(self):
+        task = cm.ensure_task(self.owner, 'beikuang', 'chat:wrong-tool', '请审核校圈')
+        ident = str(uuid.uuid4())
+        ExternalCache.objects.create(key='robot-action:'+ident, data={'task': str(task.pk), 'seat': 'beikuang',
+            'operation': 'tool_run', 'state': 'done', 'result': {'completed': True}})
+        self.assertFalse(cm.verified_receipts(task, [ident]))
+
+    @patch('hub.robot_actions.policy', return_value={'enabled': True})
+    def test_one_success_does_not_hide_an_unrepaired_tool_failure_on_restart(self, _):
+        key='entry/'+str(self.entry.pk)
+        task=cm.ensure_task(self.owner,'beikuang','chat:partial-failure','请审核 '+key)
+        aid=str(uuid.uuid4())
+        result=execute(self.owner,'beikuang','content_review',{'key':key,'revision':1,
+            'decision':'approve','reason':'已核对'},aid,str(task.pk))
+        trace=[{'ok':True,'operation':'content_review','target':key,'receipt':result},
+            {'ok':False,'operation':'content_publish','target':'page/site','error':'权限暂不可用'}]
+        value=cm.update_task(self.owner,'beikuang',{'id':str(task.pk),'state':'completed',
+            'result':{'actionIds':[aid],'trace':trace}})
+        self.assertEqual(value['state'],'failed')
+        cm.reconcile_tasks();task.refresh_from_db()
+        self.assertEqual(task.state,'failed')

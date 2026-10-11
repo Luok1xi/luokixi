@@ -107,6 +107,35 @@ class StudioRecoveryTests(TestCase):
         studio_workflow.checkpoint(self.run,1,{'maintenance':{'trace':[{'receipt':{'operation':'run_robot','id':str(job.pk)}}]}})
         self.assertEqual(studio_workflow.settle_work(self.run),'needs_attention')
 
+    def test_partial_or_missing_robot_cannot_be_declared_complete(self):
+        from .models import Job
+        job=Job.objects.create(key='partial-receipt',kind='maint-links',owner=self.owner,
+            due=timezone.now(),state='partial',result={'checked':3,'failed':2})
+        studio_workflow.checkpoint(self.run,0,{'maintenance':{'trace':[{'ok':True,
+            'receipt':{'operation':'run_robot','id':str(job.pk)}}]}})
+        self.assertEqual(studio_workflow.settle_work(self.run),'needs_attention')
+        ident=str(job.pk);job.delete()
+        self.assertEqual(studio_workflow.settle_work(self.run),'needs_attention')
+        self.assertEqual(studio_workflow.task(self.run)['missingJobs'],[ident])
+
+    def test_successful_read_does_not_erase_a_failed_edit_but_verified_edit_does(self):
+        target='entry/'+str(uuid.uuid4())
+        studio_workflow.checkpoint(self.run,0,{'maintenance':{'trace':[
+            {'ok':False,'operation':'content_publish','target':target,'error':'内容版本已变化'},
+            {'ok':True,'operation':'content_read','target':target,'receipt':{'key':target}}]}})
+        self.assertEqual(studio_workflow.settle_work(self.run),'needs_attention')
+        self.assertEqual(studio_workflow.task(self.run)['failureEvidence'][0]['category'],'conflict')
+        studio_workflow.checkpoint(self.run,1,{'maintenance':{'trace':[
+            {'ok':True,'operation':'content_publish','target':target,'receipt':{'key':target,'completed':True}}]}})
+        self.assertEqual(studio_workflow.settle_work(self.run),'completed')
+        self.assertEqual(studio_workflow.task(self.run)['failureEvidence'],[])
+
+    def test_budget_permission_and_timeout_have_distinct_recovery_actions(self):
+        self.assertEqual(studio_workflow.failure('每日预算不足')['category'],'budget')
+        self.assertEqual(studio_workflow.failure('请先验证邮箱')['category'],'permission')
+        self.assertEqual(studio_workflow.failure('执行进程中断')['category'],'transient')
+        self.assertIn('查询原操作',studio_workflow.failure('请求超时')['nextAction'])
+
     def test_only_workflow_code_is_opened_not_permissions(self):
         from .studio_workspace import safe_path
         from .robot_workbench import FILES

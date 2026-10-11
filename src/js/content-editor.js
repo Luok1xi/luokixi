@@ -1,16 +1,18 @@
 import {hubApi,hubState} from './hub.js';
 import {esc} from './data.js';
 import '../styles/content-editor.css';
-let permitted=false,dialog,view;
+let permitted=false,dialog,view,bodyEditor,loadSerial=0;
+function disposeBody(){bodyEditor?.destroy();bodyEditor=null;}
 const q=s=>dialog.querySelector(s);
 function openDialog(){
-  if(!dialog){dialog=document.createElement('dialog');dialog.className='content-editor';document.body.append(dialog);}
+  if(!dialog){dialog=document.createElement('dialog');dialog.className='content-editor';document.body.append(dialog);
+    dialog.addEventListener('close',()=>{++loadSerial;disposeBody();});}
   if(!dialog.open)dialog.showModal();
 }
 export async function openContentEditor(key){
-  if(!permitted)return;openDialog();dialog.innerHTML='<p role="status">读取当前版本…</p>';
-  try{view=await hubApi.request('management/read?'+new URLSearchParams({key}));render();}
-  catch(e){dialog.innerHTML=`<p role="alert">${esc(e.message)}</p><button data-close>关闭</button>`;q('[data-close]').onclick=()=>dialog.close();}
+  if(!permitted)return;openDialog();disposeBody();const serial=++loadSerial;dialog.innerHTML='<p role="status">读取当前版本…</p>';
+  try{const current=await hubApi.request('management/read?'+new URLSearchParams({key}));if(serial!==loadSerial||!dialog.open)return;view=current;render();}
+  catch(e){if(serial!==loadSerial||!dialog.open)return;dialog.innerHTML=`<p role="alert">${esc(e.message)}</p><button data-close>关闭</button>`;q('[data-close]').onclick=()=>dialog.close();}
 }
 function render(){
   const d=view.data,m=d.media||{};
@@ -34,6 +36,10 @@ function render(){
     ${view.state==='pending'?'<button type="button" data-review="approve">通过</button><button type="button" data-review="reject">退回</button>':''}
     <button type="button" data-history>版本记录与恢复</button></footer><div data-history-list></div></form>`;
   q('[data-close]').onclick=()=>dialog.close();
+  const textarea=q('[name=body]'),serial=loadSerial;
+  import('./rich-body.js').then(({mountRichBody})=>{
+    if(serial===loadSerial&&textarea.isConnected&&dialog.open)bodyEditor=mountRichBody(textarea,{format:d.bodyFormat});
+  }).catch(()=>{/* The canonical text field stays usable if the enhancement cannot load. */});
   const preview=()=>{const img=q('.ce-preview'),src=q('[name=src]').value;
     if(src&&!/^(https?:\/\/|\/art\/|\/api\/hub\/)/.test(src))return;
     img.hidden=!src;img.src=src;img.style.objectFit=q('[name=fit]').value;img.style.objectPosition=`${q('[name=fx]').value}% ${q('[name=fy]').value}%`;};
@@ -45,6 +51,7 @@ function render(){
       if(!proposed||Array.isArray(proposed)||typeof proposed!=='object')throw new Error('完整字段需为对象。');
       const fields={title:f.get('title'),[view.kind==='featured'?'dek':view.kind==='github'?'description':'summary']:f.get('summary'),body:f.get('body')};
       for(const [k,v]of Object.entries(fields)){const initial=k==='title'?d.title||'':k==='body'?d.body||'':d.dek??d.summary??d.description??'';if(v!==initial)proposed[k]=v;}
+      if(fields.body!==(d.body||''))proposed.bodyFormat=bodyEditor?.getFormat()||d.bodyFormat||'plain';
       if(f.get('src'))proposed.media={...m,src:f.get('src'),alt:f.get('alt'),sourceUrl:f.get('sourceUrl'),credit:f.get('credit'),fit:f.get('fit'),focal:`${f.get('fx')}% ${f.get('fy')}%`,originalSrc:m.originalSrc||m.src||f.get('src')};
       const patch=Object.fromEntries(Object.entries(proposed).filter(([k,v])=>JSON.stringify(v)!==JSON.stringify(d[k])));
       if(!Object.keys(patch).length){q('[data-status]').textContent='没有修改内容。';return;}
@@ -71,7 +78,7 @@ export async function installContentEditor(){
   const bar=document.createElement('aside');bar.className='ce-toolbar';bar.innerHTML='<a href="/manage/">管理中心</a><button type="button" data-content-list>编辑内容</button><button type="button" data-page-copy>页面说明</button>';
   document.body.append(bar);bar.querySelector('[data-page-copy]').onclick=()=>openContentEditor('page/site');
   bar.querySelector('[data-content-list]').onclick=async()=>{
-    openDialog();dialog.innerHTML='<header><h2>网站内容</h2><button data-close>关闭</button></header><form data-search><input name="q" placeholder="搜索标题、项目、新闻…"><select name="state"><option value="">全部状态</option><option value="pending">待审核</option><option value="published">已公开</option></select><button>搜索</button></form><div data-list></div>';q('[data-close]').onclick=()=>dialog.close();
+    openDialog();disposeBody();++loadSerial;dialog.innerHTML='<header><h2>网站内容</h2><button data-close>关闭</button></header><form data-search><input name="q" placeholder="搜索标题、项目、新闻…"><select name="state"><option value="">全部状态</option><option value="pending">待审核</option><option value="published">已公开</option></select><button>搜索</button></form><div data-list></div>';q('[data-close]').onclick=()=>dialog.close();
     const search=async()=>{try{const result=await hubApi.request('management?'+new URLSearchParams(new FormData(q('[data-search]'))));
       q('[data-list]').innerHTML=result.items.map(r=>`<button class="ce-list-row" data-key="${esc(r.key)}"><b>${esc(r.data.title||r.data.fullName||r.key)}</b><span>${esc(r.kind)} · ${esc(r.state)} · 第 ${r.revision} 版</span></button>`).join('');
       dialog.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>{dialog.close();void openContentEditor(b.dataset.key);});
