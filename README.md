@@ -3,16 +3,17 @@
 > 面向中国矿业大学（北京）学院路、沙河双校区打造的校园综合服务平台，完整后端版本正在筹备独立服务器正式上线。  
 > **本仓库为编译打包后的公开核心功能演示版**，无需安装任何环境，点开在线演示即可直接体验校圈发帖、双校区地图、口碑弹幕、资料袋打包与北矿娘互动。
 
-[![Play Demo](https://img.shields.io/badge/Live%20Demo-在线体验核心功能-1F5C4E?style=flat-square&logo=googlechrome&logoColor=white)](https://luok1xi.github.io/luokixi/)
-[![Build](https://img.shields.io/badge/Release-Compiled%20Showcase%20Build-3B82F6?style=flat-square)](#仓库说明与边界)
+[![Live Site](https://img.shields.io/badge/Live%20Site-在线访问演示站-1F5C4E?style=flat-square&logo=googlechrome&logoColor=white)](https://luokixi-web.cozy-whale-9871.chatgpt.site)
+[![Interactive Preview](https://img.shields.io/badge/GitHub%20Pages-核心功能互动预览-2563EB?style=flat-square)](https://luok1xi.github.io/luokixi/)
 [![Status](https://img.shields.io/badge/Server-即将正式上线-F59E0B?style=flat-square)](#仓库说明与边界)
 
 ---
 
 ## 🌐 在线直接体验
 
-- **在线演示地址**：[`https://luok1xi.github.io/luokixi/`](https://luok1xi.github.io/luokixi/)
-- *(提示：演示版已默认开启「演示访客」体验权限，所有发帖、九图排序、打分评价与打卡操作均在当前浏览器本地实时生效并持久保存，可随时点击页面顶部的演示胶囊一键重置数据。)*
+- **在线演示站点**：[`https://luokixi-web.cozy-whale-9871.chatgpt.site`](https://luokixi-web.cozy-whale-9871.chatgpt.site)
+- **GitHub Pages 核心功能互动版**（解锁九图发帖、口碑弹幕打分、地图打卡与北矿娘对话）：[`https://luok1xi.github.io/luokixi/`](https://luok1xi.github.io/luokixi/)
+- *(提示：核心功能互动版已默认开启「演示访客」体验权限，所有发帖、九图排序、打分评价与打卡操作均在当前浏览器本地实时生效并持久保存，可随时点击页面顶部的演示胶囊一键重置数据。)*
 
 ---
 
