@@ -1,0 +1,45 @@
+{
+  "task": "修复 uniqueTags(tags)：接收字符串数组，去掉首尾空白，忽略空标签，不区分大小写去重，保留第一次出现的大小写和顺序，不修改原数组。不要新增依赖。",
+  "source": "function uniqueTags(tags) { return [...new Set(tags)]; }",
+  "model": "gpt-6-astra",
+  "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+  "code": "function uniqueTags(tags) {\n  const seen = new Set();\n  const result = [];\n  for (const tag of tags) {\n    const trimmed = tag.trim();\n    const key = trimmed.toLowerCase();\n    if (trimmed && !seen.has(key)) {\n      seen.add(key);\n      result.push(trimmed);\n    }\n  }\n  return result;\n}",
+  "explanation": "先去掉首尾空白、过滤空标签，再按小写形式去重，保留首次出现的大小写和顺序，不修改原数组，无新增依赖。未访问文件或运行测试；输入按约定为字符串数组。",
+  "tests": [
+    "const input = Object.freeze([' Foo ', 'foo', '', ' \\t\\n ', 'BAR', ' bar ', 'Baz', 'FOO']);\nconst actual = uniqueTags(input);\nif (JSON.stringify(actual) !== JSON.stringify(['Foo', 'BAR', 'Baz'])) throw new Error('去空白、过滤空值或去重失败');\nif (JSON.stringify(input) !== JSON.stringify([' Foo ', 'foo', '', ' \\t\\n ', 'BAR', ' bar ', 'Baz', 'FOO'])) throw new Error('修改了原数组');",
+    "if (JSON.stringify(uniqueTags([])) !== '[]') throw new Error('空数组处理失败');\nif (JSON.stringify(uniqueTags(['', ' ', '\\t\\n'])) !== '[]') throw new Error('全空标签处理失败');",
+    "const actual = uniqueTags([' hello world ', 'HELLO WORLD', 'helloworld', ' École ', 'école', ' 中文 ']);\nif (JSON.stringify(actual) !== JSON.stringify(['hello world', 'helloworld', 'École', '中文'])) throw new Error('内部空格或非 ASCII 标签处理失败');"
+  ],
+  "status": "passed",
+  "wallMs": 29785,
+  "lines": 13,
+  "codeSha256": "c8544aacc6010dc30c67669eedd894904d6ce40bb9c554e05e9c235cf5dd1df6",
+  "evidence": "data/skill-evidence/unique-tags-after.json",
+  "checks": [
+    {
+      "name": "空输入",
+      "passed": true
+    },
+    {
+      "name": "空白标签",
+      "passed": true
+    },
+    {
+      "name": "首项与顺序",
+      "passed": true
+    },
+    {
+      "name": "内部空格保留",
+      "passed": true
+    },
+    {
+      "name": "非 ASCII 标签",
+      "passed": true
+    },
+    {
+      "name": "不返回原数组",
+      "passed": true
+    }
+  ],
+  "output": "先去掉首尾空白、过滤空标签，再按小写形式去重，保留首次出现的大小写和顺序，不修改原数组，无新增依赖。未访问文件或运行测试；输入按约定为字符串数组。"
+}

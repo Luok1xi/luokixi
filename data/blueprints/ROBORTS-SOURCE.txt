@@ -1,0 +1,10 @@
+RoboRTS-Firmware source-derived navigation sample
+Copyright (C) 2020 RoboMaster; preserve per-file notices.
+Upstream: https://github.com/RoboMaster/RoboRTS-Firmware
+Pinned revision: 8cffd936b503eef819fa05265cf0162710c9cb3b
+Original source: https://github.com/RoboMaster/RoboRTS-Firmware/tree/8cffd936b503eef819fa05265cf0162710c9cb3b
+License: GPL-3.0-or-later. Full text: ROBORTS-LICENSE.txt alongside this file.
+The JSON embeds readable source code with original notices and SHA-256 fingerprints.
+Selected roots and parser diagnostics are in roborts-firmware.json, analysis.sourceRoots.
+Generated using scripts/analyze-c-blueprint.py with src/data/roborts-blueprint-profile.json.
+This is a partial core-source sample, not a complete firmware build or hardware test.

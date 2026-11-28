@@ -1,0 +1,490 @@
+{
+  "schema": "tc264-bench-params/1",
+  "firmware": "2bfb17ec",
+  "firmware_note": "车上现在的版本：laprec（6becddff）+ OPUS_LINE_RATE_X10=10。数值都从这份源码读出，源码位置见 source。",
+  "groups": [
+    {
+      "id": "speed",
+      "label": "速度",
+      "color": "#3987e5"
+    },
+    {
+      "id": "line",
+      "label": "循迹",
+      "color": "#199e70"
+    },
+    {
+      "id": "turn",
+      "label": "转弯",
+      "color": "#d95926"
+    },
+    {
+      "id": "exit",
+      "label": "出弯",
+      "color": "#d55181"
+    },
+    {
+      "id": "inner",
+      "label": "内环",
+      "color": "#9085e9"
+    },
+    {
+      "id": "physics",
+      "label": "物理",
+      "color": "#c98500"
+    }
+  ],
+  "params": [
+    {
+      "id": "speed",
+      "group": "speed",
+      "label": "直道速度",
+      "value": 125,
+      "unit": "计数/2ms",
+      "min": 60,
+      "max": 300,
+      "step": 5,
+      "source": "prelim_profile.h:25 PRELIM_START_SPEED；手机 ValuePack 速度",
+      "note": "125 约 1.09 m/s（仿真单位）。不上负压实测 125 能跑完；仿真里 150 能跑完、200 丢线。",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "route_slow",
+      "group": "speed",
+      "label": "路口前限速",
+      "value": 110,
+      "unit": "计数/2ms",
+      "min": 60,
+      "max": 200,
+      "step": 5,
+      "source": "pid.c:399 ROUTE_SLOW_SPEED",
+      "note": "路线表里要转弯的路口，离节点 250 mm 起不超过这个速度。",
+      "apply": "rebuild",
+      "car": "flash"
+    },
+    {
+      "id": "plan_min",
+      "group": "speed",
+      "label": "速度规划下限",
+      "value": 230,
+      "unit": "计数/2ms",
+      "min": 0,
+      "max": 300,
+      "step": 10,
+      "source": "pid.c:1022 plan_min",
+      "note": "比直道速度还高时规划不起作用，现在就是这样。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "line_kp",
+      "group": "line",
+      "label": "转向 Kp（125 档）",
+      "value": 6.4,
+      "unit": "°/s 每像素",
+      "min": 0,
+      "max": 15,
+      "step": 0.1,
+      "source": "pid.c:64 速度档表；ValuePack floats[0]",
+      "note": "按速度档查表，135 档约 6.9、145 档约 7.5。 改的只是 120～129 这一个速度档，别的档不变。",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "line_kd",
+      "group": "line",
+      "label": "转向 Kd（125 档）",
+      "value": 0,
+      "unit": "",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "source": "pid.c:65 速度档表；ValuePack floats[1]",
+      "note": "125 档是 0。读错时 D 会把跳变放大；回正交给视觉的那一刻没清 D 历史（pid.c:617），加之前要先修。 改的只是 120～129 这一个速度档，别的档不变。",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "line_rate",
+      "group": "line",
+      "label": "视觉模式转向上限",
+      "value": 250,
+      "unit": "°/s",
+      "min": 150,
+      "max": 600,
+      "step": 10,
+      "source": "prelim_profile.h:21 OPUS_LINE_RATE_X10=10（= 转弯角速度 × 1.0）",
+      "note": "2bfb17ec 新加：出弯交回视觉的第一下从 416 压到 250 °/s。",
+      "apply": "rebuild",
+      "car": "flash"
+    },
+    {
+      "id": "ra_speed",
+      "group": "turn",
+      "label": "转弯速度",
+      "value": 80,
+      "unit": "计数/2ms",
+      "min": 50,
+      "max": 200,
+      "step": 5,
+      "source": "pid.c:1023 ra_speed",
+      "note": "进直角时的目标速度；实测进弯速度 78～108。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "ra_rate",
+      "group": "turn",
+      "label": "转弯角速度",
+      "value": 250,
+      "unit": "°/s",
+      "min": 150,
+      "max": 700,
+      "step": 10,
+      "source": "pid.c:1024 ra_rate",
+      "note": "实车实际峰值平均 336 °/s，比指令多 35%；比赛卡（上负压）用 565。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "ra_turn_row",
+      "group": "turn",
+      "label": "触发行",
+      "value": 70,
+      "unit": "行",
+      "min": 40,
+      "max": 100,
+      "step": 1,
+      "source": "pid.c:1025 ra_turn_row",
+      "note": "转角到这一行才开始转，约车前 179 mm。数字越小转得越早。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "ra_exit_deg",
+      "group": "turn",
+      "label": "交回角",
+      "value": 20,
+      "unit": "°",
+      "min": 5,
+      "max": 40,
+      "step": 1,
+      "source": "pid.c:179 ra_exit_deg",
+      "note": "离目标航向这么近、又看得到线，就结束转弯。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "p37_adec",
+      "group": "turn",
+      "label": "进弯刹车减速度",
+      "value": 12,
+      "unit": "m/s²",
+      "min": 3,
+      "max": 20,
+      "step": 0.5,
+      "source": "pid.c:1026 p37_adec",
+      "note": "按这个减速度算什么时候开始刹。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "settle_deg",
+      "group": "exit",
+      "label": "回正角",
+      "value": 10,
+      "unit": "°",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "source": "pid.c:190 ra_settle_deg",
+      "note": "转弯结束后陀螺仪继续扶正，到离目标这么近才交给视觉。",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "settle_ms",
+      "group": "exit",
+      "label": "回正最长",
+      "value": 200,
+      "unit": "ms",
+      "min": 0,
+      "max": 500,
+      "step": 10,
+      "source": "pid.c:191 ra_settle_ms",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "settle_gain",
+      "group": "exit",
+      "label": "回正增益",
+      "value": 2,
+      "unit": "× 循迹",
+      "min": 0.5,
+      "max": 4,
+      "step": 0.1,
+      "source": "pid.c:192 ra_settle_gain",
+      "apply": "reset",
+      "car": "flash"
+    },
+    {
+      "id": "exit_head_k",
+      "group": "exit",
+      "label": "出弯航向增益",
+      "value": 12,
+      "unit": "°/s 每度",
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "source": "pid.c:353 OPUS_EXIT_HEAD_K",
+      "note": "交回视觉后 400 ms 内，把车头拉向新方向；回摆时把车拉回来的主要也是它。",
+      "apply": "rebuild",
+      "car": "flash"
+    },
+    {
+      "id": "exit_head_ms",
+      "group": "exit",
+      "label": "出弯航向持续",
+      "value": 400,
+      "unit": "ms",
+      "min": 0,
+      "max": 1000,
+      "step": 50,
+      "source": "pid.c:356 OPUS_EXIT_HEAD_MS",
+      "apply": "rebuild",
+      "car": "flash"
+    },
+    {
+      "id": "yaw_kp",
+      "group": "inner",
+      "label": "角速度环 Kp",
+      "value": 0.083,
+      "unit": "",
+      "min": 0,
+      "max": 0.5,
+      "step": 0.001,
+      "source": "pid.c:1030；ValuePack 角度模式 floats[0]",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "yaw_ki",
+      "group": "inner",
+      "label": "角速度环 Ki",
+      "value": 0.008,
+      "unit": "",
+      "min": 0,
+      "max": 0.05,
+      "step": 0.001,
+      "source": "pid.c:1031；ValuePack 角度模式 floats[1]",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "wheel_kp_l",
+      "group": "inner",
+      "label": "左轮速度环 Kp",
+      "value": 25,
+      "unit": "",
+      "min": 0,
+      "max": 60,
+      "step": 0.1,
+      "source": "pid.c:48；无线 #K",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "wheel_ki_l",
+      "group": "inner",
+      "label": "左轮速度环 Ki",
+      "value": 1.6,
+      "unit": "",
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "source": "pid.c:49；无线 #K",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "wheel_kp_r",
+      "group": "inner",
+      "label": "右轮速度环 Kp",
+      "value": 24.8,
+      "unit": "",
+      "min": 0,
+      "max": 60,
+      "step": 0.1,
+      "source": "pid.c:51；无线 #K",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "wheel_ki_r",
+      "group": "inner",
+      "label": "右轮速度环 Ki",
+      "value": 1.62,
+      "unit": "",
+      "min": 0,
+      "max": 5,
+      "step": 0.01,
+      "source": "pid.c:52；无线 #K",
+      "apply": "hot",
+      "car": "phone"
+    },
+    {
+      "id": "mu",
+      "group": "physics",
+      "label": "地面摩擦 μ",
+      "value": 1.0,
+      "unit": "",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "basis": "估计",
+      "source": "仿真 mu（Codex 冻结案例）",
+      "note": "不上负压按 1.0；上负压估 1.5，吸力还没量。",
+      "apply": "reset",
+      "car": "sim"
+    },
+    {
+      "id": "mmpc",
+      "group": "physics",
+      "label": "每计数走多远",
+      "value": 0.0175,
+      "unit": "mm",
+      "min": 0.015,
+      "max": 0.022,
+      "step": 0.0001,
+      "basis": "实测不同",
+      "source": "仿真 mmpc；固件 PRELIM_MM_PER_COUNT",
+      "note": "仿真单位是 0.0175；实车推车三次测得 0.01948。",
+      "apply": "reset",
+      "car": "sim"
+    },
+    {
+      "id": "Tm",
+      "group": "physics",
+      "label": "电机时间常数",
+      "value": 0.031,
+      "unit": "s",
+      "min": 0.01,
+      "max": 0.1,
+      "step": 0.001,
+      "basis": "估计",
+      "source": "仿真 Tm",
+      "apply": "reset",
+      "car": "sim"
+    },
+    {
+      "id": "cam_pitch",
+      "group": "physics",
+      "label": "摄像头俯角",
+      "value": 46,
+      "unit": "°",
+      "min": 15,
+      "max": 70,
+      "step": 1,
+      "basis": "定距图拟合",
+      "source": "仿真 cam_pitch",
+      "note": "10-28 定距图（35 cm 在第 33 行、20 cm 在第 62 行）拟合约 42～46°；11-01 调回后为第 34、64 行。",
+      "apply": "reset",
+      "car": "sim"
+    },
+    {
+      "id": "cam_h",
+      "group": "physics",
+      "label": "摄像头高度",
+      "value": 180,
+      "unit": "mm",
+      "min": 100,
+      "max": 260,
+      "step": 5,
+      "basis": "估计",
+      "source": "仿真 cam_h",
+      "apply": "reset",
+      "car": "sim"
+    },
+    {
+      "id": "fps",
+      "group": "physics",
+      "label": "相机帧率",
+      "value": 150,
+      "unit": "帧/秒",
+      "min": 50,
+      "max": 200,
+      "step": 10,
+      "basis": "实测",
+      "source": "仿真 fps；车上屏幕 fps 150",
+      "apply": "reset",
+      "car": "sim"
+    },
+    {
+      "id": "proc_ms",
+      "group": "physics",
+      "label": "处理一帧用时",
+      "value": 3,
+      "unit": "ms",
+      "min": 1,
+      "max": 8,
+      "step": 0.5,
+      "basis": "实测",
+      "source": "仿真 proc_ms；车上 proc_us 约 2800",
+      "apply": "reset",
+      "car": "sim"
+    }
+  ],
+  "sheets": [
+    {
+      "id": "ref",
+      "name": "车上 · 2bfb17ec",
+      "note": "参照：车上现在的版本 2bfb17ec。11-01 加了元素的赛道上录到 4 段运行，停车码都是 26（路线走完）；没证明每段都全程压线。",
+      "changes": {},
+      "verdict": "参照"
+    },
+    {
+      "id": "settle5",
+      "name": "回正角 10→5",
+      "changes": {
+        "settle_deg": 5
+      },
+      "verdict": "不推荐",
+      "evidence": "仿真：全圈最大横偏降，但 PyBullet 第 9 弯横偏 36.53→43.01 mm，交接跳变 88→152 °/s。",
+      "source": "Codex turn-refine 11-01"
+    },
+    {
+      "id": "head6",
+      "name": "出弯航向增益 12→6",
+      "changes": {
+        "exit_head_k": 6
+      },
+      "verdict": "不推荐",
+      "evidence": "仿真：全圈横偏变大，PyBullet 第 9 弯 36.53→39.83 mm。",
+      "source": "Codex turn-refine 11-01"
+    },
+    {
+      "id": "gain1",
+      "name": "回正增益 2→1",
+      "changes": {
+        "settle_gain": 1
+      },
+      "verdict": "不推荐",
+      "evidence": "仿真：PyBullet 全圈最大横偏 64.54→74.68 mm。",
+      "source": "Codex turn-refine 11-01"
+    }
+  ],
+  "apply_kinds": {
+    "hot": "运行中生效：下一个控制周期起用新值",
+    "reset": "需重置：从头再跑才生效（转弯这类先这样，等确认中途改安全再放开）",
+    "rebuild": "需重编控制器：宏或算法改动，重编仿真里的控制程序（不用 ADS）"
+  },
+  "car_kinds": {
+    "phone": "车上手机可调",
+    "flash": "车上需重烧",
+    "sim": "只在仿真"
+  },
+  "range_note": "滑杆范围是估计，还没逐项核实（Codex LUOKIXI-WEB #36：range 未核）。",
+  "defaults_note": "默认值和 Codex 冻结源码核对的 10 项一致（含 prelim_profile_init 把角速度环 0.4/0.025 覆盖成 0.083/0.008）。"
+}

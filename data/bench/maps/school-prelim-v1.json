@@ -1,0 +1,268 @@
+{
+  "id": "school-prelim-v1",
+  "title": "校赛 · 两三极管间虚线＋电阻",
+  "map_sha256": "fa27f8320d9f775e409bb9a6668820f61edecaf445a3480606afac8336f51cd1",
+  "base_sha256": "a940a184d3b9f14b926266d00b1804157398949b04dd72e772d5913779d00e04",
+  "route": "CLv@1317,S@1867,S@2317,S@2917,CL@3517,L@3967,S@4567,CL@5167,R@5617,S@6067,CR@6617,CRv@8817,S@9367,L:60@9432,R:60@9592,R:60@9752,L:60@9912,Rv@9977,L@10427,S@11027,L@11627,CL@12077,S@13277,L:60@13342,R:60@13502,R:60@13662,L:60@13822,L@13887,CL@15237,S@15687,L@16887,L@17337",
+  "provisional": true,
+  "placement_notes": [
+    "范围为左三极管到右三极管之间整段横向连接区，中间按用户要求将二极管原位换成电阻。",
+    "左三极管 → 虚线 → 电阻 → 虚线 → 右三极管；两端三极管和环岛保留。",
+    "虚线连接区x1060～2160，电阻接线端x1577～1637；模型尺寸待实测。"
+  ],
+  "features": [
+    {
+      "kind": "dashed",
+      "at": [
+        1610,
+        850
+      ],
+      "start": [
+        1060,
+        850
+      ],
+      "end": [
+        2160,
+        850
+      ],
+      "dash_mm": 30,
+      "gap_mm": 20,
+      "resistor_span": [
+        1577,
+        1637
+      ]
+    },
+    {
+      "kind": "hexagon",
+      "at": [
+        775,
+        2200
+      ],
+      "vertices": [
+        [
+          615,
+          2200
+        ],
+        [
+          695,
+          2338.564
+        ],
+        [
+          855,
+          2338.564
+        ],
+        [
+          935,
+          2200
+        ],
+        [
+          855,
+          2061.436
+        ],
+        [
+          695,
+          2061.436
+        ]
+      ],
+      "side_mm": 160
+    },
+    {
+      "kind": "resistor",
+      "at": [
+        1607,
+        850
+      ],
+      "lead_start": [
+        1577,
+        850
+      ],
+      "lead_end": [
+        1637,
+        850
+      ]
+    }
+  ],
+  "route_length_mm": 17937.0,
+  "route_events": [
+    {
+      "at": [
+        550,
+        2200
+      ],
+      "distance_mm": 9367,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        615,
+        2200
+      ],
+      "distance_mm": 9432,
+      "turn_deg": 60,
+      "action": "L:60"
+    },
+    {
+      "at": [
+        695,
+        2338.564
+      ],
+      "distance_mm": 9592,
+      "turn_deg": -60,
+      "action": "R:60"
+    },
+    {
+      "at": [
+        855,
+        2338.564
+      ],
+      "distance_mm": 9752,
+      "turn_deg": -60,
+      "action": "R:60"
+    },
+    {
+      "at": [
+        935,
+        2200
+      ],
+      "distance_mm": 9912,
+      "turn_deg": 60,
+      "action": "L:60"
+    },
+    {
+      "at": [
+        1000,
+        2200
+      ],
+      "distance_mm": 9977,
+      "turn_deg": -90,
+      "action": "Rv"
+    },
+    {
+      "at": [
+        1000,
+        1750
+      ],
+      "distance_mm": 10427,
+      "turn_deg": 90,
+      "action": "L"
+    },
+    {
+      "at": [
+        1600,
+        1750
+      ],
+      "distance_mm": 11027,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        1750
+      ],
+      "distance_mm": 11627,
+      "turn_deg": 90,
+      "action": "L"
+    },
+    {
+      "at": [
+        2200,
+        2200
+      ],
+      "distance_mm": 12077,
+      "turn_deg": 90,
+      "action": "CL"
+    },
+    {
+      "at": [
+        1000,
+        2200
+      ],
+      "distance_mm": 13277,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        935,
+        2200
+      ],
+      "distance_mm": 13342,
+      "turn_deg": 60,
+      "action": "L:60"
+    },
+    {
+      "at": [
+        855,
+        2061.436
+      ],
+      "distance_mm": 13502,
+      "turn_deg": -60,
+      "action": "R:60"
+    },
+    {
+      "at": [
+        695,
+        2061.436
+      ],
+      "distance_mm": 13662,
+      "turn_deg": -60,
+      "action": "R:60"
+    },
+    {
+      "at": [
+        615,
+        2200
+      ],
+      "distance_mm": 13822,
+      "turn_deg": 60,
+      "action": "L:60"
+    },
+    {
+      "at": [
+        550,
+        2200
+      ],
+      "distance_mm": 13887,
+      "turn_deg": 90,
+      "action": "L"
+    },
+    {
+      "at": [
+        550,
+        850
+      ],
+      "distance_mm": 15237,
+      "turn_deg": 90,
+      "action": "CL"
+    },
+    {
+      "at": [
+        1000,
+        850
+      ],
+      "distance_mm": 15687,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        850
+      ],
+      "distance_mm": 16887,
+      "turn_deg": 90,
+      "action": "L"
+    },
+    {
+      "at": [
+        2200,
+        1300
+      ],
+      "distance_mm": 17337,
+      "turn_deg": 90,
+      "action": "L"
+    }
+  ]
+}

@@ -1,0 +1,1492 @@
+{
+  "version": 1,
+  "note": "Opus 第 24 次初版；Codex 2026-10-11 核对来源、版本与路线。site-code 表示本站代码，verified 的核对范围见 note；硬件与 AI 运行未完成时不改成已实测。精选只放有完整演示（data/skits/ 剧本）或已核对真实体验的碟；剧本自己写明是否示意。",
+  "today": {
+    "date": "2026-10-12",
+    "picks": [
+      "simplefoc",
+      "opencat",
+      "ponytail",
+      "2048-merge",
+      "lv-choices",
+      "motion-spring",
+      "motion-dock",
+      "motion-morph"
+    ]
+  },
+  "albums": [
+    {
+      "id": "game-feel",
+      "module": "learn",
+      "title": "游戏里的手感",
+      "tagline": "两个小游戏，拆出最有手感的那几下",
+      "hue": 340,
+      "topics": [
+        "游戏",
+        "动效"
+      ],
+      "discs": [
+        "lv-choices",
+        "2048-merge"
+      ],
+      "learn": "learn-web-motion",
+      "panel": [
+        {
+          "type": "note",
+          "slot": "info",
+          "title": "先玩，再拆开",
+          "text": "收录两件可以在本站直接试玩的作品。从选项的回应到数字合并的节奏，体验之后再看代码、蓝图和改造路线。"
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "作品集 / 01",
+          "text": "《请不要攻略我》的选项系统：普通、限时、第四个与英雄选项。下图来自本站真实试玩，演示台词独立于游戏剧情。"
+        },
+        {
+          "type": "media",
+          "slot": "before-tracks",
+          "items": [
+            {
+              "src": "art/albums/lv-choices-poster.png",
+              "kind": "image",
+              "alt": "本站选项试玩中，三个可点击的普通选项",
+              "caption": "《请不要攻略我》· 本站试玩实截 · 2026-10-13"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "作品集 / 02",
+          "text": "2048：相同数字碰撞、合并和反馈的节奏。保留原作者与 MIT 许可；进入对应光碟后可以自己操作，并沿蓝图理解规则。"
+        },
+        {
+          "type": "media",
+          "slot": "before-tracks",
+          "items": [
+            {
+              "src": "art/albums/2048-poster.png",
+              "kind": "image",
+              "alt": "本站 2048 实际运行画面",
+              "caption": "2048 · Gabriele Cirulli / MIT · 本站实录封面"
+            }
+          ]
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "选择一件，开始体验",
+          "text": "下面的曲目进入对应作品；左侧“进入专辑”保留原来的光碟选取方式。"
+        }
+      ],
+      "card": {
+        "image": "art/albums/covers/game-feel.webp"
+      }
+    },
+    {
+      "id": "motion-iphone",
+      "module": "learn",
+      "title": "让界面动得像 iPhone",
+      "tagline": "这个网站自己用的动效，拆开给你看",
+      "hue": 262,
+      "topics": [
+        "网页",
+        "动效"
+      ],
+      "discs": [
+        "motion-spring",
+        "motion-dock",
+        "motion-morph"
+      ],
+      "learn": "learn-web-motion",
+      "panel": [
+        {
+          "type": "note",
+          "slot": "info",
+          "title": "先看它自己演",
+          "text": "三件都是这个网站正在用的动效代码，在这张卡里自己演；进到对应的光碟里可以自己动手试。"
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "作品集 / 01",
+          "text": "弹簧动画：拖两个参数，看界面怎样“弹”到位。试玩用的就是网站换页、弹窗在用的同一组弹簧参数。"
+        },
+        {
+          "type": "demo",
+          "slot": "before-tracks",
+          "disc": "motion-spring",
+          "caption": "弹簧动画 · 本站 src/js/motion.js · MIT · 自动演示"
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "作品集 / 02",
+          "text": "程序坞放大：鼠标划过，图标像 macOS 程序坞一样放大让位。和本站拓展坞用的是同一个函数。"
+        },
+        {
+          "type": "demo",
+          "slot": "before-tracks",
+          "disc": "motion-dock",
+          "caption": "程序坞放大 · 本站 src/js/dock-math.js · MIT · 自动演示"
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "作品集 / 03",
+          "text": "共享元素转场：点一张卡片，它从原位长成详情。换页时标题和光碟滑过去用的就是这一招。"
+        },
+        {
+          "type": "demo",
+          "slot": "before-tracks",
+          "disc": "motion-morph",
+          "caption": "共享元素转场 · 本站 src/js/motion.js · MIT · 自动演示（用同一条弹簧补间）"
+        },
+        {
+          "type": "note",
+          "slot": "before-tracks",
+          "title": "选择一件，开始体验",
+          "text": "下面的曲目直接进对应的作品；“进入专辑”到光碟架上挑。"
+        }
+      ],
+      "card": {
+        "image": "art/albums/covers/motion-iphone.webp"
+      }
+    },
+    {
+      "id": "robots-move",
+      "module": "project",
+      "title": "让机器人动起来",
+      "tagline": "四条腿怎么走路，电机怎么转",
+      "hue": 205,
+      "topics": [
+        "机器人",
+        "硬件"
+      ],
+      "discs": [
+        "opencat",
+        "simplefoc",
+        "sky-masterminds-2",
+        "roborts-firmware"
+      ],
+      "learn": "learn-robot",
+      "capabilityPath": "robotics",
+      "card": {
+        "image": "art/albums/covers/robots-move.webp"
+      }
+    },
+    {
+      "id": "ai-less-code",
+      "module": "learn",
+      "title": "让 AI 少写一点、写对一点",
+      "tagline": "同一个任务，附加规则前后",
+      "hue": 330,
+      "topics": [
+        "AI",
+        "编程"
+      ],
+      "discs": [
+        "ponytail"
+      ],
+      "card": {
+        "image": "art/albums/covers/ai-less-code.webp"
+      }
+    },
+    {
+      "id": "learn-web-motion",
+      "module": "learn",
+      "title": "网页动效入门路线",
+      "tagline": "从一个过渡写到自己的程序坞",
+      "hue": 280,
+      "topics": [
+        "网页",
+        "动效"
+      ],
+      "discs": [
+        "path-web-motion"
+      ],
+      "card": {
+        "image": "art/albums/covers/learn-web-motion.webp"
+      }
+    },
+    {
+      "id": "learn-robot",
+      "module": "learn",
+      "title": "机器人入门路线",
+      "tagline": "从嵌入式基础到让四条腿走起来",
+      "hue": 190,
+      "topics": [
+        "机器人",
+        "嵌入式"
+      ],
+      "discs": [
+        "path-robot"
+      ],
+      "card": {
+        "image": "art/albums/covers/learn-robot.webp"
+      }
+    },
+    {
+      "id": "ai-workflow",
+      "module": "ai",
+      "title": "把技能接进你的 AI",
+      "tagline": "先留基线，再做对照，最后决定是否接入",
+      "hue": 330,
+      "topics": [
+        "AI",
+        "编程"
+      ],
+      "discs": [
+        "path-ai-skills"
+      ],
+      "capabilityPath": "ai-skills",
+      "card": {
+        "image": "art/albums/covers/ai-workflow.webp"
+      }
+    }
+  ],
+  "discs": [
+    {
+      "id": "lv-choices",
+      "title": "《请不要攻略我》的选项",
+      "oneLiner": "限时、按不到的第四个、按不下去的英雄选项：一个恋爱游戏里会“耍赖”的选项",
+      "topics": [
+        "游戏",
+        "动效"
+      ],
+      "experience": {
+        "kind": "live",
+        "play": "plays/lv-choices/index.html"
+      },
+      "view": "inside",
+      "inside": [
+        {
+          "title": "替你按的那只手",
+          "where": "engine/choices.js · pressWithHand()",
+          "url": "plays/lv-choices/engine/choices.js",
+          "detail": "手从画面右边伸进来：1.3 秒 springSoft（不回弹）停到按钮旁，0.12 秒按下，再用 springPop 弹回去。只动 x / y，不动 left / top，每一帧都不用重新排版。"
+        },
+        {
+          "title": "写上去的第四个选项",
+          "where": "engine/choices.js · showD()",
+          "url": "plays/lv-choices/engine/choices.js",
+          "detail": "第四个选项用 clip-path 从左到右揭开，像有人正在写；校验不通过时整条左右一抖（elastic），两道划线依次画过去，再写上新的字。"
+        },
+        {
+          "title": "最后三秒的心跳",
+          "where": "css/choices.css · .choice-timer.urgent",
+          "url": "plays/lv-choices/css/choices.css",
+          "detail": "限时条剩 3 秒时变红，每秒纵向跳一下（timerPulse，1 秒一次），同时放一声低频的“咚”（audio-lite.js 的 beat：70 Hz 滑到 45 Hz，0.18 秒）。"
+        },
+        {
+          "title": "三条弹簧",
+          "where": "engine/feel.js · spring()",
+          "url": "plays/lv-choices/engine/feel.js",
+          "detail": "阻尼弹簧注册成 GSAP 缓动：spring（阻尼比 0.74）、springPop（0.55，Q 弹）、springSoft（1，不回弹）；同一条曲线再用 linear() 采样给 CSS 用。"
+        },
+        {
+          "title": "让 await 动画永远不卡住",
+          "where": "engine/core.js · patchGsapThen",
+          "url": "plays/lv-choices/engine/core.js",
+          "detail": "GSAP 3.12 自带的 then() 遇到 0 秒的动画、被打断的动画、等了两次的动画会永远不返回；这里换成播完、0 秒、被打断都会返回，剧情不会停在半路。"
+        }
+      ],
+      "requires": "任何现代浏览器；有声音（合成的音效），点一下页面后才出声",
+      "upstreams": [
+        {
+          "name": "《请不要攻略我》· 站主",
+          "url": null,
+          "license": "作者授权展示与试玩（许可证待作者定）",
+          "version": "5d28c23 摘录"
+        }
+      ],
+      "check": {
+        "state": "site-code",
+        "note": "Opus 已记录站主 2026-10-11 授权站内展示与试玩选项系统，剧情、角色、美术、音乐不在里面，台词是试玩新写的。Codex 已读取 plays/lv-choices/README.md；转载许可待作者确定，公开推送前的确认要求按该说明处理。"
+      },
+      "learn": {
+        "album": "learn-web-motion",
+        "station": "spring"
+      },
+      "art": "art/albums/discs/lv-choices.webp"
+    },
+    {
+      "id": "2048-merge",
+      "title": "2048 的合并",
+      "oneLiner": "两个一样的数字撞在一起，鼓一下合成一个",
+      "topics": [
+        "游戏",
+        "网页",
+        "动效"
+      ],
+      "experience": {
+        "kind": "live",
+        "play": "plays/2048/index.html",
+        "isolate": true,
+        "phone": "square",
+        "media": {
+          "src": "art/albums/2048-demo.webm",
+          "type": "webm",
+          "poster": "art/albums/2048-poster.png",
+          "credit": "Luokixi 实录 · Gabriele Cirulli / MIT · 站内自动演示模式 · 2026-10-11",
+          "url": "https://github.com/gabrielecirulli/2048/tree/478b6ec346e3787f589e4af751378d06ded4cbbc"
+        }
+      },
+      "view": "inside",
+      "inside": [
+        {
+          "title": "合并：鼓一下",
+          "where": "style/main.css:501 · .tile-merged .tile-inner",
+          "url": "plays/2048/style/main.css",
+          "detail": "pop 200ms ease，延迟 100ms：scale 0 → 1.2 → 1。合出来的块先比格子大一圈再落回去，“合成了”的感觉就在这一下。"
+        },
+        {
+          "title": "新块：从 0 长出来",
+          "where": "style/main.css:439 · .tile-new .tile-inner",
+          "url": "plays/2048/style/main.css",
+          "detail": "appear 200ms ease，同样等 100ms（滑动走完）再从 scale(0) 长到 1；animation-fill-mode: backwards 让它在等待时不露面。"
+        },
+        {
+          "title": "滑动只要 100 毫秒",
+          "where": "style/main.css:316 · .tile",
+          "url": "plays/2048/style/main.css",
+          "detail": "transition: 100ms ease-in-out，只过渡 transform；块的位置靠 tile-position-x-y 这个类换 translate。"
+        },
+        {
+          "title": "先画在旧格子，下一帧再挪",
+          "where": "js/html_actuator.js · addTile()",
+          "url": "plays/2048/js/html_actuator.js",
+          "detail": "有旧位置的块先放在旧格子，requestAnimationFrame 里再换成新位置的类，浏览器才会播过渡；合并时把两个旧块也画出来，压在新块下面。"
+        }
+      ],
+      "requires": "任何现代浏览器；方向键或手指滑动",
+      "upstreams": [
+        {
+          "name": "gabrielecirulli/2048",
+          "url": "https://github.com/gabrielecirulli/2048",
+          "license": "MIT",
+          "version": "478b6ec（2024-10-24）"
+        }
+      ],
+      "check": {
+        "state": "verified",
+        "note": "Opus 2026-10-11 对照原仓库 478b6ec：js 六个文件和 style/main.css 原样（只去掉了字体引入），许可证原文放在 plays/2048/LICENSE.txt；试玩在隔离的 iframe 里跑 Codex 补核：LICENSE.txt、html_actuator.js 与固定上游逐字相同；main.css 仅第一行字体导入改为说明。"
+      },
+      "learn": {
+        "album": "learn-web-motion",
+        "station": "transition"
+      },
+      "sourceCheck": {
+        "by": "Codex",
+        "checkedAt": "2026-10-11",
+        "revision": "478b6ec346e3787f589e4af751378d06ded4cbbc",
+        "readme": "https://github.com/gabrielecirulli/2048/blob/478b6ec346e3787f589e4af751378d06ded4cbbc/README.md",
+        "license": "https://github.com/gabrielecirulli/2048/blob/478b6ec346e3787f589e4af751378d06ded4cbbc/LICENSE.txt"
+      },
+      "art": "art/albums/discs/2048-merge.webp"
+    },
+    {
+      "id": "motion-spring",
+      "title": "弹簧动画",
+      "oneLiner": "拖两个参数，看界面怎样“弹”到位",
+      "topics": [
+        "网页",
+        "动效"
+      ],
+      "experience": {
+        "kind": "live",
+        "demo": "spring"
+      },
+      "view": "inside",
+      "inside": [
+        {
+          "title": "两个参数",
+          "where": "src/js/motion.js · SPRINGS",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "detail": "response 是没有阻尼时来回一次的秒数，damping 是阻尼比（1 就不回弹）。网站用四组：平稳 0.5 / 1、干脆 0.42 / 0.85、弹跳 0.5 / 0.7、跟手 0.18 / 0.86。"
+        },
+        {
+          "title": "直接算，不逐帧模拟",
+          "where": "src/js/motion.js · curve()",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "detail": "欠阻尼和临界阻尼各有一条解析解，给出任意时刻弹到了哪里。"
+        },
+        {
+          "title": "多久算停稳",
+          "where": "src/js/motion.js · settle()",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "detail": "离终点不到 0.2% 就算停稳，这一刻就是动画的时长，最短 0.2 秒。"
+        },
+        {
+          "title": "交给浏览器去跑",
+          "where": "src/js/motion.js · spring()",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "detail": "把解析曲线采样成 CSS linear() 的 24–64 个点；transform 动画可由浏览器合成。实际流畅度还受页面和设备影响，不支持 linear() 时退回 cubic-bezier。"
+        }
+      ],
+      "requires": "任何现代浏览器，不用安装",
+      "upstreams": [
+        {
+          "name": "Luokixi · src/js/motion.js",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "license": "MIT",
+          "version": "本机 9d0f8a0；对应提交尚未推送"
+        }
+      ],
+      "check": {
+        "state": "site-code",
+        "note": "本站代码：试玩用的就是网站换页、弹窗在用的同一组弹簧参数"
+      },
+      "learn": {
+        "album": "learn-web-motion",
+        "station": "spring"
+      },
+      "art": "art/albums/discs/motion-spring.webp"
+    },
+    {
+      "id": "motion-dock",
+      "title": "程序坞放大",
+      "oneLiner": "鼠标划过，图标像 macOS 程序坞一样放大让位",
+      "topics": [
+        "网页",
+        "动效"
+      ],
+      "experience": {
+        "kind": "live",
+        "demo": "dock"
+      },
+      "view": "inside",
+      "inside": [
+        {
+          "title": "离得越近越大",
+          "where": "src/js/dock-math.js · dockTargets()",
+          "detail": "余弦衰减：正对指针的放大到 1 + max，离开 range 像素以外不放大；分隔线不放大。"
+        },
+        {
+          "title": "让开位置，指针下面不动",
+          "where": "src/js/dock-math.js · dockLayout()",
+          "detail": "每个图标多出来的长度依次往后让，再整体挪一下，让指针正下方那一点不动——放大了也点得准。"
+        },
+        {
+          "title": "跟手又不生硬",
+          "where": "src/js/shell.js · initDock()",
+          "detail": "每一帧都往目标大小指数逼近（60 毫秒的时间常数），只写 transform；鼠标离开就回到原样。"
+        }
+      ],
+      "requires": "电脑浏览器（要鼠标划过）；手机上能看自动演示",
+      "upstreams": [
+        {
+          "name": "Luokixi · src/js/dock-math.js",
+          "url": "https://github.com/Luok1xi/luokixi",
+          "license": "MIT",
+          "version": "本机 main，尚未推送"
+        }
+      ],
+      "check": {
+        "state": "site-code",
+        "note": "本站代码：和左边拓展坞用同一个函数，有单元测试（scripts/test-dock-math.mjs）"
+      },
+      "learn": {
+        "album": "learn-web-motion",
+        "station": "dock"
+      },
+      "art": "art/albums/discs/motion-dock.webp"
+    },
+    {
+      "id": "motion-morph",
+      "title": "共享元素转场",
+      "oneLiner": "点一张卡片，它从原位长成详情",
+      "topics": [
+        "网页",
+        "动效"
+      ],
+      "experience": {
+        "kind": "live",
+        "demo": "morph"
+      },
+      "view": "inside",
+      "inside": [
+        {
+          "title": "两边起同一个名字",
+          "where": "src/js/motion.js · transition()",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "detail": "更新前后同一个 view-transition-name 的元素，浏览器自己从旧的位置和大小补间到新的。"
+        },
+        {
+          "title": "换页也能长过去",
+          "where": "src/partials/head.html · @view-transition",
+          "detail": "CSS 里打开 navigation: auto，两页给同一个元素起同一个名字，换页时它就从这一页“长”到下一页——精选点进专辑时的封套就是这样。"
+        },
+        {
+          "title": "不支持就直接换",
+          "where": "src/js/motion.js · transition()",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "detail": "浏览器不支持、或者系统要求减少动态效果时，直接换成结果；最多等 2 秒，页面在后台卡住就跳到结尾。精选里的自动演示不占整页转场，用同一条弹簧手动补间（FLIP）。"
+        }
+      ],
+      "requires": "支持 View Transitions 的浏览器（Edge、Chrome、Safari 新版本）；不支持时直接切换",
+      "upstreams": [
+        {
+          "name": "Luokixi · src/js/motion.js transition()",
+          "url": "https://github.com/Luok1xi/luokixi/blob/main/src/js/motion.js",
+          "license": "MIT",
+          "version": "本机 9d0f8a0；对应提交尚未推送"
+        }
+      ],
+      "check": {
+        "state": "site-code",
+        "note": "本站代码：换页时标题和光碟滑过去用的就是这一招"
+      },
+      "learn": {
+        "album": "learn-web-motion",
+        "station": "morph"
+      },
+      "art": "art/albums/discs/motion-morph.webp"
+    },
+    {
+      "id": "opencat",
+      "title": "OpenCat 四足机器人",
+      "oneLiner": "一套让机器狗、机器猫走、跑、后空翻的开源框架",
+      "topics": [
+        "机器人",
+        "硬件",
+        "嵌入式"
+      ],
+      "experience": {
+        "kind": "explainer"
+      },
+      "view": "anatomy",
+      "anatomy": {
+        "figure": "quadruped",
+        "caption": "Bittle 结构示意，不是实物照片，也不表示传感器在机身中的精确安装位置。",
+        "parts": [
+          {
+            "id": "head",
+            "x": 0.24,
+            "y": 0.4,
+            "label": "头部舵机",
+            "role": "转头",
+            "detail": "Bittle 头上 1 个舵机（README：9 DOF，头 1 个、腿 8 个）。",
+            "evidence": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md"
+          },
+          {
+            "id": "legs",
+            "x": 0.73,
+            "y": 0.74,
+            "label": "腿部舵机 × 8",
+            "role": "走、跑、跳",
+            "detail": "8 个舵机分在四条腿上；框架负责步态协调和舵机控制。",
+            "evidence": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md"
+          },
+          {
+            "id": "board",
+            "x": 0.52,
+            "y": 0.45,
+            "label": "主控板",
+            "role": "跑控制程序",
+            "detail": "这个仓库支持老款 NyBoard（ATmega328P）；新款 BiBoard / ESP32 在 OpenCatESP32 仓库。",
+            "evidence": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md"
+          },
+          {
+            "id": "imu",
+            "x": 0.4,
+            "y": 0.44,
+            "label": "姿态传感器 IMU",
+            "role": "保持平衡",
+            "detail": "框架包含 IMU 集成；安装步骤要求校准 IMU。该示意点只表示姿态感知能力，未核实板上的精确位置。",
+            "evidence": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md"
+          },
+          {
+            "id": "sensors",
+            "x": 0.12,
+            "y": 0.3,
+            "label": "可选传感器",
+            "role": "看、摸、测距",
+            "detail": "README 将摄像头、传感器套件列为扩展；是否随套件附送取决于具体型号，请查看对应套件清单。",
+            "evidence": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md"
+          }
+        ]
+      },
+      "requires": "本条对应旧款 NyBoard / ATmega328P 的 Bittle 或 Nybble；新款 BiBoard / ESP32 请看 OpenCatEsp32 仓库；无硬件可读部件图。",
+      "upstreams": [
+        {
+          "name": "PetoiCamp/OpenCat-Quadruped-Robot",
+          "url": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot",
+          "license": "MIT",
+          "version": "24563ca2e021"
+        }
+      ],
+      "check": {
+        "state": "unverified",
+        "note": "Codex 2026-10-11 已对照固定版本 README / LICENSE 核对部件与 MIT 代码许可；未做实机验证。作者动图在独立 NonCodeFiles 仓库，媒体转载范围与播放尚未核验，暂不进入精选。"
+      },
+      "learn": {
+        "album": "learn-robot",
+        "station": "gait"
+      },
+      "sourceCheck": {
+        "by": "Codex",
+        "checkedAt": "2026-10-11",
+        "revision": "24563ca2e0218150f6299d013cd3a20c45433467",
+        "readme": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md",
+        "license": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/LICENSE"
+      },
+      "mediaReview": {
+        "state": "pending",
+        "source": "https://github.com/PetoiCamp/NonCodeFiles",
+        "readme": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md",
+        "note": "来源仓库与代码仓库不同；未确认可转码后本站托管的授权，不复制媒体。"
+      },
+      "tagline": "四条腿 也能 后空翻",
+      "skit": "data/skits/opencat.json",
+      "capabilityPath": "robotics",
+      "repository": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot"
+    },
+    {
+      "id": "simplefoc",
+      "title": "SimpleFOC 电机控制",
+      "oneLiner": "让无刷电机转得又稳又安静的 Arduino 库",
+      "topics": [
+        "机器人",
+        "嵌入式"
+      ],
+      "experience": {
+        "kind": "explainer"
+      },
+      "view": "io",
+      "io": {
+        "status": "pending",
+        "input": "一组无刷电机和驱动板",
+        "action": "调位置环 / 速度环",
+        "output": "电机按指令转到位",
+        "note": "这是工作流程说明，尚未取得并验证可在本站播放的演示；当前不代表已完成实机测试。"
+      },
+      "requires": "需要无刷电机、驱动板和 Arduino 兼容开发板",
+      "upstreams": [
+        {
+          "name": "simplefoc/Arduino-FOC",
+          "url": "https://github.com/simplefoc/Arduino-FOC",
+          "license": "MIT",
+          "version": "2.4.0 / b3d8f3931342"
+        }
+      ],
+      "check": {
+        "state": "unverified",
+        "note": "Codex 2026-10-11 已核对 library.properties 的 2.4.0、README 与 MIT 许可；未接电机实测，输入输出仍是流程说明。"
+      },
+      "learn": {
+        "album": "learn-robot",
+        "station": "motor"
+      },
+      "sourceCheck": {
+        "by": "Codex",
+        "checkedAt": "2026-10-11",
+        "revision": "b3d8f3931342ae68a980d0140e24b9048eba098b",
+        "readme": "https://github.com/simplefoc/Arduino-FOC/blob/b3d8f3931342ae68a980d0140e24b9048eba098b/README.md",
+        "license": "https://github.com/simplefoc/Arduino-FOC/blob/b3d8f3931342ae68a980d0140e24b9048eba098b/LICENSE"
+      },
+      "skit": "data/skits/simplefoc.json",
+      "tagline": "让 电机 听话",
+      "capabilityPath": "robotics",
+      "repository": "https://github.com/simplefoc/Arduino-FOC"
+    },
+    {
+      "id": "ponytail",
+      "title": "Ponytail",
+      "oneLiner": "让北矿娘带你看同一个 AI 加上 Skill 后，代码究竟变了什么",
+      "topics": [
+        "AI",
+        "编程"
+      ],
+      "experience": {
+        "kind": "live",
+        "story": "skill-compare"
+      },
+      "view": "compare",
+      "compare": {
+        "status": "verified",
+        "task": "三个修复任务，分别独立生成两次：未附加规则 / 附加原版 Ponytail Skill，使用相同请求模型、输入和运行设置",
+        "measure": [
+          "生成代码的非空行数",
+          "同一套边界测试的实际结果",
+          "原回答及生成的测试建议",
+          "含启动与网络的单次耗时"
+        ],
+        "inputs": [
+          {
+            "id": "unique-tags",
+            "title": "整理重复标签",
+            "input": "修复 uniqueTags(tags)：接收字符串数组，去掉首尾空白，忽略空标签，不区分大小写去重，保留第一次出现的大小写和顺序，不修改原数组。不要新增依赖。",
+            "source": "function uniqueTags(tags) { return [...new Set(tags)]; }",
+            "model": "gpt-6-astra",
+            "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+            "before": {
+              "code": "function uniqueTags(tags) {\n  const seen = new Set();\n  const result = [];\n  for (const tag of tags) {\n    const trimmed = tag.trim();\n    if (!trimmed) continue;\n    const key = trimmed.toLowerCase();\n    if (seen.has(key)) continue;\n    seen.add(key);\n    result.push(trimmed);\n  }\n  return result;\n}",
+              "explanation": "先去掉每个标签的首尾空白并跳过空标签，再用小写形式去重，保留第一次出现的标签大小写和顺序。返回新数组，不修改原数组，无新增依赖。",
+              "tests": [
+                "console.assert(JSON.stringify(uniqueTags([' JavaScript ', 'javascript', 'CSS', ' css ', 'HTML'])) === JSON.stringify(['JavaScript', 'CSS', 'HTML']));",
+                "console.assert(JSON.stringify(uniqueTags(['', ' ', '\\t\\n', ' A ', 'a'])) === JSON.stringify(['A']));",
+                "console.assert(JSON.stringify(uniqueTags([])) === '[]');",
+                "console.assert(JSON.stringify(uniqueTags([' Foo Bar ', 'foo bar', 'Foo  Bar'])) === JSON.stringify(['Foo Bar', 'Foo  Bar']));",
+                "const input = Object.freeze([' A ', 'a', ' B ']); const output = uniqueTags(input); console.assert(JSON.stringify(input) === JSON.stringify([' A ', 'a', ' B '])); console.assert(output !== input); console.assert(JSON.stringify(output) === JSON.stringify(['A', 'B']));"
+              ],
+              "status": "passed",
+              "wallMs": 37785,
+              "lines": 13,
+              "codeSha256": "620cf37f2836bb0d5058f1a7b2d2f1ae0a9971666db94a48a871508159c4bbce",
+              "evidence": "data/skill-evidence/unique-tags-before.json",
+              "checks": [
+                {
+                  "name": "空输入",
+                  "passed": true
+                },
+                {
+                  "name": "空白标签",
+                  "passed": true
+                },
+                {
+                  "name": "首项与顺序",
+                  "passed": true
+                },
+                {
+                  "name": "内部空格保留",
+                  "passed": true
+                },
+                {
+                  "name": "非 ASCII 标签",
+                  "passed": true
+                },
+                {
+                  "name": "不返回原数组",
+                  "passed": true
+                }
+              ],
+              "output": "先去掉每个标签的首尾空白并跳过空标签，再用小写形式去重，保留第一次出现的标签大小写和顺序。返回新数组，不修改原数组，无新增依赖。"
+            },
+            "after": {
+              "code": "function uniqueTags(tags) {\n  const seen = new Set();\n  const result = [];\n  for (const tag of tags) {\n    const trimmed = tag.trim();\n    const key = trimmed.toLowerCase();\n    if (trimmed && !seen.has(key)) {\n      seen.add(key);\n      result.push(trimmed);\n    }\n  }\n  return result;\n}",
+              "explanation": "先去掉首尾空白、过滤空标签，再按小写形式去重，保留首次出现的大小写和顺序，不修改原数组，无新增依赖。未访问文件或运行测试；输入按约定为字符串数组。",
+              "tests": [
+                "const input = Object.freeze([' Foo ', 'foo', '', ' \\t\\n ', 'BAR', ' bar ', 'Baz', 'FOO']);\nconst actual = uniqueTags(input);\nif (JSON.stringify(actual) !== JSON.stringify(['Foo', 'BAR', 'Baz'])) throw new Error('去空白、过滤空值或去重失败');\nif (JSON.stringify(input) !== JSON.stringify([' Foo ', 'foo', '', ' \\t\\n ', 'BAR', ' bar ', 'Baz', 'FOO'])) throw new Error('修改了原数组');",
+                "if (JSON.stringify(uniqueTags([])) !== '[]') throw new Error('空数组处理失败');\nif (JSON.stringify(uniqueTags(['', ' ', '\\t\\n'])) !== '[]') throw new Error('全空标签处理失败');",
+                "const actual = uniqueTags([' hello world ', 'HELLO WORLD', 'helloworld', ' École ', 'école', ' 中文 ']);\nif (JSON.stringify(actual) !== JSON.stringify(['hello world', 'helloworld', 'École', '中文'])) throw new Error('内部空格或非 ASCII 标签处理失败');"
+              ],
+              "status": "passed",
+              "wallMs": 29785,
+              "lines": 13,
+              "codeSha256": "c8544aacc6010dc30c67669eedd894904d6ce40bb9c554e05e9c235cf5dd1df6",
+              "evidence": "data/skill-evidence/unique-tags-after.json",
+              "checks": [
+                {
+                  "name": "空输入",
+                  "passed": true
+                },
+                {
+                  "name": "空白标签",
+                  "passed": true
+                },
+                {
+                  "name": "首项与顺序",
+                  "passed": true
+                },
+                {
+                  "name": "内部空格保留",
+                  "passed": true
+                },
+                {
+                  "name": "非 ASCII 标签",
+                  "passed": true
+                },
+                {
+                  "name": "不返回原数组",
+                  "passed": true
+                }
+              ],
+              "output": "先去掉首尾空白、过滤空标签，再按小写形式去重，保留首次出现的大小写和顺序，不修改原数组，无新增依赖。未访问文件或运行测试；输入按约定为字符串数组。"
+            }
+          },
+          {
+            "id": "cart-total",
+            "title": "购物车数量为零",
+            "input": "修复 cartTotal(items)：每项 priceCents 和 quantity 都是非负安全整数，数量 0 必须是 0，按整数分求和。空数组返回 0，字段非法或计算超过安全整数时抛 RangeError，不修改输入。",
+            "source": "function cartTotal(items) { return items.reduce((sum, item) => sum + item.priceCents * (item.quantity || 1), 0); }",
+            "model": "gpt-6-astra",
+            "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+            "before": {
+              "code": "function cartTotal(items) {\n  let total = 0n;\n  const max = BigInt(Number.MAX_SAFE_INTEGER);\n  for (const item of items) {\n    const priceCents = item?.priceCents;\n    const quantity = item?.quantity;\n    if (!Number.isSafeInteger(priceCents) || priceCents < 0 ||\n        !Number.isSafeInteger(quantity) || quantity < 0) {\n      throw new RangeError('priceCents and quantity must be non-negative safe integers');\n    }\n    total += BigInt(priceCents) * BigInt(quantity);\n    if (total > max) {\n      throw new RangeError('Cart total exceeds the safe integer range');\n    }\n  }\n  return Number(total);\n}",
+              "explanation": "移除 quantity 的默认值逻辑，确保数量为 0 时金额为 0。验证两个字段均为非负安全整数，使用 BigInt 精确计算整数分，溢出时抛出 RangeError，最终返回 Number。空数组返回 0，不修改输入。以下测试未运行。",
+              "tests": [
+                "const assert = require('node:assert/strict');\nassert.equal(cartTotal([]), 0);\nassert.equal(cartTotal([{ priceCents: 199, quantity: 2 }, { priceCents: 50, quantity: 3 }]), 548);\nassert.equal(cartTotal([{ priceCents: 100, quantity: 0 }]), 0);\nassert.equal(cartTotal([{ priceCents: 0, quantity: Number.MAX_SAFE_INTEGER }]), 0);\nassert.equal(cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 1 }]), Number.MAX_SAFE_INTEGER);\nassert.equal(cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 0 }]), 0);",
+                "for (const field of ['priceCents', 'quantity']) {\n  for (const value of [undefined, null, -1, 0.5, NaN, Infinity, -Infinity, '1', true, 1n, {}, Number.MAX_SAFE_INTEGER + 1]) {\n    const item = { priceCents: 0, quantity: 0, [field]: value };\n    assert.throws(() => cartTotal([item]), RangeError);\n  }\n}\nfor (const item of [null, undefined, {}, { priceCents: 1 }, { quantity: 1 }]) {\n  assert.throws(() => cartTotal([item]), RangeError);\n}",
+                "assert.throws(() => cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 2 }]), RangeError);\nassert.throws(() => cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 1 }, { priceCents: 1, quantity: 1 }]), RangeError);\nconst items = Object.freeze([Object.freeze({ priceCents: 125, quantity: 2 }), Object.freeze({ priceCents: 99, quantity: 0 })]);\nassert.equal(cartTotal(items), 250);\nassert.deepEqual(items, [{ priceCents: 125, quantity: 2 }, { priceCents: 99, quantity: 0 }]);"
+              ],
+              "status": "passed",
+              "wallMs": 43115,
+              "lines": 17,
+              "codeSha256": "df413b3da01969716208c81408a85a532f6269b1fe0e8775c29e1283f91385b6",
+              "evidence": "data/skill-evidence/cart-total-before.json",
+              "checks": [
+                {
+                  "name": "空购物车",
+                  "passed": true
+                },
+                {
+                  "name": "零数量",
+                  "passed": true
+                },
+                {
+                  "name": "整数分求和",
+                  "passed": true
+                },
+                {
+                  "name": "最大安全整数",
+                  "passed": true
+                },
+                {
+                  "name": "零与最大数量",
+                  "passed": true
+                },
+                {
+                  "name": "priceCents 非法值",
+                  "passed": true
+                },
+                {
+                  "name": "quantity 非法值",
+                  "passed": true
+                },
+                {
+                  "name": "缺字段",
+                  "passed": true
+                },
+                {
+                  "name": "乘法溢出",
+                  "passed": true
+                },
+                {
+                  "name": "加法溢出",
+                  "passed": true
+                },
+                {
+                  "name": "随机整数与精确参照一致",
+                  "passed": true
+                }
+              ],
+              "output": "移除 quantity 的默认值逻辑，确保数量为 0 时金额为 0。验证两个字段均为非负安全整数，使用 BigInt 精确计算整数分，溢出时抛出 RangeError，最终返回 Number。空数组返回 0，不修改输入。以下测试未运行。"
+            },
+            "after": {
+              "code": "function cartTotal(items) {\n  let total = 0;\n  for (const item of items) {\n    const priceCents = item?.priceCents;\n    const quantity = item?.quantity;\n    if (!Number.isSafeInteger(priceCents) || priceCents < 0 ||\n        !Number.isSafeInteger(quantity) || quantity < 0) {\n      throw new RangeError('priceCents and quantity must be non-negative safe integers');\n    }\n    total += priceCents * quantity;\n    if (!Number.isSafeInteger(total)) {\n      throw new RangeError('Cart total exceeds the safe integer range');\n    }\n  }\n  return total;\n}",
+              "explanation": "移除 quantity 的默认值，确保数量为 0 时金额为 0；验证两个字段均为非负安全整数，按整数分累加，乘积或总和超出安全整数范围时抛出 RangeError。空数组返回 0，不修改输入。仅处理所给函数，未访问文件或运行测试。",
+              "tests": [
+                "const items = Object.freeze([Object.freeze({ priceCents: 125, quantity: 2 }), Object.freeze({ priceCents: 999, quantity: 0 }), Object.freeze({ priceCents: 50, quantity: 3 })]); if (cartTotal(items) !== 400 || cartTotal([]) !== 0) throw new Error('基本求和失败');",
+                "for (const field of ['priceCents', 'quantity']) { for (const value of [-1, 0.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, '1', null, undefined, true, 1n]) { let caught = false; try { cartTotal([{ priceCents: 1, quantity: 1, [field]: value }]); } catch (error) { if (!(error instanceof RangeError)) throw error; caught = true; } if (!caught) throw new Error('非法字段未被拒绝'); } }",
+                "const max = Number.MAX_SAFE_INTEGER; for (const items of [[{ priceCents: max, quantity: 2 }], [{ priceCents: max, quantity: 1 }, { priceCents: 1, quantity: 1 }], [{}], [null]]) { let caught = false; try { cartTotal(items); } catch (error) { if (!(error instanceof RangeError)) throw error; caught = true; } if (!caught) throw new Error('应抛出 RangeError'); } if (cartTotal([{ priceCents: max, quantity: 1 }]) !== max || cartTotal([{ priceCents: max, quantity: 0 }]) !== 0 || cartTotal([{ priceCents: 0, quantity: max }]) !== 0) throw new Error('边界计算失败');"
+              ],
+              "status": "passed",
+              "wallMs": 42852,
+              "lines": 16,
+              "codeSha256": "d23694c929ac154b9165f124956be9092fe5cf84ae90df8083de9a0c31e60ae4",
+              "evidence": "data/skill-evidence/cart-total-after.json",
+              "checks": [
+                {
+                  "name": "空购物车",
+                  "passed": true
+                },
+                {
+                  "name": "零数量",
+                  "passed": true
+                },
+                {
+                  "name": "整数分求和",
+                  "passed": true
+                },
+                {
+                  "name": "最大安全整数",
+                  "passed": true
+                },
+                {
+                  "name": "零与最大数量",
+                  "passed": true
+                },
+                {
+                  "name": "priceCents 非法值",
+                  "passed": true
+                },
+                {
+                  "name": "quantity 非法值",
+                  "passed": true
+                },
+                {
+                  "name": "缺字段",
+                  "passed": true
+                },
+                {
+                  "name": "乘法溢出",
+                  "passed": true
+                },
+                {
+                  "name": "加法溢出",
+                  "passed": true
+                },
+                {
+                  "name": "随机整数与精确参照一致",
+                  "passed": true
+                }
+              ],
+              "output": "移除 quantity 的默认值，确保数量为 0 时金额为 0；验证两个字段均为非负安全整数，按整数分累加，乘积或总和超出安全整数范围时抛出 RangeError。空数组返回 0，不修改输入。仅处理所给函数，未访问文件或运行测试。"
+            }
+          },
+          {
+            "id": "page-window",
+            "title": "分页越界与旧数据",
+            "input": "修复 pageWindow(items, page, size)：items 是数组，size 必须是正安全整数，否则抛 RangeError；page 必须是安全整数，否则抛 RangeError。页号从 1 开始，越界夹到最近一页；空数组也返回 page=1,totalPages=1,items=[]。返回 {page,totalPages,items}，不修改原数组。",
+            "source": "function pageWindow(items, page, size) { return { page, totalPages: Math.ceil(items.length / size), items: items.splice((page - 1) * size, size) }; }",
+            "model": "gpt-6-astra",
+            "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+            "before": {
+              "code": "function pageWindow(items, page, size) {\n  if (!Number.isSafeInteger(size) || size <= 0) {\n    throw new RangeError('size 必须是正安全整数');\n  }\n  if (!Number.isSafeInteger(page)) {\n    throw new RangeError('page 必须是安全整数');\n  }\n  const totalPages = Math.max(1, Math.ceil(items.length / size));\n  const clampedPage = Math.min(totalPages, Math.max(1, page));\n  const start = (clampedPage - 1) * size;\n  return {\n    page: clampedPage,\n    totalPages,\n    items: items.slice(start, start + size)\n  };\n}",
+              "explanation": "增加 size 和 page 的安全整数校验，非法值抛出 RangeError；将越界页号夹到有效范围，空数组按一页处理。用 slice 替代 splice，避免修改原数组。以下测试用例未运行。",
+              "tests": [
+                "(() => {\n  const check = (actual, expected) => {\n    if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error('结果不符合预期');\n  };\n  const source = [1, 2, 3, 4, 5];\n  check(pageWindow(source, 2, 2), { page: 2, totalPages: 3, items: [3, 4] });\n  check(pageWindow(source, 99, 2), { page: 3, totalPages: 3, items: [5] });\n  check(pageWindow(source, 0, 2), { page: 1, totalPages: 3, items: [1, 2] });\n  check(pageWindow(source, Number.MIN_SAFE_INTEGER, 2), { page: 1, totalPages: 3, items: [1, 2] });\n  check(pageWindow(source, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), { page: 1, totalPages: 1, items: source });\n  check(pageWindow([1, 2, 3, 4], 2, 2), { page: 2, totalPages: 2, items: [3, 4] });\n  check(pageWindow(source, 5, 1), { page: 5, totalPages: 5, items: [5] });\n  check(source, [1, 2, 3, 4, 5]);\n  const result = pageWindow(Object.freeze(source), 1, 10);\n  if (result.items === source) throw new Error('应返回新数组');\n})();",
+                "(() => {\n  for (const page of [Number.MIN_SAFE_INTEGER, 0, 1, Number.MAX_SAFE_INTEGER]) {\n    const source = [];\n    const result = pageWindow(source, page, 2);\n    if (result.page !== 1 || result.totalPages !== 1 || result.items.length !== 0 || result.items === source) {\n      throw new Error('空数组处理错误');\n    }\n  }\n})();",
+                "(() => {\n  const expectRangeError = (fn) => {\n    try { fn(); } catch (error) {\n      if (error instanceof RangeError) return;\n      throw error;\n    }\n    throw new Error('应抛出 RangeError');\n  };\n  for (const size of [0, -1, 1.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, '2', null, undefined, true, 2n]) {\n    expectRangeError(() => pageWindow([], 1, size));\n  }\n  for (const page of [1.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, Number.MIN_SAFE_INTEGER - 1, '1', null, undefined, true, 1n]) {\n    expectRangeError(() => pageWindow([], page, 2));\n  }\n})();"
+              ],
+              "status": "passed",
+              "wallMs": 43392,
+              "lines": 16,
+              "codeSha256": "f340af7ed392b3cf5be49fb9c91408502fe0ed51a8ad42cfb9ab3d413fd8d4dc",
+              "evidence": "data/skill-evidence/page-window-before.json",
+              "checks": [
+                {
+                  "name": "中间页",
+                  "passed": true
+                },
+                {
+                  "name": "末尾夹取",
+                  "passed": true
+                },
+                {
+                  "name": "开头夹取",
+                  "passed": true
+                },
+                {
+                  "name": "最大页大小",
+                  "passed": true
+                },
+                {
+                  "name": "空数组仍有第一页",
+                  "passed": true
+                },
+                {
+                  "name": "非法页号",
+                  "passed": true
+                },
+                {
+                  "name": "非法大小",
+                  "passed": true
+                },
+                {
+                  "name": "返回副本",
+                  "passed": true
+                }
+              ],
+              "output": "增加 size 和 page 的安全整数校验，非法值抛出 RangeError；将越界页号夹到有效范围，空数组按一页处理。用 slice 替代 splice，避免修改原数组。以下测试用例未运行。"
+            },
+            "after": {
+              "code": "function pageWindow(items, page, size) {\n  if (!Number.isSafeInteger(size) || size <= 0) throw new RangeError('size must be a positive safe integer');\n  if (!Number.isSafeInteger(page)) throw new RangeError('page must be a safe integer');\n  const totalPages = Math.max(1, Math.ceil(items.length / size));\n  page = Math.max(1, Math.min(page, totalPages));\n  const start = (page - 1) * size;\n  return { page, totalPages, items: items.slice(start, start + size) };\n}",
+              "explanation": "增加 size 和 page 的安全整数校验，将页号夹到有效范围，空数组保持一页。用 slice 替代 splice，避免修改原数组。\n未访问文件或运行测试；按约定假设 items 是数组。",
+              "tests": [
+                "const input = Object.freeze([1, 2, 3, 4, 5]);\nfor (const [page, expected] of [[1, {page:1,totalPages:3,items:[1,2]}], [2, {page:2,totalPages:3,items:[3,4]}], [3, {page:3,totalPages:3,items:[5]}], [0, {page:1,totalPages:3,items:[1,2]}], [Number.MIN_SAFE_INTEGER, {page:1,totalPages:3,items:[1,2]}], [Number.MAX_SAFE_INTEGER, {page:3,totalPages:3,items:[5]}]]) {\n  const result = pageWindow(input, page, 2);\n  if (JSON.stringify(result) !== JSON.stringify(expected)) throw new Error('分页或夹取错误: ' + page);\n  if (result.items === input) throw new Error('必须返回新数组');\n}",
+                "for (const page of [Number.MIN_SAFE_INTEGER, 1, Number.MAX_SAFE_INTEGER]) {\n  const result = pageWindow([], page, 2);\n  if (JSON.stringify(result) !== JSON.stringify({page:1,totalPages:1,items:[]})) throw new Error('空数组处理错误');\n}",
+                "for (const size of [1, 2, Number.MAX_SAFE_INTEGER]) {\n  const result = pageWindow([1, 2], Number.MAX_SAFE_INTEGER, size);\n  const expected = size === 1 ? {page:2,totalPages:2,items:[2]} : {page:1,totalPages:1,items:[1,2]};\n  if (JSON.stringify(result) !== JSON.stringify(expected)) throw new Error('边界页大小处理错误');\n}",
+                "const invalid = [1.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, Number.MIN_SAFE_INTEGER - 1, '2', null, undefined, true, 2n];\nfor (const field of ['page', 'size']) {\n  const values = field === 'size' ? invalid.concat([0, -0, -1]) : invalid;\n  for (const value of values) {\n    let caught;\n    try { pageWindow([], field === 'page' ? value : 1, field === 'size' ? value : 2); } catch (error) { caught = error; }\n    if (!(caught instanceof RangeError)) throw new Error(field + ' 应抛出 RangeError: ' + String(value));\n  }\n}"
+              ],
+              "status": "passed",
+              "wallMs": 40699,
+              "lines": 8,
+              "codeSha256": "7141b3818404cdfa57cd18440810eea809da398eb221e6130e003e04e7897ec4",
+              "evidence": "data/skill-evidence/page-window-after.json",
+              "checks": [
+                {
+                  "name": "中间页",
+                  "passed": true
+                },
+                {
+                  "name": "末尾夹取",
+                  "passed": true
+                },
+                {
+                  "name": "开头夹取",
+                  "passed": true
+                },
+                {
+                  "name": "最大页大小",
+                  "passed": true
+                },
+                {
+                  "name": "空数组仍有第一页",
+                  "passed": true
+                },
+                {
+                  "name": "非法页号",
+                  "passed": true
+                },
+                {
+                  "name": "非法大小",
+                  "passed": true
+                },
+                {
+                  "name": "返回副本",
+                  "passed": true
+                }
+              ],
+              "output": "增加 size 和 page 的安全整数校验，将页号夹到有效范围，空数组保持一页。用 slice 替代 splice，避免修改原数组。\n未访问文件或运行测试；按约定假设 items 是数组。"
+            }
+          }
+        ],
+        "note": "这是附加 Skill 规则的受控对比，未测试完整插件钩子。3 个任务，每侧 1 次，没有挑选重跑。当前 CLI 忽略了 features.skills 开关，故不能声称完全关闭了所有隐式技能；两侧使用相同宿主设置。耗时含启动与网络，不代表稳定提速；更短也不等于更好。",
+        "model": "gpt-6-astra",
+        "skillVersion": "5.1.0",
+        "skillSha256": "ba68ff26239c3c3b05b2a9a47ee0d9a6b93a69639a2555ec87a5d44bffaf2f0c",
+        "recordedAt": "2026-10-11T11:56:23.842Z"
+      },
+      "requires": "支持插件的写代码 AI（作者说明里列了 Claude Code、Codex 等）；安装前看清它会加的钩子",
+      "upstreams": [
+        {
+          "name": "DietrichGebert/ponytail",
+          "url": "https://github.com/DietrichGebert/ponytail",
+          "license": "MIT",
+          "version": "5.1.0 / 9cc65d03aa2d"
+        }
+      ],
+      "check": {
+        "state": "verified",
+        "note": "2026-10-11 实际完成三组成对生成，六份原始代码按同一套边界测试检查；范围为附加 Skill 规则，不是插件安装或长期效果验证。"
+      },
+      "sourceCheck": {
+        "by": "Codex",
+        "checkedAt": "2026-10-11",
+        "revision": "9cc65d03aa2da1db7121b912d03596409ee340b8",
+        "readme": "https://github.com/DietrichGebert/ponytail/blob/9cc65d03aa2da1db7121b912d03596409ee340b8/README.md",
+        "license": "https://github.com/DietrichGebert/ponytail/blob/9cc65d03aa2da1db7121b912d03596409ee340b8/LICENSE"
+      },
+      "repository": "https://github.com/DietrichGebert/ponytail",
+      "art": "art/albums/discs/ponytail.webp"
+    },
+    {
+      "id": "path-web-motion",
+      "title": "网页动效入门路线",
+      "oneLiner": "四站，从一个过渡写到自己的程序坞",
+      "topics": [
+        "网页",
+        "动效"
+      ],
+      "experience": {
+        "kind": "explainer"
+      },
+      "view": "path",
+      "path": [
+        {
+          "id": "transition",
+          "title": "先让一个东西动起来",
+          "why": "过渡和关键帧是所有动效的起点",
+          "resources": [
+            {
+              "name": "MDN · CSS 过渡（含可运行示例）",
+              "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Transitions/Using",
+              "version": "在线文档，2026-10-11 查阅",
+              "language": "英语"
+            }
+          ],
+          "unlocks": [
+            "2048-merge"
+          ],
+          "prerequisites": [
+            "能写一个 HTML 按钮",
+            "知道 CSS 选择器和 transform"
+          ]
+        },
+        {
+          "id": "spring",
+          "title": "弹簧是怎么算的",
+          "why": "为什么 iPhone 的动画“弹”得自然",
+          "resources": [
+            {
+              "name": "Luokixi · motion.js 的 spring() / springEase()",
+              "url": "https://github.com/Luok1xi/luokixi",
+              "version": "本机 9d0f8a0；源码位置 src/js/motion.js；该提交尚未公开",
+              "language": "中文注释"
+            }
+          ],
+          "unlocks": [
+            "motion-spring",
+            "lv-choices"
+          ],
+          "prerequisites": [
+            "完成过渡示例",
+            "能读 JavaScript 函数与事件"
+          ]
+        },
+        {
+          "id": "morph",
+          "title": "共享元素转场",
+          "why": "让同一个东西从一页“长”到另一页",
+          "resources": [
+            {
+              "name": "MDN · View Transition API（含兼容性与示例）",
+              "url": "https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API",
+              "version": "在线文档，2026-10-11 查阅",
+              "language": "英语"
+            }
+          ],
+          "unlocks": [
+            "motion-morph"
+          ],
+          "prerequisites": [
+            "能用 JavaScript 更新 DOM",
+            "先掌握直接切换的降级逻辑"
+          ]
+        },
+        {
+          "id": "dock",
+          "title": "做一个自己的程序坞",
+          "why": "把距离换成大小，再让开位置",
+          "resources": [
+            {
+              "name": "Luokixi · dock-math.js",
+              "url": "https://github.com/Luok1xi/luokixi",
+              "version": "Opus 本机候选 src/js/dock-math.js；尚未公开",
+              "language": "中文注释"
+            }
+          ],
+          "unlocks": [
+            "motion-dock"
+          ],
+          "prerequisites": [
+            "理解数组和循环",
+            "能处理指针事件并写 transform"
+          ]
+        }
+      ],
+      "requires": "会一点 HTML / CSS / JavaScript",
+      "upstreams": [],
+      "check": {
+        "state": "unverified",
+        "note": "Codex 2026-10-11 核对 MDN 页面及本机动效源码；先修为编辑建议。程序坞候选未发布，整条学习路线尚未由学习者走通。"
+      },
+      "art": "art/albums/discs/path-web-motion.webp"
+    },
+    {
+      "id": "path-robot",
+      "title": "机器人入门路线",
+      "oneLiner": "四站，从嵌入式基础到让四条腿走起来",
+      "topics": [
+        "机器人",
+        "嵌入式"
+      ],
+      "experience": {
+        "kind": "explainer"
+      },
+      "view": "path",
+      "path": [
+        {
+          "id": "embedded",
+          "title": "嵌入式全景",
+          "why": "先知道单片机、外设、实时系统各是什么",
+          "resources": [
+            {
+              "name": "m3y54m/Embedded-Engineering-Roadmap",
+              "url": "https://github.com/m3y54m/Embedded-Engineering-Roadmap/blob/4564daca7081cd1f6a53dcbf045a2494f6728586/README.md",
+              "version": "4564daca7081",
+              "language": "英语",
+              "license": "CC BY-SA 4.0"
+            }
+          ],
+          "unlocks": [],
+          "prerequisites": [
+            "会运行简单 C 程序",
+            "先理解电压、电流和开发板"
+          ]
+        },
+        {
+          "id": "motor",
+          "title": "电机怎么转起来",
+          "why": "学习无刷电机与驱动控制；这是可选的电机分支，不是 OpenCat 舵机的必装依赖。",
+          "resources": [
+            {
+              "name": "simplefoc/Arduino-FOC · 文档",
+              "url": "https://github.com/simplefoc/Arduino-FOC/blob/b3d8f3931342ae68a980d0140e24b9048eba098b/README.md",
+              "version": "b3d8f3931342",
+              "language": "英语",
+              "license": "MIT"
+            }
+          ],
+          "unlocks": [
+            "simplefoc"
+          ],
+          "prerequisites": [
+            "知道 GPIO / PWM",
+            "有匹配的电机、驱动与供电；先看硬件接线文档"
+          ]
+        },
+        {
+          "id": "gait",
+          "title": "舵机和步态",
+          "why": "在对应套件上学习舵机校准与四足步态；不要求先安装 SimpleFOC。",
+          "resources": [
+            {
+              "name": "PetoiCamp/OpenCat · README 与示例",
+              "url": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md",
+              "version": "24563ca2e021",
+              "language": "英语",
+              "license": "MIT"
+            }
+          ],
+          "unlocks": [
+            "opencat"
+          ],
+          "prerequisites": [
+            "会使用 Arduino IDE 和串口",
+            "有对应 NyBoard 套件，并先校准关节与 IMU"
+          ]
+        },
+        {
+          "id": "algo",
+          "title": "算法基础",
+          "why": "规划路线、处理传感器数据都要用到",
+          "resources": [
+            {
+              "name": "OI-wiki/OI-wiki",
+              "url": "https://github.com/OI-wiki/OI-wiki/blob/ec9c4c81e56ebaf949624603bf99b534d1ba4e42/README.md",
+              "version": "ec9c4c81e56e",
+              "language": "中文",
+              "license": "文档 CC BY-SA 4.0 + SATA（README 说明）"
+            }
+          ],
+          "unlocks": [],
+          "prerequisites": [
+            "会 C / C++ 的数组、循环、函数"
+          ]
+        }
+      ],
+      "requires": "会一点 C 语言",
+      "upstreams": [],
+      "check": {
+        "state": "unverified",
+        "note": "Codex 2026-10-11 核对四站仓库与固定版本；先修为编辑建议。SimpleFOC 无刷电机控制和 OpenCat 舵机步态是不同硬件分支，不是必须串联的安装步骤；未做硬件实测。"
+      },
+      "capabilityPath": "robotics",
+      "art": "art/albums/discs/path-robot.webp"
+    },
+    {
+      "id": "path-ai-skills",
+      "title": "AI 技能接入路线",
+      "oneLiner": "五步保留输入、对照与回退记录。",
+      "topics": [
+        "AI",
+        "编程"
+      ],
+      "requires": "阅读无需模型；实践需要可用的编程 AI 与测试项目。",
+      "view": "path",
+      "check": {
+        "state": "site-code",
+        "note": "本站编辑整理的流程；不表示已替你安装技能或完成实测。"
+      },
+      "upstreams": [],
+      "experience": {
+        "kind": "explainer"
+      },
+      "capabilityPath": "ai-skills",
+      "path": [
+        {
+          "id": "scope",
+          "title": "确认技能范围与权限",
+          "why": "写下技能来源版本、会修改什么、允许哪些操作。",
+          "prerequisites": [],
+          "resources": [
+            {
+              "name": "Ponytail · 原作者说明",
+              "url": "https://github.com/DietrichGebert/ponytail"
+            }
+          ],
+          "unlocks": [
+            "ponytail"
+          ]
+        },
+        {
+          "id": "baseline",
+          "title": "保存未加技能的基线",
+          "why": "保存原始输入、模型版本、运行条件和实际输出。",
+          "prerequisites": [
+            "已准备可使用的编程 AI 环境",
+            "已准备可回退的测试项目"
+          ],
+          "resources": [
+            {
+              "name": "Ponytail · 原作者说明",
+              "url": "https://github.com/DietrichGebert/ponytail"
+            }
+          ],
+          "unlocks": [
+            "ponytail"
+          ]
+        },
+        {
+          "id": "with-skill",
+          "title": "在相同条件下加技能重跑",
+          "why": "保留相同任务与模型条件，单独保存附加技能后的输出。",
+          "prerequisites": [
+            "已准备可使用的编程 AI 环境",
+            "已准备可回退的测试项目"
+          ],
+          "resources": [
+            {
+              "name": "Ponytail · 原作者说明",
+              "url": "https://github.com/DietrichGebert/ponytail"
+            }
+          ],
+          "unlocks": [
+            "ponytail"
+          ]
+        },
+        {
+          "id": "compare",
+          "title": "比较正确性、失败与成本",
+          "why": "用相同检查核对两份结果，记录改善、退化与没测过的部分。",
+          "prerequisites": [],
+          "resources": [
+            {
+              "name": "Ponytail · 原作者说明",
+              "url": "https://github.com/DietrichGebert/ponytail"
+            }
+          ],
+          "unlocks": [
+            "ponytail"
+          ]
+        },
+        {
+          "id": "integrate",
+          "title": "小范围接入与回退",
+          "why": "记录真实接入位置、验收结果以及恢复方法；没有改善也可以保留结论。",
+          "prerequisites": [
+            "已准备可使用的编程 AI 环境",
+            "已准备可回退的测试项目"
+          ],
+          "resources": [
+            {
+              "name": "Ponytail · 原作者说明",
+              "url": "https://github.com/DietrichGebert/ponytail"
+            }
+          ],
+          "unlocks": [
+            "ponytail"
+          ]
+        }
+      ],
+      "art": "art/albums/discs/path-ai-skills.webp"
+    },
+    {
+      "id": "sky-masterminds-2",
+      "title": "Sky Masterminds 2 巡线小车",
+      "oneLiner": "先操作红外与 PID，再沿真实蓝图理解小车如何看路、纠偏和驱动两轮",
+      "tagline": "从一条黑线 到整个程序",
+      "topics": [
+        "机器人",
+        "嵌入式",
+        "STM32",
+        "C",
+        "PID",
+        "红外传感器",
+        "编码器",
+        "状态机"
+      ],
+      "experience": {
+        "kind": "explainer"
+      },
+      "view": "inside",
+      "requires": "浏览器可使用教学推演；固件运行需要 STM32F103C8 小车、16 路红外、编码器和对应硬件。",
+      "repository": "https://github.com/Wecrane/Sky-Masterminds-2",
+      "upstreams": [
+        {
+          "name": "Wecrane/Sky-Masterminds-2",
+          "url": "https://github.com/Wecrane/Sky-Masterminds-2",
+          "license": "README 声明 MIT；保留各源文件原始声明",
+          "version": "e8c862f9e29c02516532805dfec568584a3e0bc2"
+        }
+      ],
+      "check": {
+        "state": "unverified",
+        "note": "2026-10-12 已逐项核对固定版本的应用代码与语法索引。演示为公式移植和合成输入，未编译固件或测试真车。"
+      },
+      "capabilityPath": "robotics",
+      "inside": [
+        {
+          "title": "先认识它：红外巡线竞赛小车",
+          "detail": "它用 16 路红外感知黑线，以 STM32 控制两轮。下方项目蓝图可以打开可操作的传感器、PID、轮速与里程实验。",
+          "where": "项目蓝图 / 先试玩"
+        },
+        {
+          "title": "再读一条主线",
+          "detail": "从看见黑线，到算出偏差，再到两轮 PWM；每块都能展开，查看输入输出、中文解释与固定版本源码。",
+          "where": "项目蓝图 / 看蓝图"
+        },
+        {
+          "title": "把知识变成可借鉴的代码",
+          "detail": "17 个知识块串联迟滞、加权定位、反馈、PID、状态机与串口。借用前能直接查看参数、单位和硬件依赖。",
+          "where": "项目蓝图 / 学知识"
+        }
+      ],
+      "art": "art/albums/discs/sky-masterminds-2.webp"
+    },
+    {
+      "id": "roborts-firmware",
+      "title": "RoboRTS 机器人固件",
+      "oneLiner": "从底盘、云台、传感器与控制算法进入 81 个真实源文件，逐层阅读函数与调用",
+      "tagline": "从机器人模块 回到代码",
+      "topics": [
+        "机器人",
+        "RoboMaster",
+        "STM32",
+        "C",
+        "FreeRTOS",
+        "PID"
+      ],
+      "experience": {
+        "kind": "explainer"
+      },
+      "view": "inside",
+      "requires": "浏览器可阅读结构与源码；这是源码导航，尚未编译或测试真实机器人。",
+      "repository": "https://github.com/RoboMaster/RoboRTS-Firmware",
+      "upstreams": [
+        {
+          "name": "RoboMaster/RoboRTS-Firmware",
+          "url": "https://github.com/RoboMaster/RoboRTS-Firmware",
+          "license": "GPL-3.0-or-later；保留各文件声明",
+          "version": "8cffd936b503eef819fa05265cf0162710c9cb3b"
+        }
+      ],
+      "check": {
+        "state": "unverified",
+        "note": "2026-10-12 固定版本只读解析：81 个核心源文件，320 函数，45 张层级图。功能按文件命名自动分组，5 个文件存在未完全识别语法片段；未测硬件。"
+      },
+      "inside": [
+        {
+          "title": "从结构认识各个模块",
+          "detail": "底盘、云台、传感器、PID 与通信分开列出。分组依据文件命名，需要结合注释核对，不假定它们与物理部件一一对应。",
+          "where": "项目蓝图 / 模块总览"
+        },
+        {
+          "title": "逐层追踪代码依据",
+          "detail": "点击模块进入文件，再查看函数与高亮源码。确认的调用有连线，回调、宏与无法绑定的目标保持未解析。",
+          "where": "项目蓝图 / 看蓝图 / 读源码"
+        },
+        {
+          "title": "带自己的项目来比较",
+          "detail": "导入智能车或 RoboMaster 的 C/C++/Arduino 源码包，用同样的模块、文件、函数层级阅读；不会执行源码。",
+          "where": "蓝图工具 / 解析自己的源码"
+        }
+      ],
+      "art": "art/albums/discs/roborts-firmware.webp"
+    }
+  ]
+}

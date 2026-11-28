@@ -1,0 +1,226 @@
+{
+  "id": "school-dash-b-fill",
+  "title": "校赛方案 B · 补线候选",
+  "map_sha256": "71c90dc132450253db514bc10c417d8ab966a8ec314842661f6ae410113af096",
+  "base_sha256": "a940a184d3b9f14b926266d00b1804157398949b04dd72e772d5913779d00e04",
+  "route": "CLv@1317,S@1867,S@2317,S@2917,CL@3517,Sv@3967,Sv@4367,Sv@4817,Sv@5267,CLv@5717,Sv@6917,R:60@6982,L:60@7142,L:60@7302,R:60@7462,S@7527,CL@8077",
+  "provisional": true,
+  "placement_notes": [
+    "B：右侧外沿中间的一段，位于两个中间路口之间。",
+    "三个位置均为待选方案，虚线长300毫米，白段30毫米、间隔20毫米。",
+    "环岛沿用已确认的左上六边形位置。",
+    "本次共用外圈验证路线，经过三个候选位置及环岛上半圈；不是全元素比赛路线。",
+    "启用已有纵向图像补线；路线策略与原参数不同，不能当作同条件PID调参。",
+    "当前125档已通过虚线和顶边断口，六边形入口仍出线；未完成外圈。"
+  ],
+  "features": [
+    {
+      "kind": "dashed",
+      "at": [
+        2200,
+        1050.0
+      ],
+      "start": [
+        2200,
+        900
+      ],
+      "end": [
+        2200,
+        1200
+      ],
+      "dash_mm": 30,
+      "gap_mm": 20
+    },
+    {
+      "kind": "hexagon",
+      "at": [
+        775,
+        2200
+      ],
+      "vertices": [
+        [
+          615,
+          2200
+        ],
+        [
+          695,
+          2338.564
+        ],
+        [
+          855,
+          2338.564
+        ],
+        [
+          935,
+          2200
+        ],
+        [
+          855,
+          2061.436
+        ],
+        [
+          695,
+          2061.436
+        ]
+      ],
+      "side_mm": 160
+    }
+  ],
+  "route_scope": "outer-loop-validation",
+  "route_length_mm": 8959.993,
+  "route_events": [
+    {
+      "at": [
+        0,
+        0
+      ],
+      "distance_mm": 1317,
+      "turn_deg": 90,
+      "action": "CLv"
+    },
+    {
+      "at": [
+        550,
+        0
+      ],
+      "distance_mm": 1867,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        1000,
+        0
+      ],
+      "distance_mm": 2317,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        1600,
+        0
+      ],
+      "distance_mm": 2917,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        0
+      ],
+      "distance_mm": 3517,
+      "turn_deg": 90,
+      "action": "CL"
+    },
+    {
+      "at": [
+        2200,
+        450
+      ],
+      "distance_mm": 3967,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        850
+      ],
+      "distance_mm": 4367,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        1300
+      ],
+      "distance_mm": 4817,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        1750
+      ],
+      "distance_mm": 5267,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        2200,
+        2200
+      ],
+      "distance_mm": 5717,
+      "turn_deg": 90,
+      "action": "CL"
+    },
+    {
+      "at": [
+        1000,
+        2200
+      ],
+      "distance_mm": 6917,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        935,
+        2200
+      ],
+      "distance_mm": 6982,
+      "turn_deg": -60,
+      "action": "R:60"
+    },
+    {
+      "at": [
+        855.0,
+        2338.56
+      ],
+      "distance_mm": 7142,
+      "turn_deg": 60,
+      "action": "L:60"
+    },
+    {
+      "at": [
+        695.0,
+        2338.56
+      ],
+      "distance_mm": 7302,
+      "turn_deg": 60,
+      "action": "L:60"
+    },
+    {
+      "at": [
+        615,
+        2200
+      ],
+      "distance_mm": 7462,
+      "turn_deg": -60,
+      "action": "R:60"
+    },
+    {
+      "at": [
+        550,
+        2200
+      ],
+      "distance_mm": 7527,
+      "turn_deg": 0,
+      "action": "S"
+    },
+    {
+      "at": [
+        0,
+        2200
+      ],
+      "distance_mm": 8077,
+      "turn_deg": 90,
+      "action": "CL"
+    }
+  ]
+}

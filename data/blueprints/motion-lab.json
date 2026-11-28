@@ -1,0 +1,2612 @@
+{
+  "schemaVersion": 1,
+  "id": "motion-lab",
+  "title": "交互实验室 · 同一套数学，两种界面",
+  "summary": "从演示入口追踪弹簧、程序坞与转场。教学演示调用本站同一套算法。",
+  "scope": "lightweight",
+  "maturity": "site-tested",
+  "scopeNote": "按交互范围标注为轻量模块；依赖宿主页面，不是独立桌面应用。",
+  "evidence": [],
+  "analysis": "static",
+  "languages": [
+    "JavaScript / TypeScript"
+  ],
+  "nodes": [
+    {
+      "id": "motion-lab",
+      "label": "交互实验室 · 同一套数学，两种界面",
+      "kind": "project",
+      "summary": "从演示入口追踪弹簧、程序坞与转场。教学演示调用本站同一套算法。"
+    },
+    {
+      "id": "motion-lab:group:demo",
+      "parent": "motion-lab",
+      "kind": "module",
+      "label": "演示与交互",
+      "summary": ""
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js",
+      "parent": "motion-lab:group:demo",
+      "kind": "file",
+      "label": "motion-demos.js",
+      "file": "src/js/motion-demos.js",
+      "line": 1,
+      "endLine": 294,
+      "code": "// 开源广场《让界面动得像 iPhone》的三个试玩：弹簧、程序坞放大、共享元素转场。\n// 跑的就是网站自己在用的那几段（motion.js 的 spring / springEase / transition，dock-math.js），不另写一套。\n// mode：'try' 能拖能点；'watch' 自己演（精选里只播不操作）。只动 transform / opacity。\nimport { SPRINGS, spring, springEase, transition, reducedMotion } from './motion.js';\nimport { dockLayout, dockTargets } from './dock-math.js';\nimport { appIcon } from './app-icons.js';\n\nconst PRESET = { smooth: '平稳', snappy: '干脆', bouncy: '弹跳', interactive: '跟手' };\n\n/** 把试玩挂到 root 上；返回 { destroy } */\nexport function mountDemo(root, name, { mode = 'try' } = {}) {\n  const make = { spring: springDemo, dock: dockDemo, morph: morphDemo }[name];\n  if (!make) return { destroy() {} };\n  return make(root, mode === 'watch');\n}\n\n// 自己演的循环：页面在后台或被摘下时停\nfunction loop(root, step) {\n  let timer = 0, dead = false;\n  const tick = async () => {\n    if (dead || !root.isConnected) return;\n    const wait = document.hidden ? 800 : await step();\n    if (!dead) timer = setTimeout(tick, wait);\n  };\n  timer = setTimeout(tick, 500);\n  return () => { dead = true; clearTimeout(timer); };\n}\n\n/* ---------------- 弹簧 ---------------- */\n\nfunction springDemo(root, watch) {\n  root.innerHTML = `\n    <div class=\"md md-spring\">\n      <div class=\"md-track\"${watch ? '' : ' role=\"button\" tabindex=\"0\" aria-label=\"让方块弹到另一头\"'}><i class=\"md-rail\"></i><b class=\"md-ball\"></b></div>\n      <svg class=\"md-plot\" viewBox=\"0 0 320 120\" aria-hidden=\"true\"><path class=\"md-plot-grid\" d=\"M0 100H320M0 30H320\"/><path class=\"md-plot-curve\"/><circle class=\"md-plot-dot\" r=\"5\" cx=\"0\" cy=\"0\"/></svg>\n      <p class=\"md-read\"><b data-name></b><span data-params></span><span data-dur></span></p>\n      ${watch ? '' : `<div class=\"md-controls\">\n        <div class=\"as-seg md-presets\" role=\"group\" aria-label=\"网站在用的四组弹簧\"><i class=\"as-seg-thumb\" aria-hidden=\"true\"></i>${Object.keys(SPRINGS).map((k) => `<button type=\"button\" data-preset=\"${k}\">${PRESET[k]}</button>`).join('')}</div>\n        <label class=\"md-slider\"><span>response</span><input type=\"range\" min=\"0.15\" max=\"1.2\" step=\"0.01\" data-k=\"response\"><output data-out=\"response\"></output></label>\n        <label class=\"md-slider\"><span>damping</span><input type=\"range\" min=\"0.3\" max=\"1\" step=\"0.01\" data-k=\"damping\"><output data-out=\"damping\"></output></label>\n      </div>`}\n    </div>`;\n  const $ = (s) => root.querySelector(s);\n  const track = $('.md-track'), ball = $('.md-ball'), curvePath = $('.md-plot-curve'), dot = $('.md-plot-dot');\n  let params = { ...SPRINGS.snappy }, name = 'snappy', side = 0, run = null, frame = 0;\n\n  const draw = () => {\n    const { duration, ease } = springEase(params);\n    let peak = 1, d = '';\n    for (let i = 0; i <= 120; i++) {\n      const v = ease(i / 120);\n      peak = Math.max(peak, v);\n      d += `${i ? 'L' : 'M'}${(i / 120 * 320).toFixed(1)} ${(100 - v * 70).toFixed(1)}`;\n    }\n    curvePath.setAttribute('d', d);\n    $('[data-name]').textContent = name ? PRESET[name] : '自己调的';\n    $('[data-params]').textContent = `response ${params.response.toFixed(2)} · damping ${params.damping.toFixed(2)}`;\n    $('[data-dur]').textContent = `${Math.round(duration * 1000)} ms${peak > 1.001 ? ` · 过冲 ${((peak - 1) * 100).toFixed(1)}%` : ' · 不回弹'}`;\n    root.querySelectorAll('[data-k]').forEach((input) => { input.value = params[input.dataset.k]; });\n    root.querySelectorAll('[data-out]').forEach((o) => { o.textContent = params[o.dataset.out].toFixed(2); });\n    const seg = $('.md-presets');\n    if (seg) {\n      const i = Object.keys(SPRINGS).indexOf(name);\n      seg.style.setProperty('--i', String(Math.max(0, i)));\n      seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === name)));\n      seg.classList.toggle('is-off', i < 0);\n    }\n  };\n\n  // 方块用 spring() 的 linear() 缓动跑（和网站换页、弹窗同一条曲线）；曲线上的小点跟着动画走\n  const play = () => {\n    const travel = track.clientWidth - ball.offsetWidth;\n    side = 1 - side;\n    const from = side ? 0 : travel, to = side ? travel : 0;\n    run?.cancel();\n    cancelAnimationFrame(frame);\n    if (reducedMotion()) { ball.style.transform = `translateX(${to}px)`; return Promise.resolve(); }\n    const s = spring(params), { ease } = springEase(params);\n    run = ball.animate([{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }], { duration: s.duration, easing: s.easing, fill: 'forwards' });\n    const anim = run;\n    const follow = () => {\n      const p = Math.min(1, (anim.currentTime ?? 0) / s.duration);\n      dot.style.transform = `translate(${(p * 320).toFixed(1)}px, ${(100 - ease(p) * 70).toFixed(1)}px)`;\n      if (p < 1 && anim.playState === 'running') frame = requestAnimationFrame(follow);\n    };\n    frame = requestAnimationFrame(follow);\n    return anim.finished.catch(() => {});\n  };\n\n  draw();\n  dot.style.transform = 'translate(0px, 100px)';\n  if (watch) {\n    const names = Object.keys(SPRINGS);\n    let k = 0;\n    const stop = loop(root, async () => {\n      name = names[k++ % names.length];\n      params = { ...SPRINGS[name] };\n      draw();\n      await play();\n      return 900;\n    });\n    return { destroy() { stop(); run?.cancel(); cancelAnimationFrame(frame); } };\n  }\n  track.addEventListener('click', play);\n  track.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });\n  root.addEventListener('click', (e) => {\n    const b = e.target.closest('[data-preset]');\n    if (!b) return;\n    name = b.dataset.preset;\n    params = { ...SPRINGS[name] };\n    draw();\n    play();\n  });\n  root.addEventListener('input', (e) => {\n    const k = e.target.dataset?.k;\n    if (!k) return;\n    params = { ...params, [k]: Number(e.target.value) };\n    name = Object.keys(SPRINGS).find((n) => SPRINGS[n].response === params.response && SPRINGS[n].damping === params.damping) || '';\n    draw();\n  });\n  root.addEventListener('change', (e) => { if (e.target.dataset?.k) play(); });\n  return { destroy() { run?.cancel(); cancelAnimationFrame(frame); } };\n}\n\n/* ---------------- 程序坞放大 ---------------- */\n\nconst DOCK_ICONS = ['clock', 'study', 'seat', 'pin', 'post', 'exam', 'bag', 'trophy', 'upload'];\n\nfunction dockDemo(root, watch) {\n  root.innerHTML = `\n    <div class=\"md md-dock\">\n      <p class=\"md-hint\">${watch ? '自动演示：一个看不见的指针在程序坞上来回划' : '把鼠标放到程序坞上，左右划'}</p>\n      <div class=\"md-dockbar\">\n        <i class=\"md-dock-bg\" aria-hidden=\"true\"></i>\n        ${DOCK_ICONS.map((n) => `<span class=\"md-dock-item\">${appIcon(n)}</span>`).join('')}\n        ${watch ? '<i class=\"md-cursor\" aria-hidden=\"true\"></i>' : ''}\n      </div>\n      ${watch ? '' : `<div class=\"md-controls\">\n        <label class=\"md-slider\"><span>放大到</span><input type=\"range\" min=\"0\" max=\"1.2\" step=\"0.05\" data-k=\"max\"><output data-out=\"max\"></output></label>\n        <label class=\"md-slider\"><span>影响范围</span><input type=\"range\" min=\"60\" max=\"260\" step=\"10\" data-k=\"range\"><output data-out=\"range\"></output></label>\n      </div>`}\n    </div>`;\n  const bar = root.querySelector('.md-dockbar'), bg = root.querySelector('.md-dock-bg'), cursor = root.querySelector('.md-cursor');\n  const opts = { max: 0.5, range: 140 };   // 和左边拓展坞同一组数\n  let items = [], cur = [], target = [], pointer = null, frame = 0, last = 0, width = 0, sweep = 0;\n  const measure = () => {\n    items = [...bar.querySelectorAll('.md-dock-item')].map((el) => ({ el, start: el.offsetLeft, size: el.offsetWidth, grow: true }));\n    width = bar.offsetWidth;\n    cur = items.map((_, i) => cur[i] ?? 1);\n    target = items.map((_, i) => target[i] ?? 1);\n  };\n  const show = () => {\n    root.querySelectorAll('[data-k]').forEach((input) => { input.value = opts[input.dataset.k]; });\n    root.querySelectorAll('[data-out]').forEach((o) => { o.textContent = o.dataset.out === 'max' ? `${(1 + opts.max).toFixed(2)} 倍` : `${opts.range} px`; });\n  };\n  // 和 shell.js initDock 一样：每帧向目标值指数逼近（60ms 时间常数），排开的位置交给 dockLayout\n  const paint = (now) => {\n    frame = 0;\n    if (!root.isConnected) return;\n    if (!width) measure();\n    const dt = last ? Math.min(64, now - last) : 16;\n    last = now;\n    const a = 1 - Math.exp(-dt / 60);\n    let moving = false;\n    items.forEach((_, i) => {\n      cur[i] += (target[i] - cur[i]) * a;\n      if (Math.abs(target[i] - cur[i]) < 0.002) cur[i] = target[i]; else moving = true;\n    });\n    const { shifts, total, anchor } = dockLayout(items, cur, pointer);\n    items.forEach((it, i) => { it.el.style.transform = `translateX(${shifts[i].toFixed(2)}px) scale(${cur[i].toFixed(4)})`; });\n    bg.style.transform = `translateX(${(-anchor).toFixed(2)}px) scaleX(${((width + total) / width).toFixed(4)})`;\n    if (moving || watch) frame = requestAnimationFrame(paint); else last = 0;\n    if (watch) drive(now);\n  };\n  const kick = () => { if (!frame) frame = requestAnimationFrame(paint); };\n  const point = (x) => { pointer = x; target = x == null ? items.map(() => 1) : dockTargets(items, x, opts); kick(); };\n  // 自动演示：指针按正弦来回扫，扫到两头停一下再回来\n  const drive = (now) => {\n    if (!sweep) sweep = now;\n    const p = ((now - sweep) / 4200) % 1;\n    const x = width / 2 + Math.sin(p * Math.PI * 2) * (width / 2 - 20);\n    cursor.style.transform = `translate(${x.toFixed(1)}px, -50%)`;\n    pointer = x;\n    target = dockTargets(items, x, opts);\n  };\n  measure();\n  show();\n  if (watch) {\n    if (reducedMotion()) return { destroy() {} };\n    kick();\n    return { destroy() { cancelAnimationFrame(frame); frame = -1; } };\n  }\n  const ro = new ResizeObserver(() => { items.forEach((it) => (it.el.style.transform = '')); measure(); point(null); });\n  ro.observe(bar);\n  bar.addEventListener('pointermove', (e) => {\n    if (reducedMotion() || e.pointerType !== 'mouse') return;\n    point(e.clientX - bar.getBoundingClientRect().left);\n  });\n  bar.addEventListener('pointerleave', () => point(null));\n  root.addEventListener('input', (e) => {\n    const k = e.target.dataset?.k;\n    if (!k) return;\n    opts[k] = Number(e.target.value);\n    show();\n    if (pointer != null) point(pointer);\n  });\n  return { destroy() { ro.disconnect(); cancelAnimationFrame(frame); } };\n}\n\n/* ---------------- 共享元素转场 ---------------- */\n\nconst CARDS = [\n  { h: 262, k: '弹簧', t: '弹到位' },\n  { h: 205, k: '程序坞', t: '放大让位' },\n  { h: 330, k: '转场', t: '原地长大' },\n];\n\nfunction morphDemo(root, watch) {\n  root.innerHTML = `\n    <div class=\"md md-morph\">\n      <div class=\"md-cards\">${CARDS.map((c, i) => `<button type=\"button\" class=\"md-card\" style=\"--h:${c.h}\" data-i=\"${i}\"${watch ? ' tabindex=\"-1\"' : ''}><small>${c.k}</small><b>${c.t}</b></button>`).join('')}</div>\n      <div class=\"md-detail\" hidden>\n        <div class=\"md-sheet\" role=\"dialog\" aria-label=\"展开的卡片\">\n          <div class=\"md-sheet-head\"><small></small><b></b></div>\n          <div class=\"md-sheet-body\"><i></i><i></i><i></i><i></i></div>\n          <button type=\"button\" class=\"md-close\" aria-label=\"收起\"${watch ? ' tabindex=\"-1\"' : ''}>×</button>\n        </div>\n      </div>\n      <p class=\"md-hint\">${watch ? '自动演示：点开一张卡片，再收回去' : '点一张卡片，它从原位长成详情；再点 × 收回去'}</p>\n    </div>`;\n  const detail = root.querySelector('.md-detail'), sheet = root.querySelector('.md-sheet');\n  let open = null;\n  const fill = (i) => {\n    sheet.style.setProperty('--h', CARDS[i].h);\n    sheet.querySelector('small').textContent = CARDS[i].k;\n    sheet.querySelector('b').textContent = CARDS[i].t;\n  };\n  const cardOf = (i) => root.querySelector(`.md-card[data-i=\"${i}\"]`);\n\n  // 点着玩：用网站的 transition()（View Transitions），卡片和详情同名，浏览器自己补间\n  const swap = (i) => transition(() => {\n    if (i != null) {\n      cardOf(i).style.viewTransitionName = '';\n      fill(i);\n      detail.hidden = false;\n      sheet.style.viewTransitionName = 'md-card';\n      cardOf(i).style.visibility = 'hidden';\n    } else {\n      sheet.style.viewTransitionName = '';\n      detail.hidden = true;\n      cardOf(open).style.visibility = '';\n      cardOf(open).style.viewTransitionName = 'md-card';\n    }\n  }, 'morph').then(() => { root.querySelectorAll('.md-card').forEach((c) => (c.style.viewTransitionName = '')); });\n\n  // 自己演：精选里不能占用整页的转场，同一条弹簧手动",
+      "truncated": true
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:504",
+      "parent": "motion-lab:src/js/motion-demos.js",
+      "kind": "function",
+      "label": "mountDemo",
+      "file": "src/js/motion-demos.js",
+      "line": 11,
+      "endLine": 15,
+      "code": "function mountDemo(root, name, { mode = 'try' } = {}) {\n  const make = { spring: springDemo, dock: dockDemo, morph: morphDemo }[name];\n  if (!make) return { destroy() {} };\n  return make(root, mode === 'watch');\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:661",
+      "parent": "motion-lab:src/js/motion-demos.js:504",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 13,
+      "endLine": 13,
+      "code": "destroy() {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:741",
+      "parent": "motion-lab:src/js/motion-demos.js",
+      "kind": "function",
+      "label": "loop",
+      "file": "src/js/motion-demos.js",
+      "line": 18,
+      "endLine": 27,
+      "code": "function loop(root, step) {\n  let timer = 0, dead = false;\n  const tick = async () => {\n    if (dead || !root.isConnected) return;\n    const wait = document.hidden ? 800 : await step();\n    if (!dead) timer = setTimeout(tick, wait);\n  };\n  timer = setTimeout(tick, 500);\n  return () => { dead = true; clearTimeout(timer); };\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:815",
+      "parent": "motion-lab:src/js/motion-demos.js:741",
+      "kind": "function",
+      "label": "tick",
+      "file": "src/js/motion-demos.js",
+      "line": 20,
+      "endLine": 24,
+      "code": "async () => {\n    if (dead || !root.isConnected) return;\n    const wait = document.hidden ? 800 : await step();\n    if (!dead) timer = setTimeout(tick, wait);\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:1021",
+      "parent": "motion-lab:src/js/motion-demos.js:741",
+      "kind": "function",
+      "label": "回调 @26",
+      "file": "src/js/motion-demos.js",
+      "line": 26,
+      "endLine": 26,
+      "code": "() => { dead = true; clearTimeout(timer); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:1113",
+      "parent": "motion-lab:src/js/motion-demos.js",
+      "kind": "function",
+      "label": "springDemo",
+      "file": "src/js/motion-demos.js",
+      "line": 31,
+      "endLine": 123,
+      "code": "function springDemo(root, watch) {\n  root.innerHTML = `\n    <div class=\"md md-spring\">\n      <div class=\"md-track\"${watch ? '' : ' role=\"button\" tabindex=\"0\" aria-label=\"让方块弹到另一头\"'}><i class=\"md-rail\"></i><b class=\"md-ball\"></b></div>\n      <svg class=\"md-plot\" viewBox=\"0 0 320 120\" aria-hidden=\"true\"><path class=\"md-plot-grid\" d=\"M0 100H320M0 30H320\"/><path class=\"md-plot-curve\"/><circle class=\"md-plot-dot\" r=\"5\" cx=\"0\" cy=\"0\"/></svg>\n      <p class=\"md-read\"><b data-name></b><span data-params></span><span data-dur></span></p>\n      ${watch ? '' : `<div class=\"md-controls\">\n        <div class=\"as-seg md-presets\" role=\"group\" aria-label=\"网站在用的四组弹簧\"><i class=\"as-seg-thumb\" aria-hidden=\"true\"></i>${Object.keys(SPRINGS).map((k) => `<button type=\"button\" data-preset=\"${k}\">${PRESET[k]}</button>`).join('')}</div>\n        <label class=\"md-slider\"><span>response</span><input type=\"range\" min=\"0.15\" max=\"1.2\" step=\"0.01\" data-k=\"response\"><output data-out=\"response\"></output></label>\n        <label class=\"md-slider\"><span>damping</span><input type=\"range\" min=\"0.3\" max=\"1\" step=\"0.01\" data-k=\"damping\"><output data-out=\"damping\"></output></label>\n      </div>`}\n    </div>`;\n  const $ = (s) => root.querySelector(s);\n  const track = $('.md-track'), ball = $('.md-ball'), curvePath = $('.md-plot-curve'), dot = $('.md-plot-dot');\n  let params = { ...SPRINGS.snappy }, name = 'snappy', side = 0, run = null, frame = 0;\n\n  const draw = () => {\n    const { duration, ease } = springEase(params);\n    let peak = 1, d = '';\n    for (let i = 0; i <= 120; i++) {\n      const v = ease(i / 120);\n      peak = Math.max(peak, v);\n      d += `${i ? 'L' : 'M'}${(i / 120 * 320).toFixed(1)} ${(100 - v * 70).toFixed(1)}`;\n    }\n    curvePath.setAttribute('d', d);\n    $('[data-name]').textContent = name ? PRESET[name] : '自己调的';\n    $('[data-params]').textContent = `response ${params.response.toFixed(2)} · damping ${params.damping.toFixed(2)}`;\n    $('[data-dur]').textContent = `${Math.round(duration * 1000)} ms${peak > 1.001 ? ` · 过冲 ${((peak - 1) * 100).toFixed(1)}%` : ' · 不回弹'}`;\n    root.querySelectorAll('[data-k]').forEach((input) => { input.value = params[input.dataset.k]; });\n    root.querySelectorAll('[data-out]').forEach((o) => { o.textContent = params[o.dataset.out].toFixed(2); });\n    const seg = $('.md-presets');\n    if (seg) {\n      const i = Object.keys(SPRINGS).indexOf(name);\n      seg.style.setProperty('--i', String(Math.max(0, i)));\n      seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === name)));\n      seg.classList.toggle('is-off', i < 0);\n    }\n  };\n\n  // 方块用 spring() 的 linear() 缓动跑（和网站换页、弹窗同一条曲线）；曲线上的小点跟着动画走\n  const play = () => {\n    const travel = track.clientWidth - ball.offsetWidth;\n    side = 1 - side;\n    const from = side ? 0 : travel, to = side ? travel : 0;\n    run?.cancel();\n    cancelAnimationFrame(frame);\n    if (reducedMotion()) { ball.style.transform = `translateX(${to}px)`; return Promise.resolve(); }\n    const s = spring(params), { ease } = springEase(params);\n    run = ball.animate([{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }], { duration: s.duration, easing: s.easing, fill: 'forwards' });\n    const anim = run;\n    const follow = () => {\n      const p = Math.min(1, (anim.currentTime ?? 0) / s.duration);\n      dot.style.transform = `translate(${(p * 320).toFixed(1)}px, ${(100 - ease(p) * 70).toFixed(1)}px)`;\n      if (p < 1 && anim.playState === 'running') frame = requestAnimationFrame(follow);\n    };\n    frame = requestAnimationFrame(follow);\n    return anim.finished.catch(() => {});\n  };\n\n  draw();\n  dot.style.transform = 'translate(0px, 100px)';\n  if (watch) {\n    const names = Object.keys(SPRINGS);\n    let k = 0;\n    const stop = loop(root, async () => {\n      name = names[k++ % names.length];\n      params = { ...SPRINGS[name] };\n      draw();\n      await play();\n      return 900;\n    });\n    return { destroy() { stop(); run?.cancel(); cancelAnimationFrame(frame); } };\n  }\n  track.addEventListener('click', play);\n  track.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } });\n  root.addEventListener('click', (e) => {\n    const b = e.target.closest('[data-preset]');\n    if (!b) return;\n    name = b.dataset.preset;\n    params = { ...SPRINGS[name] };\n    draw();\n    play();\n  });\n  root.addEventListener('input', (e) => {\n    const k = e.target.dataset?.k;\n    if (!k) return;\n    params = { ...params, [k]: Number(e.target.value) };\n    name = Object.keys(SPRINGS).find((n) => SPRINGS[n].response === params.response && SPRINGS[n].damping === params.damping) || '';\n    draw();\n  });\n  root.addEventListener('change', (e) => { if (e.target.dataset?.k) play(); });\n  return { destroy() { run?.cancel(); cancelAnimationFrame(frame); } };\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:1844",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "回调 @38",
+      "file": "src/js/motion-demos.js",
+      "line": 38,
+      "endLine": 38,
+      "code": "(k) => `<button type=\"button\" data-preset=\"${k}\">${PRESET[k]}</button>`",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:2309",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "$",
+      "file": "src/js/motion-demos.js",
+      "line": 43,
+      "endLine": 43,
+      "code": "(s) => root.querySelector(s)",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:2555",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "draw",
+      "file": "src/js/motion-demos.js",
+      "line": 47,
+      "endLine": 68,
+      "code": "() => {\n    const { duration, ease } = springEase(params);\n    let peak = 1, d = '';\n    for (let i = 0; i <= 120; i++) {\n      const v = ease(i / 120);\n      peak = Math.max(peak, v);\n      d += `${i ? 'L' : 'M'}${(i / 120 * 320).toFixed(1)} ${(100 - v * 70).toFixed(1)}`;\n    }\n    curvePath.setAttribute('d', d);\n    $('[data-name]').textContent = name ? PRESET[name] : '自己调的';\n    $('[data-params]').textContent = `response ${params.response.toFixed(2)} · damping ${params.damping.toFixed(2)}`;\n    $('[data-dur]').textContent = `${Math.round(duration * 1000)} ms${peak > 1.001 ? ` · 过冲 ${((peak - 1) * 100).toFixed(1)}%` : ' · 不回弹'}`;\n    root.querySelectorAll('[data-k]').forEach((input) => { input.value = params[input.dataset.k]; });\n    root.querySelectorAll('[data-out]').forEach((o) => { o.textContent = params[o.dataset.out].toFixed(2); });\n    const seg = $('.md-presets');\n    if (seg) {\n      const i = Object.keys(SPRINGS).indexOf(name);\n      seg.style.setProperty('--i', String(Math.max(0, i)));\n      seg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === name)));\n      seg.classList.toggle('is-off', i < 0);\n    }\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:3241",
+      "parent": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "function",
+      "label": "回调 @59",
+      "file": "src/js/motion-demos.js",
+      "line": 59,
+      "endLine": 59,
+      "code": "(input) => { input.value = params[input.dataset.k]; }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:3345",
+      "parent": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "function",
+      "label": "回调 @60",
+      "file": "src/js/motion-demos.js",
+      "line": 60,
+      "endLine": 60,
+      "code": "(o) => { o.textContent = params[o.dataset.out].toFixed(2); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:3614",
+      "parent": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "function",
+      "label": "回调 @65",
+      "file": "src/js/motion-demos.js",
+      "line": 65,
+      "endLine": 65,
+      "code": "(b) => b.setAttribute('aria-pressed', String(b.dataset.preset === name))",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:3821",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "play",
+      "file": "src/js/motion-demos.js",
+      "line": 71,
+      "endLine": 88,
+      "code": "() => {\n    const travel = track.clientWidth - ball.offsetWidth;\n    side = 1 - side;\n    const from = side ? 0 : travel, to = side ? travel : 0;\n    run?.cancel();\n    cancelAnimationFrame(frame);\n    if (reducedMotion()) { ball.style.transform = `translateX(${to}px)`; return Promise.resolve(); }\n    const s = spring(params), { ease } = springEase(params);\n    run = ball.animate([{ transform: `translateX(${from}px)` }, { transform: `translateX(${to}px)` }], { duration: s.duration, easing: s.easing, fill: 'forwards' });\n    const anim = run;\n    const follow = () => {\n      const p = Math.min(1, (anim.currentTime ?? 0) / s.duration);\n      dot.style.transform = `translate(${(p * 320).toFixed(1)}px, ${(100 - ease(p) * 70).toFixed(1)}px)`;\n      if (p < 1 && anim.playState === 'running') frame = requestAnimationFrame(follow);\n    };\n    frame = requestAnimationFrame(follow);\n    return anim.finished.catch(() => {});\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:4388",
+      "parent": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "function",
+      "label": "follow",
+      "file": "src/js/motion-demos.js",
+      "line": 81,
+      "endLine": 85,
+      "code": "() => {\n      const p = Math.min(1, (anim.currentTime ?? 0) / s.duration);\n      dot.style.transform = `translate(${(p * 320).toFixed(1)}px, ${(100 - ease(p) * 70).toFixed(1)}px)`;\n      if (p < 1 && anim.playState === 'running') frame = requestAnimationFrame(follow);\n    }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:4738",
+      "parent": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "function",
+      "label": "回调 @87",
+      "file": "src/js/motion-demos.js",
+      "line": 87,
+      "endLine": 87,
+      "code": "() => {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:4912",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "回调 @95",
+      "file": "src/js/motion-demos.js",
+      "line": 95,
+      "endLine": 101,
+      "code": "async () => {\n      name = names[k++ % names.length];\n      params = { ...SPRINGS[name] };\n      draw();\n      await play();\n      return 900;\n    }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5076",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 102,
+      "endLine": 102,
+      "code": "destroy() { stop(); run?.cancel(); cancelAnimationFrame(frame); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5226",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "回调 @105",
+      "file": "src/js/motion-demos.js",
+      "line": 105,
+      "endLine": 105,
+      "code": "(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); play(); } }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5344",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "回调 @106",
+      "file": "src/js/motion-demos.js",
+      "line": 106,
+      "endLine": 113,
+      "code": "(e) => {\n    const b = e.target.closest('[data-preset]');\n    if (!b) return;\n    name = b.dataset.preset;\n    params = { ...SPRINGS[name] };\n    draw();\n    play();\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5549",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "回调 @114",
+      "file": "src/js/motion-demos.js",
+      "line": 114,
+      "endLine": 120,
+      "code": "(e) => {\n    const k = e.target.dataset?.k;\n    if (!k) return;\n    params = { ...params, [k]: Number(e.target.value) };\n    name = Object.keys(SPRINGS).find((n) => SPRINGS[n].response === params.response && SPRINGS[n].damping === params.damping) || '';\n    draw();\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5707",
+      "parent": "motion-lab:src/js/motion-demos.js:5549",
+      "kind": "function",
+      "label": "回调 @118",
+      "file": "src/js/motion-demos.js",
+      "line": 118,
+      "endLine": 118,
+      "code": "(n) => SPRINGS[n].response === params.response && SPRINGS[n].damping === params.damping",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5855",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "回调 @121",
+      "file": "src/js/motion-demos.js",
+      "line": 121,
+      "endLine": 121,
+      "code": "(e) => { if (e.target.dataset?.k) play(); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:5912",
+      "parent": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 122,
+      "endLine": 122,
+      "code": "destroy() { run?.cancel(); cancelAnimationFrame(frame); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:6121",
+      "parent": "motion-lab:src/js/motion-demos.js",
+      "kind": "function",
+      "label": "dockDemo",
+      "file": "src/js/motion-demos.js",
+      "line": 129,
+      "endLine": 208,
+      "code": "function dockDemo(root, watch) {\n  root.innerHTML = `\n    <div class=\"md md-dock\">\n      <p class=\"md-hint\">${watch ? '自动演示：一个看不见的指针在程序坞上来回划' : '把鼠标放到程序坞上，左右划'}</p>\n      <div class=\"md-dockbar\">\n        <i class=\"md-dock-bg\" aria-hidden=\"true\"></i>\n        ${DOCK_ICONS.map((n) => `<span class=\"md-dock-item\">${appIcon(n)}</span>`).join('')}\n        ${watch ? '<i class=\"md-cursor\" aria-hidden=\"true\"></i>' : ''}\n      </div>\n      ${watch ? '' : `<div class=\"md-controls\">\n        <label class=\"md-slider\"><span>放大到</span><input type=\"range\" min=\"0\" max=\"1.2\" step=\"0.05\" data-k=\"max\"><output data-out=\"max\"></output></label>\n        <label class=\"md-slider\"><span>影响范围</span><input type=\"range\" min=\"60\" max=\"260\" step=\"10\" data-k=\"range\"><output data-out=\"range\"></output></label>\n      </div>`}\n    </div>`;\n  const bar = root.querySelector('.md-dockbar'), bg = root.querySelector('.md-dock-bg'), cursor = root.querySelector('.md-cursor');\n  const opts = { max: 0.5, range: 140 };   // 和左边拓展坞同一组数\n  let items = [], cur = [], target = [], pointer = null, frame = 0, last = 0, width = 0, sweep = 0;\n  const measure = () => {\n    items = [...bar.querySelectorAll('.md-dock-item')].map((el) => ({ el, start: el.offsetLeft, size: el.offsetWidth, grow: true }));\n    width = bar.offsetWidth;\n    cur = items.map((_, i) => cur[i] ?? 1);\n    target = items.map((_, i) => target[i] ?? 1);\n  };\n  const show = () => {\n    root.querySelectorAll('[data-k]').forEach((input) => { input.value = opts[input.dataset.k]; });\n    root.querySelectorAll('[data-out]').forEach((o) => { o.textContent = o.dataset.out === 'max' ? `${(1 + opts.max).toFixed(2)} 倍` : `${opts.range} px`; });\n  };\n  // 和 shell.js initDock 一样：每帧向目标值指数逼近（60ms 时间常数），排开的位置交给 dockLayout\n  const paint = (now) => {\n    frame = 0;\n    if (!root.isConnected) return;\n    if (!width) measure();\n    const dt = last ? Math.min(64, now - last) : 16;\n    last = now;\n    const a = 1 - Math.exp(-dt / 60);\n    let moving = false;\n    items.forEach((_, i) => {\n      cur[i] += (target[i] - cur[i]) * a;\n      if (Math.abs(target[i] - cur[i]) < 0.002) cur[i] = target[i]; else moving = true;\n    });\n    const { shifts, total, anchor } = dockLayout(items, cur, pointer);\n    items.forEach((it, i) => { it.el.style.transform = `translateX(${shifts[i].toFixed(2)}px) scale(${cur[i].toFixed(4)})`; });\n    bg.style.transform = `translateX(${(-anchor).toFixed(2)}px) scaleX(${((width + total) / width).toFixed(4)})`;\n    if (moving || watch) frame = requestAnimationFrame(paint); else last = 0;\n    if (watch) drive(now);\n  };\n  const kick = () => { if (!frame) frame = requestAnimationFrame(paint); };\n  const point = (x) => { pointer = x; target = x == null ? items.map(() => 1) : dockTargets(items, x, opts); kick(); };\n  // 自动演示：指针按正弦来回扫，扫到两头停一下再回来\n  const drive = (now) => {\n    if (!sweep) sweep = now;\n    const p = ((now - sweep) / 4200) % 1;\n    const x = width / 2 + Math.sin(p * Math.PI * 2) * (width / 2 - 20);\n    cursor.style.transform = `translate(${x.toFixed(1)}px, -50%)`;\n    pointer = x;\n    target = dockTargets(items, x, opts);\n  };\n  measure();\n  show();\n  if (watch) {\n    if (reducedMotion()) return { destroy() {} };\n    kick();\n    return { destroy() { cancelAnimationFrame(frame); frame = -1; } };\n  }\n  const ro = new ResizeObserver(() => { items.forEach((it) => (it.el.style.transform = '')); measure(); point(null); });\n  ro.observe(bar);\n  bar.addEventListener('pointermove', (e) => {\n    if (reducedMotion() || e.pointerType !== 'mouse') return;\n    point(e.clientX - bar.getBoundingClientRect().left);\n  });\n  bar.addEventListener('pointerleave', () => point(null));\n  root.addEventListener('input', (e) => {\n    const k = e.target.dataset?.k;\n    if (!k) return;\n    opts[k] = Number(e.target.value);\n    show();\n    if (pointer != null) point(pointer);\n  });\n  return { destroy() { ro.disconnect(); cancelAnimationFrame(frame); } };\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:6396",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "回调 @135",
+      "file": "src/js/motion-demos.js",
+      "line": 135,
+      "endLine": 135,
+      "code": "(n) => `<span class=\"md-dock-item\">${appIcon(n)}</span>`",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7241",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "measure",
+      "file": "src/js/motion-demos.js",
+      "line": 146,
+      "endLine": 151,
+      "code": "() => {\n    items = [...bar.querySelectorAll('.md-dock-item')].map((el) => ({ el, start: el.offsetLeft, size: el.offsetWidth, grow: true }));\n    width = bar.offsetWidth;\n    cur = items.map((_, i) => cur[i] ?? 1);\n    target = items.map((_, i) => target[i] ?? 1);\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7308",
+      "parent": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "function",
+      "label": "回调 @147",
+      "file": "src/js/motion-demos.js",
+      "line": 147,
+      "endLine": 147,
+      "code": "(el) => ({ el, start: el.offsetLeft, size: el.offsetWidth, grow: true })",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7432",
+      "parent": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "function",
+      "label": "回调 @149",
+      "file": "src/js/motion-demos.js",
+      "line": 149,
+      "endLine": 149,
+      "code": "(_, i) => cur[i] ?? 1",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7479",
+      "parent": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "function",
+      "label": "回调 @150",
+      "file": "src/js/motion-demos.js",
+      "line": 150,
+      "endLine": 150,
+      "code": "(_, i) => target[i] ?? 1",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7526",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "show",
+      "file": "src/js/motion-demos.js",
+      "line": 152,
+      "endLine": 155,
+      "code": "() => {\n    root.querySelectorAll('[data-k]').forEach((input) => { input.value = opts[input.dataset.k]; });\n    root.querySelectorAll('[data-out]').forEach((o) => { o.textContent = o.dataset.out === 'max' ? `${(1 + opts.max).toFixed(2)} 倍` : `${opts.range} px`; });\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7580",
+      "parent": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "function",
+      "label": "回调 @153",
+      "file": "src/js/motion-demos.js",
+      "line": 153,
+      "endLine": 153,
+      "code": "(input) => { input.value = opts[input.dataset.k]; }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7682",
+      "parent": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "function",
+      "label": "回调 @154",
+      "file": "src/js/motion-demos.js",
+      "line": 154,
+      "endLine": 154,
+      "code": "(o) => { o.textContent = o.dataset.out === 'max' ? `${(1 + opts.max).toFixed(2)} 倍` : `${opts.range} px`; }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:7882",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "paint",
+      "file": "src/js/motion-demos.js",
+      "line": 157,
+      "endLine": 174,
+      "code": "(now) => {\n    frame = 0;\n    if (!root.isConnected) return;\n    if (!width) measure();\n    const dt = last ? Math.min(64, now - last) : 16;\n    last = now;\n    const a = 1 - Math.exp(-dt / 60);\n    let moving = false;\n    items.forEach((_, i) => {\n      cur[i] += (target[i] - cur[i]) * a;\n      if (Math.abs(target[i] - cur[i]) < 0.002) cur[i] = target[i]; else moving = true;\n    });\n    const { shifts, total, anchor } = dockLayout(items, cur, pointer);\n    items.forEach((it, i) => { it.el.style.transform = `translateX(${shifts[i].toFixed(2)}px) scale(${cur[i].toFixed(4)})`; });\n    bg.style.transform = `translateX(${(-anchor).toFixed(2)}px) scaleX(${((width + total) / width).toFixed(4)})`;\n    if (moving || watch) frame = requestAnimationFrame(paint); else last = 0;\n    if (watch) drive(now);\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:8119",
+      "parent": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "function",
+      "label": "回调 @165",
+      "file": "src/js/motion-demos.js",
+      "line": 165,
+      "endLine": 168,
+      "code": "(_, i) => {\n      cur[i] += (target[i] - cur[i]) * a;\n      if (Math.abs(target[i] - cur[i]) < 0.002) cur[i] = target[i]; else moving = true;\n    }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:8358",
+      "parent": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "function",
+      "label": "回调 @170",
+      "file": "src/js/motion-demos.js",
+      "line": 170,
+      "endLine": 170,
+      "code": "(it, i) => { it.el.style.transform = `translateX(${shifts[i].toFixed(2)}px) scale(${cur[i].toFixed(4)})`; }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:8707",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "kick",
+      "file": "src/js/motion-demos.js",
+      "line": 175,
+      "endLine": 175,
+      "code": "() => { if (!frame) frame = requestAnimationFrame(paint); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:8784",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "point",
+      "file": "src/js/motion-demos.js",
+      "line": 176,
+      "endLine": 176,
+      "code": "(x) => { pointer = x; target = x == null ? items.map(() => 1) : dockTargets(items, x, opts); kick(); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:8837",
+      "parent": "motion-lab:src/js/motion-demos.js:8784",
+      "kind": "function",
+      "label": "回调 @176",
+      "file": "src/js/motion-demos.js",
+      "line": 176,
+      "endLine": 176,
+      "code": "() => 1",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:8934",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "drive",
+      "file": "src/js/motion-demos.js",
+      "line": 178,
+      "endLine": 185,
+      "code": "(now) => {\n    if (!sweep) sweep = now;\n    const p = ((now - sweep) / 4200) % 1;\n    const x = width / 2 + Math.sin(p * Math.PI * 2) * (width / 2 - 20);\n    cursor.style.transform = `translate(${x.toFixed(1)}px, -50%)`;\n    pointer = x;\n    target = dockTargets(items, x, opts);\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9291",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 189,
+      "endLine": 189,
+      "code": "destroy() {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9332",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 191,
+      "endLine": 191,
+      "code": "destroy() { cancelAnimationFrame(frame); frame = -1; }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9426",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "回调 @193",
+      "file": "src/js/motion-demos.js",
+      "line": 193,
+      "endLine": 193,
+      "code": "() => { items.forEach((it) => (it.el.style.transform = '')); measure(); point(null); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9448",
+      "parent": "motion-lab:src/js/motion-demos.js:9426",
+      "kind": "function",
+      "label": "回调 @193",
+      "file": "src/js/motion-demos.js",
+      "line": 193,
+      "endLine": 193,
+      "code": "(it) => (it.el.style.transform = '')",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9572",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "回调 @195",
+      "file": "src/js/motion-demos.js",
+      "line": 195,
+      "endLine": 198,
+      "code": "(e) => {\n    if (reducedMotion() || e.pointerType !== 'mouse') return;\n    point(e.clientX - bar.getBoundingClientRect().left);\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9745",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "回调 @199",
+      "file": "src/js/motion-demos.js",
+      "line": 199,
+      "endLine": 199,
+      "code": "() => point(null)",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9798",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "回调 @200",
+      "file": "src/js/motion-demos.js",
+      "line": 200,
+      "endLine": 206,
+      "code": "(e) => {\n    const k = e.target.dataset?.k;\n    if (!k) return;\n    opts[k] = Number(e.target.value);\n    show();\n    if (pointer != null) point(pointer);\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:9970",
+      "parent": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 207,
+      "endLine": 207,
+      "code": "destroy() { ro.disconnect(); cancelAnimationFrame(frame); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:10206",
+      "parent": "motion-lab:src/js/motion-demos.js",
+      "kind": "function",
+      "label": "morphDemo",
+      "file": "src/js/motion-demos.js",
+      "line": 218,
+      "endLine": 293,
+      "code": "function morphDemo(root, watch) {\n  root.innerHTML = `\n    <div class=\"md md-morph\">\n      <div class=\"md-cards\">${CARDS.map((c, i) => `<button type=\"button\" class=\"md-card\" style=\"--h:${c.h}\" data-i=\"${i}\"${watch ? ' tabindex=\"-1\"' : ''}><small>${c.k}</small><b>${c.t}</b></button>`).join('')}</div>\n      <div class=\"md-detail\" hidden>\n        <div class=\"md-sheet\" role=\"dialog\" aria-label=\"展开的卡片\">\n          <div class=\"md-sheet-head\"><small></small><b></b></div>\n          <div class=\"md-sheet-body\"><i></i><i></i><i></i><i></i></div>\n          <button type=\"button\" class=\"md-close\" aria-label=\"收起\"${watch ? ' tabindex=\"-1\"' : ''}>×</button>\n        </div>\n      </div>\n      <p class=\"md-hint\">${watch ? '自动演示：点开一张卡片，再收回去' : '点一张卡片，它从原位长成详情；再点 × 收回去'}</p>\n    </div>`;\n  const detail = root.querySelector('.md-detail'), sheet = root.querySelector('.md-sheet');\n  let open = null;\n  const fill = (i) => {\n    sheet.style.setProperty('--h', CARDS[i].h);\n    sheet.querySelector('small').textContent = CARDS[i].k;\n    sheet.querySelector('b').textContent = CARDS[i].t;\n  };\n  const cardOf = (i) => root.querySelector(`.md-card[data-i=\"${i}\"]`);\n\n  // 点着玩：用网站的 transition()（View Transitions），卡片和详情同名，浏览器自己补间\n  const swap = (i) => transition(() => {\n    if (i != null) {\n      cardOf(i).style.viewTransitionName = '';\n      fill(i);\n      detail.hidden = false;\n      sheet.style.viewTransitionName = 'md-card';\n      cardOf(i).style.visibility = 'hidden';\n    } else {\n      sheet.style.viewTransitionName = '';\n      detail.hidden = true;\n      cardOf(open).style.visibility = '';\n      cardOf(open).style.viewTransitionName = 'md-card';\n    }\n  }, 'morph').then(() => { root.querySelectorAll('.md-card').forEach((c) => (c.style.viewTransitionName = '')); });\n\n  // 自己演：精选里不能占用整页的转场，同一条弹簧手动补间（FLIP：先量两头的位置，再从旧位置动到新位置）\n  const flip = async (i) => {\n    const card = cardOf(i ?? open);\n    const a = card.getBoundingClientRect();\n    if (i != null) { fill(i); detail.hidden = false; card.style.visibility = 'hidden'; }\n    const b = sheet.getBoundingClientRect();\n    const t = `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`;\n    if (reducedMotion()) { if (i == null) { detail.hidden = true; card.style.visibility = ''; } return; }\n    const s = spring('snappy');\n    const frames = i != null ? [{ transform: t, opacity: 0.6 }, { transform: 'none', opacity: 1 }] : [{ transform: 'none', opacity: 1 }, { transform: t, opacity: 0.6 }];\n    await sheet.animate(frames, { duration: s.duration, easing: s.easing }).finished.catch(() => {});\n    if (i == null) { detail.hidden = true; card.style.visibility = ''; }\n  };\n\n  if (watch) {\n    let k = 0;\n    const stop = loop(root, async () => {\n      if (open == null) { open = k++ % CARDS.length; await flip(open); return 1300; }\n      await flip(null);\n      open = null;\n      return 900;\n    });\n    sheet.style.transformOrigin = '0 0';\n    return { destroy: stop };\n  }\n  root.addEventListener('click', async (e) => {\n    const card = e.target.closest('.md-card');\n    if (card && open == null) {\n      card.style.viewTransitionName = 'md-card';\n      open = Number(card.dataset.i);\n      await swap(open);\n    } else if (e.target.closest('.md-close') && open != null) {\n      await swap(null);\n      open = null;\n    }\n  });\n  return { destroy() {} };\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:10331",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "回调 @221",
+      "file": "src/js/motion-demos.js",
+      "line": 221,
+      "endLine": 221,
+      "code": "(c, i) => `<button type=\"button\" class=\"md-card\" style=\"--h:${c.h}\" data-i=\"${i}\"${watch ? ' tabindex=\"-1\"' : ''}><small>${c.k}</small><b>${c.t}</b></button>`",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:11108",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "fill",
+      "file": "src/js/motion-demos.js",
+      "line": 233,
+      "endLine": 237,
+      "code": "(i) => {\n    sheet.style.setProperty('--h', CARDS[i].h);\n    sheet.querySelector('small').textContent = CARDS[i].k;\n    sheet.querySelector('b').textContent = CARDS[i].t;\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:11301",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "cardOf",
+      "file": "src/js/motion-demos.js",
+      "line": 238,
+      "endLine": 238,
+      "code": "(i) => root.querySelector(`.md-card[data-i=\"${i}\"]`)",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:11432",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "swap",
+      "file": "src/js/motion-demos.js",
+      "line": 241,
+      "endLine": 254,
+      "code": "(i) => transition(() => {\n    if (i != null) {\n      cardOf(i).style.viewTransitionName = '';\n      fill(i);\n      detail.hidden = false;\n      sheet.style.viewTransitionName = 'md-card';\n      cardOf(i).style.visibility = 'hidden';\n    } else {\n      sheet.style.viewTransitionName = '';\n      detail.hidden = true;\n      cardOf(open).style.visibility = '';\n      cardOf(open).style.viewTransitionName = 'md-card';\n    }\n  }, 'morph').then(() => { root.querySelectorAll('.md-card').forEach((c) => (c.style.viewTransitionName = '')); })",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:11450",
+      "parent": "motion-lab:src/js/motion-demos.js:11432",
+      "kind": "function",
+      "label": "回调 @241",
+      "file": "src/js/motion-demos.js",
+      "line": 241,
+      "endLine": 254,
+      "code": "() => {\n    if (i != null) {\n      cardOf(i).style.viewTransitionName = '';\n      fill(i);\n      detail.hidden = false;\n      sheet.style.viewTransitionName = 'md-card';\n      cardOf(i).style.visibility = 'hidden';\n    } else {\n      sheet.style.viewTransitionName = '';\n      detail.hidden = true;\n      cardOf(open).style.visibility = '';\n      cardOf(open).style.viewTransitionName = 'md-card';\n    }\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:11873",
+      "parent": "motion-lab:src/js/motion-demos.js:11432",
+      "kind": "function",
+      "label": "回调 @254",
+      "file": "src/js/motion-demos.js",
+      "line": 254,
+      "endLine": 254,
+      "code": "() => { root.querySelectorAll('.md-card').forEach((c) => (c.style.viewTransitionName = '')); }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:11923",
+      "parent": "motion-lab:src/js/motion-demos.js:11873",
+      "kind": "function",
+      "label": "回调 @254",
+      "file": "src/js/motion-demos.js",
+      "line": 254,
+      "endLine": 254,
+      "code": "(c) => (c.style.viewTransitionName = '')",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:12043",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "flip",
+      "file": "src/js/motion-demos.js",
+      "line": 257,
+      "endLine": 268,
+      "code": "async (i) => {\n    const card = cardOf(i ?? open);\n    const a = card.getBoundingClientRect();\n    if (i != null) { fill(i); detail.hidden = false; card.style.visibility = 'hidden'; }\n    const b = sheet.getBoundingClientRect();\n    const t = `translate(${a.left - b.left}px, ${a.top - b.top}px) scale(${a.width / b.width}, ${a.height / b.height})`;\n    if (reducedMotion()) { if (i == null) { detail.hidden = true; card.style.visibility = ''; } return; }\n    const s = spring('snappy');\n    const frames = i != null ? [{ transform: t, opacity: 0.6 }, { transform: 'none', opacity: 1 }] : [{ transform: 'none', opacity: 1 }, { transform: t, opacity: 0.6 }];\n    await sheet.animate(frames, { duration: s.duration, easing: s.easing }).finished.catch(() => {});\n    if (i == null) { detail.hidden = true; card.style.visibility = ''; }\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:12792",
+      "parent": "motion-lab:src/js/motion-demos.js:12043",
+      "kind": "function",
+      "label": "回调 @266",
+      "file": "src/js/motion-demos.js",
+      "line": 266,
+      "endLine": 266,
+      "code": "() => {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:12940",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "回调 @272",
+      "file": "src/js/motion-demos.js",
+      "line": 272,
+      "endLine": 277,
+      "code": "async () => {\n      if (open == null) { open = k++ % CARDS.length; await flip(open); return 1300; }\n      await flip(null);\n      open = null;\n      return 900;\n    }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:13217",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "回调 @281",
+      "file": "src/js/motion-demos.js",
+      "line": 281,
+      "endLine": 291,
+      "code": "async (e) => {\n    const card = e.target.closest('.md-card');\n    if (card && open == null) {\n      card.style.viewTransitionName = 'md-card';\n      open = Number(card.dataset.i);\n      await swap(open);\n    } else if (e.target.closest('.md-close') && open != null) {\n      await swap(null);\n      open = null;\n    }\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion-demos.js:13551",
+      "parent": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "function",
+      "label": "destroy",
+      "file": "src/js/motion-demos.js",
+      "line": 292,
+      "endLine": 292,
+      "code": "destroy() {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:group:physics",
+      "parent": "motion-lab",
+      "kind": "module",
+      "label": "运动与排布",
+      "summary": ""
+    },
+    {
+      "id": "motion-lab:src/js/motion.js",
+      "parent": "motion-lab:group:physics",
+      "kind": "file",
+      "label": "motion.js",
+      "file": "src/js/motion.js",
+      "line": 1,
+      "endLine": 132,
+      "code": "// 全站动效工具：Apple 式弹簧、共享元素转场。\r\n//\r\n// 弹簧沿用 SwiftUI 公开的参数口径：response（无阻尼时一次往返的秒数）和 dampingFraction（阻尼比，1 为不回弹）。\r\n// 解析解采样成 CSS linear() 缓动，交给浏览器合成线程去跑；不支持 linear() 的浏览器退回近似的 cubic-bezier。\r\n// 预设与 SwiftUI 同名：smooth（不回弹）、snappy（轻微回弹）、bouncy（明显回弹）、interactive（跟手）。\r\n// 转场优先用 View Transitions（WebKit / Chromium 都已支持），只动 transform 和 opacity；系统要求减少动态效果时直接切换。\r\nexport const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;\r\n\r\n// 与 tokens.css 同名的时长（毫秒）和曲线。JS 动画只从这里取值，不在页面里另写数字。\r\nexport const DUR = {\r\n  instant: 90, fast: 160, standard: 280, medium: 420, slow: 640,\r\n  exitFast: 100, exit: 180, exitMedium: 260,\r\n};\r\nexport const EASE = {\r\n  ios: 'cubic-bezier(0.32, 0.72, 0, 1)',\r\n  out: 'cubic-bezier(0.22, 1, 0.36, 1)',\r\n  in: 'cubic-bezier(0.4, 0, 1, 1)',\r\n  inOut: 'cubic-bezier(0.65, 0, 0.35, 1)',\r\n};\r\n\r\nexport const SPRINGS = {\r\n  smooth: { response: 0.5, damping: 1 },\r\n  snappy: { response: 0.42, damping: 0.85 },\r\n  bouncy: { response: 0.5, damping: 0.7 },\r\n  interactive: { response: 0.18, damping: 0.86 },\r\n};\r\n\r\n// 弹簧从 0 走到 1 的位移函数\r\nfunction curve({ response, damping }) {\r\n  const w0 = (2 * Math.PI) / response;\r\n  if (damping < 1) {\r\n    const wd = w0 * Math.sqrt(1 - damping * damping);\r\n    const k = (damping * w0) / wd;\r\n    return (t) => 1 - Math.exp(-damping * w0 * t) * (Math.cos(wd * t) + k * Math.sin(wd * t));\r\n  }\r\n  return (t) => 1 - Math.exp(-w0 * t) * (1 + w0 * t);\r\n}\r\n\r\n// 位移与终点的差距小于 0.2% 之后视为停稳\r\nfunction settle(params) {\r\n  const x = curve(params);\r\n  let last = 0;\r\n  for (let t = 0; t < 3; t += 1 / 240) if (Math.abs(1 - x(t)) > 0.002) last = t;\r\n  return Math.max(0.2, last);\r\n}\r\n\r\nconst cache = new Map();\r\nconst supportsLinear = typeof CSS !== 'undefined' && CSS.supports?.('transition-timing-function', 'linear(0, 1)');\r\n\r\n// 返回 { easing, duration }，duration 单位毫秒，可直接传给 element.animate()\r\nexport function spring(name = 'smooth') {\r\n  const params = typeof name === 'string' ? SPRINGS[name] ?? SPRINGS.smooth : name;\r\n  const key = `${params.response}/${params.damping}`;\r\n  if (cache.has(key)) return cache.get(key);\r\n  const sec = settle(params);\r\n  const x = curve(params);\r\n  let easing = 'cubic-bezier(0.22, 1, 0.36, 1)';\r\n  if (supportsLinear) {\r\n    const n = Math.min(64, Math.max(24, Math.round(sec * 60)));\r\n    const pts = [];\r\n    for (let i = 0; i <= n; i++) pts.push(i === n ? 1 : +x((i / n) * sec).toFixed(4));\r\n    easing = `linear(${pts.join(', ')})`;\r\n  } else if (params.damping < 0.9) {\r\n    easing = 'cubic-bezier(0.34, 1.36, 0.64, 1)';\r\n  }\r\n  const out = { easing, duration: Math.round(sec * 1000) };\r\n  cache.set(key, out);\r\n  return out;\r\n}\r\n\r\n// 给 GSAP 用的弹簧：{ duration(秒), ease(t) }，和 CSS 的 var(--spring-*) 是同一条曲线\r\nexport function springEase(name = 'smooth') {\r\n  const params = typeof name === 'string' ? SPRINGS[name] ?? SPRINGS.smooth : name;\r\n  const sec = settle(params);\r\n  const x = curve(params);\r\n  return { duration: sec, ease: (t) => (t >= 1 ? 1 : x(t * sec)) };\r\n}\r\n\r\n// 把弹簧写成 CSS 变量，样式表里用 var(--spring-snappy) / var(--spring-snappy-dur)\r\nexport function installSprings(root = document.documentElement) {\r\n  for (const name of Object.keys(SPRINGS)) {\r\n    const s = spring(name);\r\n    root.style.setProperty(`--spring-${name}`, s.easing);\r\n    root.style.setProperty(`--spring-${name}-dur`, `${s.duration}ms`);\r\n  }\r\n}\r\n\r\n// element.animate 的弹簧版；减少动态效果时直接到终态\r\nexport function animate(el, keyframes, { spring: name = 'smooth', delay = 0, fill = 'both' } = {}) {\r\n  if (!el?.animate) return null;\r\n  if (reducedMotion()) {\r\n    const last = Array.isArray(keyframes) ? keyframes.at(-1) : null;\r\n    if (last) Object.assign(el.style, last);\r\n    return null;\r\n  }\r\n  const s = spring(name);\r\n  return el.animate(keyframes, { duration: s.duration, easing: s.easing, delay, fill });\r\n}\r\n\r\n// 正在播的同页转场。转场的更新回调里别做重活（建 WebGL、挂试玩）：浏览器在回调结束前不出新帧，画面会停住。\r\n// 用 transitioning() 判断，用 afterTransition() 等它播完再做（没在播就马上兑现）。\r\nlet activeTransition = null;\r\nexport const transitioning = () => activeTransition !== null;\r\nexport const afterTransition = () => (activeTransition ? activeTransition.finished.catch(() => {}) : Promise.resolve());\r\n// 更新回调已经结束、转场动画开始了（没在播就马上兑现）：这时做事不会把旧画面定住，新画面是活的，动画里就看得见\r\nexport const afterUpdate = () => (activeTransition ? activeTransition.ready.catch(() => {}) : Promise.resolve());\r\n\r\n// 同页共享元素转场：update() 里改 DOM，带 view-transition-name 的元素会从旧位置“长”到新位置。\r\n// 不支持或要求减少动态效果时直接执行 update()。html 上临时挂一个类名，方便样式表单独写这次转场。\r\nexport async function transition(update, kind = 'swap') {\r\n  const root = document.documentElement;\r\n  if (!document.startViewTransition || reducedMotion()) {\r\n    await update();\r\n    return;\r\n  }\r\n  root.classList.add(`vt-${kind}`);\r\n  let guard, vt;\r\n  try {\r\n    vt = document.startViewTransition(update);\r\n    activeTransition = vt;\r\n    // 页面在后台、或者动画被系统挂起时，最多等 2 秒就直接跳到结果，不让界面卡在半路\r\n    guard = setTimeout(() => vt.skipTransition(), 2000);\r\n    await vt.finished;\r\n  } catch {\r\n    // 转场被打断（例如连续点击）时，DOM 更新本身已经完成\r\n  } finally {\r\n    clearTimeout(guard);\r\n    if (activeTransition === vt) activeTransition = null;\r\n    root.classList.remove(`vt-${kind}`);\r\n  }\r\n}\r\n",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:380",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "reducedMotion",
+      "file": "src/js/motion.js",
+      "line": 7,
+      "endLine": 7,
+      "code": "() => matchMedia('(prefers-reduced-motion: reduce)').matches",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:1066",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "curve",
+      "file": "src/js/motion.js",
+      "line": 29,
+      "endLine": 37,
+      "code": "function curve({ response, damping }) {\r\n  const w0 = (2 * Math.PI) / response;\r\n  if (damping < 1) {\r\n    const wd = w0 * Math.sqrt(1 - damping * damping);\r\n    const k = (damping * w0) / wd;\r\n    return (t) => 1 - Math.exp(-damping * w0 * t) * (Math.cos(wd * t) + k * Math.sin(wd * t));\r\n  }\r\n  return (t) => 1 - Math.exp(-w0 * t) * (1 + w0 * t);\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:1271",
+      "parent": "motion-lab:src/js/motion.js:1066",
+      "kind": "function",
+      "label": "回调 @34",
+      "file": "src/js/motion.js",
+      "line": 34,
+      "endLine": 34,
+      "code": "(t) => 1 - Math.exp(-damping * w0 * t) * (Math.cos(wd * t) + k * Math.sin(wd * t))",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:1370",
+      "parent": "motion-lab:src/js/motion.js:1066",
+      "kind": "function",
+      "label": "回调 @36",
+      "file": "src/js/motion.js",
+      "line": 36,
+      "endLine": 36,
+      "code": "(t) => 1 - Math.exp(-w0 * t) * (1 + w0 * t)",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:1448",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "settle",
+      "file": "src/js/motion.js",
+      "line": 40,
+      "endLine": 45,
+      "code": "function settle(params) {\r\n  const x = curve(params);\r\n  let last = 0;\r\n  for (let t = 0; t < 3; t += 1 / 240) if (Math.abs(1 - x(t)) > 0.002) last = t;\r\n  return Math.max(0.2, last);\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:1855",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "spring",
+      "file": "src/js/motion.js",
+      "line": 51,
+      "endLine": 69,
+      "code": "function spring(name = 'smooth') {\r\n  const params = typeof name === 'string' ? SPRINGS[name] ?? SPRINGS.smooth : name;\r\n  const key = `${params.response}/${params.damping}`;\r\n  if (cache.has(key)) return cache.get(key);\r\n  const sec = settle(params);\r\n  const x = curve(params);\r\n  let easing = 'cubic-bezier(0.22, 1, 0.36, 1)';\r\n  if (supportsLinear) {\r\n    const n = Math.min(64, Math.max(24, Math.round(sec * 60)));\r\n    const pts = [];\r\n    for (let i = 0; i <= n; i++) pts.push(i === n ? 1 : +x((i / n) * sec).toFixed(4));\r\n    easing = `linear(${pts.join(', ')})`;\r\n  } else if (params.damping < 0.9) {\r\n    easing = 'cubic-bezier(0.34, 1.36, 0.64, 1)';\r\n  }\r\n  const out = { easing, duration: Math.round(sec * 1000) };\r\n  cache.set(key, out);\r\n  return out;\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:2706",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "springEase",
+      "file": "src/js/motion.js",
+      "line": 72,
+      "endLine": 77,
+      "code": "function springEase(name = 'smooth') {\r\n  const params = typeof name === 'string' ? SPRINGS[name] ?? SPRINGS.smooth : name;\r\n  const sec = settle(params);\r\n  const x = curve(params);\r\n  return { duration: sec, ease: (t) => (t >= 1 ? 1 : x(t * sec)) };\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:2922",
+      "parent": "motion-lab:src/js/motion.js:2706",
+      "kind": "function",
+      "label": "回调 @76",
+      "file": "src/js/motion.js",
+      "line": 76,
+      "endLine": 76,
+      "code": "(t) => (t >= 1 ? 1 : x(t * sec))",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:3042",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "installSprings",
+      "file": "src/js/motion.js",
+      "line": 80,
+      "endLine": 86,
+      "code": "function installSprings(root = document.documentElement) {\r\n  for (const name of Object.keys(SPRINGS)) {\r\n    const s = spring(name);\r\n    root.style.setProperty(`--spring-${name}`, s.easing);\r\n    root.style.setProperty(`--spring-${name}-dur`, `${s.duration}ms`);\r\n  }\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:3363",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "animate",
+      "file": "src/js/motion.js",
+      "line": 89,
+      "endLine": 98,
+      "code": "function animate(el, keyframes, { spring: name = 'smooth', delay = 0, fill = 'both' } = {}) {\r\n  if (!el?.animate) return null;\r\n  if (reducedMotion()) {\r\n    const last = Array.isArray(keyframes) ? keyframes.at(-1) : null;\r\n    if (last) Object.assign(el.style, last);\r\n    return null;\r\n  }\r\n  const s = spring(name);\r\n  return el.animate(keyframes, { duration: s.duration, easing: s.easing, delay, fill });\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:3961",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "transitioning",
+      "file": "src/js/motion.js",
+      "line": 103,
+      "endLine": 103,
+      "code": "() => activeTransition !== null",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:4026",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "afterTransition",
+      "file": "src/js/motion.js",
+      "line": 104,
+      "endLine": 104,
+      "code": "() => (activeTransition ? activeTransition.finished.catch(() => {}) : Promise.resolve())",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:4084",
+      "parent": "motion-lab:src/js/motion.js:4026",
+      "kind": "function",
+      "label": "回调 @104",
+      "file": "src/js/motion.js",
+      "line": 104,
+      "endLine": 104,
+      "code": "() => {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:4203",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "afterUpdate",
+      "file": "src/js/motion.js",
+      "line": 106,
+      "endLine": 106,
+      "code": "() => (activeTransition ? activeTransition.ready.catch(() => {}) : Promise.resolve())",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:4258",
+      "parent": "motion-lab:src/js/motion.js:4203",
+      "kind": "function",
+      "label": "回调 @106",
+      "file": "src/js/motion.js",
+      "line": 106,
+      "endLine": 106,
+      "code": "() => {}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:4428",
+      "parent": "motion-lab:src/js/motion.js",
+      "kind": "function",
+      "label": "transition",
+      "file": "src/js/motion.js",
+      "line": 110,
+      "endLine": 131,
+      "code": "async function transition(update, kind = 'swap') {\r\n  const root = document.documentElement;\r\n  if (!document.startViewTransition || reducedMotion()) {\r\n    await update();\r\n    return;\r\n  }\r\n  root.classList.add(`vt-${kind}`);\r\n  let guard, vt;\r\n  try {\r\n    vt = document.startViewTransition(update);\r\n    activeTransition = vt;\r\n    // 页面在后台、或者动画被系统挂起时，最多等 2 秒就直接跳到结果，不让界面卡在半路\r\n    guard = setTimeout(() => vt.skipTransition(), 2000);\r\n    await vt.finished;\r\n  } catch {\r\n    // 转场被打断（例如连续点击）时，DOM 更新本身已经完成\r\n  } finally {\r\n    clearTimeout(guard);\r\n    if (activeTransition === vt) activeTransition = null;\r\n    root.classList.remove(`vt-${kind}`);\r\n  }\r\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/motion.js:4832",
+      "parent": "motion-lab:src/js/motion.js:4428",
+      "kind": "function",
+      "label": "回调 @122",
+      "file": "src/js/motion.js",
+      "line": 122,
+      "endLine": 122,
+      "code": "() => vt.skipTransition()",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js",
+      "parent": "motion-lab:group:physics",
+      "kind": "file",
+      "label": "dock-math.js",
+      "file": "src/js/dock-math.js",
+      "line": 1,
+      "endLine": 38,
+      "code": "// 程序坞放大的数学（macOS 程序坞的手感）：拓展坞（shell.js initDock）和开源广场里的“程序坞放大”试玩共用。\n// 坐标只用一个轴：竖着的坞传 top / h，横着的传 left / w，算法一样。纯函数，不碰 DOM。\n\n/** 每一项想要放大到多少：离指针越近越大，range 以外不放大（余弦衰减，中间最大 1 + max） */\nexport function dockTargets(items, pointer, { max = 0.5, range = 140 } = {}) {\n  return items.map((it) => {\n    if (it.grow === false) return 1;\n    const d = Math.abs(pointer - (it.start + it.size / 2));\n    return d >= range ? 1 : 1 + max * (1 + Math.cos(Math.PI * d / range)) / 2;\n  });\n}\n\n/**\n * 按当前的放大倍数排开：各项依次往后让位，再整体挪一下，让指针下面那一点不动（点得准）。\n * 返回每一项的位移（中心点挪了多少）、总共多出来的长度、底板该往前伸出的长度。\n */\nexport function dockLayout(items, scales, pointer) {\n  const extra = items.map((it, i) => (scales[i] - 1) * it.size);\n  const total = extra.reduce((a, b) => a + b, 0);\n  let anchor = total / 2;\n  if (pointer != null) {\n    anchor = 0;\n    for (let i = 0, before = 0; i < items.length; i++) {\n      const it = items[i];\n      if (pointer >= it.start + it.size) { before += extra[i]; anchor = before; continue; }\n      anchor = before + extra[i] * Math.min(1, Math.max(0, (pointer - it.start) / it.size));\n      break;\n    }\n  }\n  let before = 0;\n  const shifts = items.map((it, i) => {\n    const shift = before + extra[i] / 2 - anchor;\n    before += extra[i];\n    return shift;\n  });\n  return { shifts, total, anchor };\n}\n",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js:189",
+      "parent": "motion-lab:src/js/dock-math.js",
+      "kind": "function",
+      "label": "dockTargets",
+      "file": "src/js/dock-math.js",
+      "line": 5,
+      "endLine": 11,
+      "code": "function dockTargets(items, pointer, { max = 0.5, range = 140 } = {}) {\n  return items.map((it) => {\n    if (it.grow === false) return 1;\n    const d = Math.abs(pointer - (it.start + it.size / 2));\n    return d >= range ? 1 : 1 + max * (1 + Math.cos(Math.PI * d / range)) / 2;\n  });\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js:280",
+      "parent": "motion-lab:src/js/dock-math.js:189",
+      "kind": "function",
+      "label": "回调 @6",
+      "file": "src/js/dock-math.js",
+      "line": 6,
+      "endLine": 10,
+      "code": "(it) => {\n    if (it.grow === false) return 1;\n    const d = Math.abs(pointer - (it.start + it.size / 2));\n    return d >= range ? 1 : 1 + max * (1 + Math.cos(Math.PI * d / range)) / 2;\n  }",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js:579",
+      "parent": "motion-lab:src/js/dock-math.js",
+      "kind": "function",
+      "label": "dockLayout",
+      "file": "src/js/dock-math.js",
+      "line": 17,
+      "endLine": 37,
+      "code": "function dockLayout(items, scales, pointer) {\n  const extra = items.map((it, i) => (scales[i] - 1) * it.size);\n  const total = extra.reduce((a, b) => a + b, 0);\n  let anchor = total / 2;\n  if (pointer != null) {\n    anchor = 0;\n    for (let i = 0, before = 0; i < items.length; i++) {\n      const it = items[i];\n      if (pointer >= it.start + it.size) { before += extra[i]; anchor = before; continue; }\n      anchor = before + extra[i] * Math.min(1, Math.max(0, (pointer - it.start) / it.size));\n      break;\n    }\n  }\n  let before = 0;\n  const shifts = items.map((it, i) => {\n    const shift = before + extra[i] / 2 - anchor;\n    before += extra[i];\n    return shift;\n  });\n  return { shifts, total, anchor };\n}",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js:651",
+      "parent": "motion-lab:src/js/dock-math.js:579",
+      "kind": "function",
+      "label": "回调 @18",
+      "file": "src/js/dock-math.js",
+      "line": 18,
+      "endLine": 18,
+      "code": "(it, i) => (scales[i] - 1) * it.size",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js:719",
+      "parent": "motion-lab:src/js/dock-math.js:579",
+      "kind": "function",
+      "label": "回调 @19",
+      "file": "src/js/dock-math.js",
+      "line": 19,
+      "endLine": 19,
+      "code": "(a, b) => a + b",
+      "truncated": false
+    },
+    {
+      "id": "motion-lab:src/js/dock-math.js:1144",
+      "parent": "motion-lab:src/js/dock-math.js:579",
+      "kind": "function",
+      "label": "回调 @31",
+      "file": "src/js/dock-math.js",
+      "line": 31,
+      "endLine": 35,
+      "code": "(it, i) => {\n    const shift = before + extra[i] / 2 - anchor;\n    before += extra[i];\n    return shift;\n  }",
+      "truncated": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "motion-lab:src/js/motion-demos.js",
+      "target": "motion-lab:src/js/motion.js",
+      "kind": "imports",
+      "line": 4,
+      "id": "imports:motion-lab:src/js/motion-demos.js>motion-lab:src/js/motion.js",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js",
+      "target": "motion-lab:src/js/dock-math.js",
+      "kind": "imports",
+      "line": 5,
+      "id": "imports:motion-lab:src/js/motion-demos.js>motion-lab:src/js/dock-math.js",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:1113",
+      "target": "motion-lab:src/js/motion-demos.js:2309",
+      "kind": "calls",
+      "line": 44,
+      "id": "calls:motion-lab:src/js/motion-demos.js:1113>motion-lab:src/js/motion-demos.js:2309",
+      "count": 4
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:2555",
+      "target": "motion-lab:src/js/motion.js:2706",
+      "kind": "calls",
+      "line": 48,
+      "id": "calls:motion-lab:src/js/motion-demos.js:2555>motion-lab:src/js/motion.js:2706",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:2555",
+      "target": "motion-lab:src/js/motion-demos.js:2309",
+      "kind": "calls",
+      "line": 56,
+      "id": "calls:motion-lab:src/js/motion-demos.js:2555>motion-lab:src/js/motion-demos.js:2309",
+      "count": 4
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:3821",
+      "target": "motion-lab:src/js/motion.js:380",
+      "kind": "calls",
+      "line": 77,
+      "id": "calls:motion-lab:src/js/motion-demos.js:3821>motion-lab:src/js/motion.js:380",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:3821",
+      "target": "motion-lab:src/js/motion.js:1855",
+      "kind": "calls",
+      "line": 78,
+      "id": "calls:motion-lab:src/js/motion-demos.js:3821>motion-lab:src/js/motion.js:1855",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:3821",
+      "target": "motion-lab:src/js/motion.js:2706",
+      "kind": "calls",
+      "line": 78,
+      "id": "calls:motion-lab:src/js/motion-demos.js:3821>motion-lab:src/js/motion.js:2706",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:1113",
+      "target": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "calls",
+      "line": 90,
+      "id": "calls:motion-lab:src/js/motion-demos.js:1113>motion-lab:src/js/motion-demos.js:2555",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:1113",
+      "target": "motion-lab:src/js/motion-demos.js:741",
+      "kind": "calls",
+      "line": 95,
+      "id": "calls:motion-lab:src/js/motion-demos.js:1113>motion-lab:src/js/motion-demos.js:741",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:4912",
+      "target": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "calls",
+      "line": 98,
+      "id": "calls:motion-lab:src/js/motion-demos.js:4912>motion-lab:src/js/motion-demos.js:2555",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:4912",
+      "target": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "calls",
+      "line": 99,
+      "id": "calls:motion-lab:src/js/motion-demos.js:4912>motion-lab:src/js/motion-demos.js:3821",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:5226",
+      "target": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "calls",
+      "line": 105,
+      "id": "calls:motion-lab:src/js/motion-demos.js:5226>motion-lab:src/js/motion-demos.js:3821",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:5344",
+      "target": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "calls",
+      "line": 111,
+      "id": "calls:motion-lab:src/js/motion-demos.js:5344>motion-lab:src/js/motion-demos.js:2555",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:5344",
+      "target": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "calls",
+      "line": 112,
+      "id": "calls:motion-lab:src/js/motion-demos.js:5344>motion-lab:src/js/motion-demos.js:3821",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:5549",
+      "target": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "calls",
+      "line": 119,
+      "id": "calls:motion-lab:src/js/motion-demos.js:5549>motion-lab:src/js/motion-demos.js:2555",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:5855",
+      "target": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "calls",
+      "line": 121,
+      "id": "calls:motion-lab:src/js/motion-demos.js:5855>motion-lab:src/js/motion-demos.js:3821",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:7882",
+      "target": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "calls",
+      "line": 160,
+      "id": "calls:motion-lab:src/js/motion-demos.js:7882>motion-lab:src/js/motion-demos.js:7241",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:7882",
+      "target": "motion-lab:src/js/dock-math.js:579",
+      "kind": "calls",
+      "line": 169,
+      "id": "calls:motion-lab:src/js/motion-demos.js:7882>motion-lab:src/js/dock-math.js:579",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:7882",
+      "target": "motion-lab:src/js/motion-demos.js:8934",
+      "kind": "calls",
+      "line": 173,
+      "id": "calls:motion-lab:src/js/motion-demos.js:7882>motion-lab:src/js/motion-demos.js:8934",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:8784",
+      "target": "motion-lab:src/js/dock-math.js:189",
+      "kind": "calls",
+      "line": 176,
+      "id": "calls:motion-lab:src/js/motion-demos.js:8784>motion-lab:src/js/dock-math.js:189",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:8784",
+      "target": "motion-lab:src/js/motion-demos.js:8707",
+      "kind": "calls",
+      "line": 176,
+      "id": "calls:motion-lab:src/js/motion-demos.js:8784>motion-lab:src/js/motion-demos.js:8707",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:8934",
+      "target": "motion-lab:src/js/dock-math.js:189",
+      "kind": "calls",
+      "line": 184,
+      "id": "calls:motion-lab:src/js/motion-demos.js:8934>motion-lab:src/js/dock-math.js:189",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:6121",
+      "target": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "calls",
+      "line": 186,
+      "id": "calls:motion-lab:src/js/motion-demos.js:6121>motion-lab:src/js/motion-demos.js:7241",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:6121",
+      "target": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "calls",
+      "line": 187,
+      "id": "calls:motion-lab:src/js/motion-demos.js:6121>motion-lab:src/js/motion-demos.js:7526",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:6121",
+      "target": "motion-lab:src/js/motion.js:380",
+      "kind": "calls",
+      "line": 189,
+      "id": "calls:motion-lab:src/js/motion-demos.js:6121>motion-lab:src/js/motion.js:380",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:6121",
+      "target": "motion-lab:src/js/motion-demos.js:8707",
+      "kind": "calls",
+      "line": 190,
+      "id": "calls:motion-lab:src/js/motion-demos.js:6121>motion-lab:src/js/motion-demos.js:8707",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9426",
+      "target": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "calls",
+      "line": 193,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9426>motion-lab:src/js/motion-demos.js:7241",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9426",
+      "target": "motion-lab:src/js/motion-demos.js:8784",
+      "kind": "calls",
+      "line": 193,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9426>motion-lab:src/js/motion-demos.js:8784",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9572",
+      "target": "motion-lab:src/js/motion.js:380",
+      "kind": "calls",
+      "line": 196,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9572>motion-lab:src/js/motion.js:380",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9572",
+      "target": "motion-lab:src/js/motion-demos.js:8784",
+      "kind": "calls",
+      "line": 197,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9572>motion-lab:src/js/motion-demos.js:8784",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9745",
+      "target": "motion-lab:src/js/motion-demos.js:8784",
+      "kind": "calls",
+      "line": 199,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9745>motion-lab:src/js/motion-demos.js:8784",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9798",
+      "target": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "calls",
+      "line": 204,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9798>motion-lab:src/js/motion-demos.js:7526",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:9798",
+      "target": "motion-lab:src/js/motion-demos.js:8784",
+      "kind": "calls",
+      "line": 205,
+      "id": "calls:motion-lab:src/js/motion-demos.js:9798>motion-lab:src/js/motion-demos.js:8784",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:11432",
+      "target": "motion-lab:src/js/motion.js:4428",
+      "kind": "calls",
+      "line": 241,
+      "id": "calls:motion-lab:src/js/motion-demos.js:11432>motion-lab:src/js/motion.js:4428",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:11450",
+      "target": "motion-lab:src/js/motion-demos.js:11301",
+      "kind": "calls",
+      "line": 243,
+      "id": "calls:motion-lab:src/js/motion-demos.js:11450>motion-lab:src/js/motion-demos.js:11301",
+      "count": 4
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:11450",
+      "target": "motion-lab:src/js/motion-demos.js:11108",
+      "kind": "calls",
+      "line": 244,
+      "id": "calls:motion-lab:src/js/motion-demos.js:11450>motion-lab:src/js/motion-demos.js:11108",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:12043",
+      "target": "motion-lab:src/js/motion-demos.js:11301",
+      "kind": "calls",
+      "line": 258,
+      "id": "calls:motion-lab:src/js/motion-demos.js:12043>motion-lab:src/js/motion-demos.js:11301",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:12043",
+      "target": "motion-lab:src/js/motion-demos.js:11108",
+      "kind": "calls",
+      "line": 260,
+      "id": "calls:motion-lab:src/js/motion-demos.js:12043>motion-lab:src/js/motion-demos.js:11108",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:12043",
+      "target": "motion-lab:src/js/motion.js:380",
+      "kind": "calls",
+      "line": 263,
+      "id": "calls:motion-lab:src/js/motion-demos.js:12043>motion-lab:src/js/motion.js:380",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:12043",
+      "target": "motion-lab:src/js/motion.js:1855",
+      "kind": "calls",
+      "line": 264,
+      "id": "calls:motion-lab:src/js/motion-demos.js:12043>motion-lab:src/js/motion.js:1855",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:10206",
+      "target": "motion-lab:src/js/motion-demos.js:741",
+      "kind": "calls",
+      "line": 272,
+      "id": "calls:motion-lab:src/js/motion-demos.js:10206>motion-lab:src/js/motion-demos.js:741",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:12940",
+      "target": "motion-lab:src/js/motion-demos.js:12043",
+      "kind": "calls",
+      "line": 273,
+      "id": "calls:motion-lab:src/js/motion-demos.js:12940>motion-lab:src/js/motion-demos.js:12043",
+      "count": 2
+    },
+    {
+      "source": "motion-lab:src/js/motion-demos.js:13217",
+      "target": "motion-lab:src/js/motion-demos.js:11432",
+      "kind": "calls",
+      "line": 286,
+      "id": "calls:motion-lab:src/js/motion-demos.js:13217>motion-lab:src/js/motion-demos.js:11432",
+      "count": 2
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:1448",
+      "target": "motion-lab:src/js/motion.js:1066",
+      "kind": "calls",
+      "line": 41,
+      "id": "calls:motion-lab:src/js/motion.js:1448>motion-lab:src/js/motion.js:1066",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:1855",
+      "target": "motion-lab:src/js/motion.js:1448",
+      "kind": "calls",
+      "line": 55,
+      "id": "calls:motion-lab:src/js/motion.js:1855>motion-lab:src/js/motion.js:1448",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:1855",
+      "target": "motion-lab:src/js/motion.js:1066",
+      "kind": "calls",
+      "line": 56,
+      "id": "calls:motion-lab:src/js/motion.js:1855>motion-lab:src/js/motion.js:1066",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:2706",
+      "target": "motion-lab:src/js/motion.js:1448",
+      "kind": "calls",
+      "line": 74,
+      "id": "calls:motion-lab:src/js/motion.js:2706>motion-lab:src/js/motion.js:1448",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:2706",
+      "target": "motion-lab:src/js/motion.js:1066",
+      "kind": "calls",
+      "line": 75,
+      "id": "calls:motion-lab:src/js/motion.js:2706>motion-lab:src/js/motion.js:1066",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:3042",
+      "target": "motion-lab:src/js/motion.js:1855",
+      "kind": "calls",
+      "line": 82,
+      "id": "calls:motion-lab:src/js/motion.js:3042>motion-lab:src/js/motion.js:1855",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:3363",
+      "target": "motion-lab:src/js/motion.js:380",
+      "kind": "calls",
+      "line": 91,
+      "id": "calls:motion-lab:src/js/motion.js:3363>motion-lab:src/js/motion.js:380",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:3363",
+      "target": "motion-lab:src/js/motion.js:1855",
+      "kind": "calls",
+      "line": 96,
+      "id": "calls:motion-lab:src/js/motion.js:3363>motion-lab:src/js/motion.js:1855",
+      "count": 1
+    },
+    {
+      "source": "motion-lab:src/js/motion.js:4428",
+      "target": "motion-lab:src/js/motion.js:380",
+      "kind": "calls",
+      "line": 112,
+      "id": "calls:motion-lab:src/js/motion.js:4428>motion-lab:src/js/motion.js:380",
+      "count": 1
+    }
+  ],
+  "unresolved": [
+    {
+      "from": "motion-lab:src/js/motion-demos.js",
+      "kind": "import",
+      "expression": "./app-icons.js",
+      "line": 6,
+      "reason": "外部依赖或未纳入本次分析"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:504",
+      "kind": "call",
+      "expression": "make",
+      "line": 14,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:815",
+      "kind": "call",
+      "expression": "step",
+      "line": 22,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:815",
+      "kind": "call",
+      "expression": "setTimeout",
+      "line": 23,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:741",
+      "kind": "call",
+      "expression": "setTimeout",
+      "line": 25,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1021",
+      "kind": "call",
+      "expression": "clearTimeout",
+      "line": 26,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "Object.keys(SPRINGS).map((k) => `<button type=\"button\" data-preset=\"${k}\">${PRESET[k]}</button>`).join",
+      "line": 38,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "Object.keys(SPRINGS).map",
+      "line": 38,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "Object.keys",
+      "line": 38,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2309",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 43,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "ease",
+      "line": 51,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "Math.max",
+      "line": 52,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "(i / 120 * 320).toFixed",
+      "line": 53,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "(100 - v * 70).toFixed",
+      "line": 53,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "curvePath.setAttribute",
+      "line": 55,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "params.response.toFixed",
+      "line": 57,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "params.damping.toFixed",
+      "line": 57,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "Math.round",
+      "line": 58,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "((peak - 1) * 100).toFixed",
+      "line": 58,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "root.querySelectorAll('[data-k]').forEach",
+      "line": 59,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "root.querySelectorAll",
+      "line": 59,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "root.querySelectorAll('[data-out]').forEach",
+      "line": 60,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "root.querySelectorAll",
+      "line": 60,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3345",
+      "kind": "call",
+      "expression": "params[o.dataset.out].toFixed",
+      "line": 60,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "Object.keys(SPRINGS).indexOf",
+      "line": 63,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "Object.keys",
+      "line": 63,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "seg.style.setProperty",
+      "line": 64,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "String",
+      "line": 64,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "Math.max",
+      "line": 64,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "seg.querySelectorAll('button').forEach",
+      "line": 65,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "seg.querySelectorAll",
+      "line": 65,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3614",
+      "kind": "call",
+      "expression": "b.setAttribute",
+      "line": 65,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3614",
+      "kind": "call",
+      "expression": "String",
+      "line": 65,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:2555",
+      "kind": "call",
+      "expression": "seg.classList.toggle",
+      "line": 66,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "call",
+      "expression": "run?.cancel",
+      "line": 75,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "call",
+      "expression": "cancelAnimationFrame",
+      "line": 76,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "call",
+      "expression": "Promise.resolve",
+      "line": 77,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "call",
+      "expression": "ball.animate",
+      "line": 79,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:4388",
+      "kind": "call",
+      "expression": "Math.min",
+      "line": 82,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:4388",
+      "kind": "call",
+      "expression": "(p * 320).toFixed",
+      "line": 83,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:4388",
+      "kind": "call",
+      "expression": "(100 - ease(p) * 70).toFixed",
+      "line": 83,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:4388",
+      "kind": "call",
+      "expression": "ease",
+      "line": 83,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:4388",
+      "kind": "call",
+      "expression": "requestAnimationFrame",
+      "line": 84,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "call",
+      "expression": "requestAnimationFrame",
+      "line": 86,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:3821",
+      "kind": "call",
+      "expression": "anim.finished.catch",
+      "line": 87,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "Object.keys",
+      "line": 93,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5076",
+      "kind": "call",
+      "expression": "stop",
+      "line": 102,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5076",
+      "kind": "call",
+      "expression": "run?.cancel",
+      "line": 102,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5076",
+      "kind": "call",
+      "expression": "cancelAnimationFrame",
+      "line": 102,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "track.addEventListener",
+      "line": 104,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "track.addEventListener",
+      "line": 105,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5226",
+      "kind": "call",
+      "expression": "e.preventDefault",
+      "line": 105,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "root.addEventListener",
+      "line": 106,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5344",
+      "kind": "call",
+      "expression": "e.target.closest",
+      "line": 107,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "root.addEventListener",
+      "line": 114,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5549",
+      "kind": "call",
+      "expression": "Number",
+      "line": 117,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5549",
+      "kind": "call",
+      "expression": "Object.keys(SPRINGS).find",
+      "line": 118,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5549",
+      "kind": "call",
+      "expression": "Object.keys",
+      "line": 118,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:1113",
+      "kind": "call",
+      "expression": "root.addEventListener",
+      "line": 121,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5912",
+      "kind": "call",
+      "expression": "run?.cancel",
+      "line": 122,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:5912",
+      "kind": "call",
+      "expression": "cancelAnimationFrame",
+      "line": 122,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "DOCK_ICONS.map((n) => `<span class=\"md-dock-item\">${appIcon(n)}</span>`).join",
+      "line": 135,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "DOCK_ICONS.map",
+      "line": 135,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6396",
+      "kind": "call",
+      "expression": "appIcon",
+      "line": 135,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 143,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 143,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 143,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "call",
+      "expression": "[...bar.querySelectorAll('.md-dock-item')].map",
+      "line": 147,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "call",
+      "expression": "bar.querySelectorAll",
+      "line": 147,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 149,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7241",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 150,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "call",
+      "expression": "root.querySelectorAll('[data-k]').forEach",
+      "line": 153,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "call",
+      "expression": "root.querySelectorAll",
+      "line": 153,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "call",
+      "expression": "root.querySelectorAll('[data-out]').forEach",
+      "line": 154,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7526",
+      "kind": "call",
+      "expression": "root.querySelectorAll",
+      "line": 154,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7682",
+      "kind": "call",
+      "expression": "(1 + opts.max).toFixed",
+      "line": 154,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "Math.min",
+      "line": 161,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "Math.exp",
+      "line": 163,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "items.forEach",
+      "line": 165,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8119",
+      "kind": "call",
+      "expression": "Math.abs",
+      "line": 167,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "items.forEach",
+      "line": 170,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8358",
+      "kind": "call",
+      "expression": "shifts[i].toFixed",
+      "line": 170,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8358",
+      "kind": "call",
+      "expression": "cur[i].toFixed",
+      "line": 170,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "(-anchor).toFixed",
+      "line": 171,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "((width + total) / width).toFixed",
+      "line": 171,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:7882",
+      "kind": "call",
+      "expression": "requestAnimationFrame",
+      "line": 172,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8707",
+      "kind": "call",
+      "expression": "requestAnimationFrame",
+      "line": 175,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8784",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 176,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8934",
+      "kind": "call",
+      "expression": "Math.sin",
+      "line": 181,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:8934",
+      "kind": "call",
+      "expression": "x.toFixed",
+      "line": 182,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:9332",
+      "kind": "call",
+      "expression": "cancelAnimationFrame",
+      "line": 191,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "ResizeObserver",
+      "line": 193,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:9426",
+      "kind": "call",
+      "expression": "items.forEach",
+      "line": 193,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "ro.observe",
+      "line": 194,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "bar.addEventListener",
+      "line": 195,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:9572",
+      "kind": "call",
+      "expression": "bar.getBoundingClientRect",
+      "line": 197,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "bar.addEventListener",
+      "line": 199,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:6121",
+      "kind": "call",
+      "expression": "root.addEventListener",
+      "line": 200,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:9798",
+      "kind": "call",
+      "expression": "Number",
+      "line": 203,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:9970",
+      "kind": "call",
+      "expression": "ro.disconnect",
+      "line": 207,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:9970",
+      "kind": "call",
+      "expression": "cancelAnimationFrame",
+      "line": 207,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "call",
+      "expression": "CARDS.map((c, i) => `<button type=\"button\" class=\"md-card\" style=\"--h:${c.h}\" data-i=\"${i}\"${watch ? ' tabindex=\"-1\"' : ",
+      "line": 221,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "call",
+      "expression": "CARDS.map",
+      "line": 221,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 231,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 231,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11108",
+      "kind": "call",
+      "expression": "sheet.style.setProperty",
+      "line": 234,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11108",
+      "kind": "call",
+      "expression": "sheet.querySelector",
+      "line": 235,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11108",
+      "kind": "call",
+      "expression": "sheet.querySelector",
+      "line": 236,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11301",
+      "kind": "call",
+      "expression": "root.querySelector",
+      "line": 238,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11432",
+      "kind": "call",
+      "expression": "transition(() => {\n    if (i != null) {\n      cardOf(i).style.viewTransitionName = '';\n      fill(i);\n      detail.hidde",
+      "line": 241,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11873",
+      "kind": "call",
+      "expression": "root.querySelectorAll('.md-card').forEach",
+      "line": 254,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:11873",
+      "kind": "call",
+      "expression": "root.querySelectorAll",
+      "line": 254,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:12043",
+      "kind": "call",
+      "expression": "card.getBoundingClientRect",
+      "line": 259,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:12043",
+      "kind": "call",
+      "expression": "sheet.getBoundingClientRect",
+      "line": 261,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:12043",
+      "kind": "call",
+      "expression": "sheet.animate(frames, { duration: s.duration, easing: s.easing }).finished.catch",
+      "line": 266,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:12043",
+      "kind": "call",
+      "expression": "sheet.animate",
+      "line": 266,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:10206",
+      "kind": "call",
+      "expression": "root.addEventListener",
+      "line": 281,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:13217",
+      "kind": "call",
+      "expression": "e.target.closest",
+      "line": 282,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:13217",
+      "kind": "call",
+      "expression": "Number",
+      "line": 285,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion-demos.js:13217",
+      "kind": "call",
+      "expression": "e.target.closest",
+      "line": 287,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:380",
+      "kind": "call",
+      "expression": "matchMedia",
+      "line": 7,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1066",
+      "kind": "call",
+      "expression": "Math.sqrt",
+      "line": 32,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1271",
+      "kind": "call",
+      "expression": "Math.exp",
+      "line": 34,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1271",
+      "kind": "call",
+      "expression": "Math.cos",
+      "line": 34,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1271",
+      "kind": "call",
+      "expression": "Math.sin",
+      "line": 34,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1370",
+      "kind": "call",
+      "expression": "Math.exp",
+      "line": 36,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1448",
+      "kind": "call",
+      "expression": "Math.abs",
+      "line": 43,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1448",
+      "kind": "call",
+      "expression": "x",
+      "line": 43,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1448",
+      "kind": "call",
+      "expression": "Math.max",
+      "line": 44,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js",
+      "kind": "call",
+      "expression": "Map",
+      "line": 47,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js",
+      "kind": "call",
+      "expression": "CSS.supports",
+      "line": 48,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "cache.has",
+      "line": 54,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "cache.get",
+      "line": 54,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "Math.min",
+      "line": 59,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "Math.max",
+      "line": 59,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "Math.round",
+      "line": 59,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "pts.push",
+      "line": 61,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "x((i / n) * sec).toFixed",
+      "line": 61,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "x",
+      "line": 61,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "pts.join",
+      "line": 62,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "Math.round",
+      "line": 66,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:1855",
+      "kind": "call",
+      "expression": "cache.set",
+      "line": 67,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:2922",
+      "kind": "call",
+      "expression": "x",
+      "line": 76,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3042",
+      "kind": "call",
+      "expression": "Object.keys",
+      "line": 81,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3042",
+      "kind": "call",
+      "expression": "root.style.setProperty",
+      "line": 83,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3042",
+      "kind": "call",
+      "expression": "root.style.setProperty",
+      "line": 84,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3363",
+      "kind": "call",
+      "expression": "Array.isArray",
+      "line": 92,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3363",
+      "kind": "call",
+      "expression": "keyframes.at",
+      "line": 92,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3363",
+      "kind": "call",
+      "expression": "Object.assign",
+      "line": 93,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:3363",
+      "kind": "call",
+      "expression": "el.animate",
+      "line": 97,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4026",
+      "kind": "call",
+      "expression": "activeTransition.finished.catch",
+      "line": 104,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4026",
+      "kind": "call",
+      "expression": "Promise.resolve",
+      "line": 104,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4203",
+      "kind": "call",
+      "expression": "activeTransition.ready.catch",
+      "line": 106,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4203",
+      "kind": "call",
+      "expression": "Promise.resolve",
+      "line": 106,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4428",
+      "kind": "call",
+      "expression": "update",
+      "line": 113,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4428",
+      "kind": "call",
+      "expression": "root.classList.add",
+      "line": 116,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4428",
+      "kind": "call",
+      "expression": "document.startViewTransition",
+      "line": 119,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4428",
+      "kind": "call",
+      "expression": "setTimeout",
+      "line": 122,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4832",
+      "kind": "call",
+      "expression": "vt.skipTransition",
+      "line": 122,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4428",
+      "kind": "call",
+      "expression": "clearTimeout",
+      "line": 127,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/motion.js:4428",
+      "kind": "call",
+      "expression": "root.classList.remove",
+      "line": 129,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:189",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 6,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:280",
+      "kind": "call",
+      "expression": "Math.abs",
+      "line": 8,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:280",
+      "kind": "call",
+      "expression": "Math.cos",
+      "line": 9,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 18,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "extra.reduce",
+      "line": 19,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "Math.min",
+      "line": 26,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "Math.max",
+      "line": 26,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "motion-lab:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 31,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    }
+  ],
+  "sources": [
+    {
+      "file": "src/js/motion-demos.js",
+      "sha256": "4dbd08cc27bb4d1527c0c981f6fee2fd4a807aa5aa27759d5f4ceb100faef89d"
+    },
+    {
+      "file": "src/js/motion.js",
+      "sha256": "9857d82771e756e192372b22db3da61f55c75fe4789242c1a6665ea256523056"
+    },
+    {
+      "file": "src/js/dock-math.js",
+      "sha256": "0153a87e5e9f52e1b82319af2951c670214cbf4e8e77d9b8cf4e7f68251754c8"
+    }
+  ],
+  "limits": [
+    "静态调用关系不等于实际执行轨迹。",
+    "未确认的动态调用、方法分派与重导出保留在待确认列表。",
+    "仅分析清单内公开源码；源码片段最多 12000 字符，教学另行维护。"
+  ]
+}

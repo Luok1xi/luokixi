@@ -1,0 +1,65 @@
+{
+  "task": "修复 cartTotal(items)：每项 priceCents 和 quantity 都是非负安全整数，数量 0 必须是 0，按整数分求和。空数组返回 0，字段非法或计算超过安全整数时抛 RangeError，不修改输入。",
+  "source": "function cartTotal(items) { return items.reduce((sum, item) => sum + item.priceCents * (item.quantity || 1), 0); }",
+  "model": "gpt-6-astra",
+  "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+  "code": "function cartTotal(items) {\n  let total = 0n;\n  const max = BigInt(Number.MAX_SAFE_INTEGER);\n  for (const item of items) {\n    const priceCents = item?.priceCents;\n    const quantity = item?.quantity;\n    if (!Number.isSafeInteger(priceCents) || priceCents < 0 ||\n        !Number.isSafeInteger(quantity) || quantity < 0) {\n      throw new RangeError('priceCents and quantity must be non-negative safe integers');\n    }\n    total += BigInt(priceCents) * BigInt(quantity);\n    if (total > max) {\n      throw new RangeError('Cart total exceeds the safe integer range');\n    }\n  }\n  return Number(total);\n}",
+  "explanation": "移除 quantity 的默认值逻辑，确保数量为 0 时金额为 0。验证两个字段均为非负安全整数，使用 BigInt 精确计算整数分，溢出时抛出 RangeError，最终返回 Number。空数组返回 0，不修改输入。以下测试未运行。",
+  "tests": [
+    "const assert = require('node:assert/strict');\nassert.equal(cartTotal([]), 0);\nassert.equal(cartTotal([{ priceCents: 199, quantity: 2 }, { priceCents: 50, quantity: 3 }]), 548);\nassert.equal(cartTotal([{ priceCents: 100, quantity: 0 }]), 0);\nassert.equal(cartTotal([{ priceCents: 0, quantity: Number.MAX_SAFE_INTEGER }]), 0);\nassert.equal(cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 1 }]), Number.MAX_SAFE_INTEGER);\nassert.equal(cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 0 }]), 0);",
+    "for (const field of ['priceCents', 'quantity']) {\n  for (const value of [undefined, null, -1, 0.5, NaN, Infinity, -Infinity, '1', true, 1n, {}, Number.MAX_SAFE_INTEGER + 1]) {\n    const item = { priceCents: 0, quantity: 0, [field]: value };\n    assert.throws(() => cartTotal([item]), RangeError);\n  }\n}\nfor (const item of [null, undefined, {}, { priceCents: 1 }, { quantity: 1 }]) {\n  assert.throws(() => cartTotal([item]), RangeError);\n}",
+    "assert.throws(() => cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 2 }]), RangeError);\nassert.throws(() => cartTotal([{ priceCents: Number.MAX_SAFE_INTEGER, quantity: 1 }, { priceCents: 1, quantity: 1 }]), RangeError);\nconst items = Object.freeze([Object.freeze({ priceCents: 125, quantity: 2 }), Object.freeze({ priceCents: 99, quantity: 0 })]);\nassert.equal(cartTotal(items), 250);\nassert.deepEqual(items, [{ priceCents: 125, quantity: 2 }, { priceCents: 99, quantity: 0 }]);"
+  ],
+  "status": "passed",
+  "wallMs": 43115,
+  "lines": 17,
+  "codeSha256": "df413b3da01969716208c81408a85a532f6269b1fe0e8775c29e1283f91385b6",
+  "evidence": "data/skill-evidence/cart-total-before.json",
+  "checks": [
+    {
+      "name": "空购物车",
+      "passed": true
+    },
+    {
+      "name": "零数量",
+      "passed": true
+    },
+    {
+      "name": "整数分求和",
+      "passed": true
+    },
+    {
+      "name": "最大安全整数",
+      "passed": true
+    },
+    {
+      "name": "零与最大数量",
+      "passed": true
+    },
+    {
+      "name": "priceCents 非法值",
+      "passed": true
+    },
+    {
+      "name": "quantity 非法值",
+      "passed": true
+    },
+    {
+      "name": "缺字段",
+      "passed": true
+    },
+    {
+      "name": "乘法溢出",
+      "passed": true
+    },
+    {
+      "name": "加法溢出",
+      "passed": true
+    },
+    {
+      "name": "随机整数与精确参照一致",
+      "passed": true
+    }
+  ],
+  "output": "移除 quantity 的默认值逻辑，确保数量为 0 时金额为 0。验证两个字段均为非负安全整数，使用 BigInt 精确计算整数分，溢出时抛出 RangeError，最终返回 Number。空数组返回 0，不修改输入。以下测试未运行。"
+}

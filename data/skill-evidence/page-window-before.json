@@ -1,0 +1,53 @@
+{
+  "task": "修复 pageWindow(items, page, size)：items 是数组，size 必须是正安全整数，否则抛 RangeError；page 必须是安全整数，否则抛 RangeError。页号从 1 开始，越界夹到最近一页；空数组也返回 page=1,totalPages=1,items=[]。返回 {page,totalPages,items}，不修改原数组。",
+  "source": "function pageWindow(items, page, size) { return { page, totalPages: Math.ceil(items.length / size), items: items.splice((page - 1) * size, size) }; }",
+  "model": "gpt-6-astra",
+  "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+  "code": "function pageWindow(items, page, size) {\n  if (!Number.isSafeInteger(size) || size <= 0) {\n    throw new RangeError('size 必须是正安全整数');\n  }\n  if (!Number.isSafeInteger(page)) {\n    throw new RangeError('page 必须是安全整数');\n  }\n  const totalPages = Math.max(1, Math.ceil(items.length / size));\n  const clampedPage = Math.min(totalPages, Math.max(1, page));\n  const start = (clampedPage - 1) * size;\n  return {\n    page: clampedPage,\n    totalPages,\n    items: items.slice(start, start + size)\n  };\n}",
+  "explanation": "增加 size 和 page 的安全整数校验，非法值抛出 RangeError；将越界页号夹到有效范围，空数组按一页处理。用 slice 替代 splice，避免修改原数组。以下测试用例未运行。",
+  "tests": [
+    "(() => {\n  const check = (actual, expected) => {\n    if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error('结果不符合预期');\n  };\n  const source = [1, 2, 3, 4, 5];\n  check(pageWindow(source, 2, 2), { page: 2, totalPages: 3, items: [3, 4] });\n  check(pageWindow(source, 99, 2), { page: 3, totalPages: 3, items: [5] });\n  check(pageWindow(source, 0, 2), { page: 1, totalPages: 3, items: [1, 2] });\n  check(pageWindow(source, Number.MIN_SAFE_INTEGER, 2), { page: 1, totalPages: 3, items: [1, 2] });\n  check(pageWindow(source, Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), { page: 1, totalPages: 1, items: source });\n  check(pageWindow([1, 2, 3, 4], 2, 2), { page: 2, totalPages: 2, items: [3, 4] });\n  check(pageWindow(source, 5, 1), { page: 5, totalPages: 5, items: [5] });\n  check(source, [1, 2, 3, 4, 5]);\n  const result = pageWindow(Object.freeze(source), 1, 10);\n  if (result.items === source) throw new Error('应返回新数组');\n})();",
+    "(() => {\n  for (const page of [Number.MIN_SAFE_INTEGER, 0, 1, Number.MAX_SAFE_INTEGER]) {\n    const source = [];\n    const result = pageWindow(source, page, 2);\n    if (result.page !== 1 || result.totalPages !== 1 || result.items.length !== 0 || result.items === source) {\n      throw new Error('空数组处理错误');\n    }\n  }\n})();",
+    "(() => {\n  const expectRangeError = (fn) => {\n    try { fn(); } catch (error) {\n      if (error instanceof RangeError) return;\n      throw error;\n    }\n    throw new Error('应抛出 RangeError');\n  };\n  for (const size of [0, -1, 1.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, '2', null, undefined, true, 2n]) {\n    expectRangeError(() => pageWindow([], 1, size));\n  }\n  for (const page of [1.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, Number.MIN_SAFE_INTEGER - 1, '1', null, undefined, true, 1n]) {\n    expectRangeError(() => pageWindow([], page, 2));\n  }\n})();"
+  ],
+  "status": "passed",
+  "wallMs": 43392,
+  "lines": 16,
+  "codeSha256": "f340af7ed392b3cf5be49fb9c91408502fe0ed51a8ad42cfb9ab3d413fd8d4dc",
+  "evidence": "data/skill-evidence/page-window-before.json",
+  "checks": [
+    {
+      "name": "中间页",
+      "passed": true
+    },
+    {
+      "name": "末尾夹取",
+      "passed": true
+    },
+    {
+      "name": "开头夹取",
+      "passed": true
+    },
+    {
+      "name": "最大页大小",
+      "passed": true
+    },
+    {
+      "name": "空数组仍有第一页",
+      "passed": true
+    },
+    {
+      "name": "非法页号",
+      "passed": true
+    },
+    {
+      "name": "非法大小",
+      "passed": true
+    },
+    {
+      "name": "返回副本",
+      "passed": true
+    }
+  ],
+  "output": "增加 size 和 page 的安全整数校验，非法值抛出 RangeError；将越界页号夹到有效范围，空数组按一页处理。用 slice 替代 splice，避免修改原数组。以下测试用例未运行。"
+}

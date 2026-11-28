@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "character": "beikuang-chibi",
+  "status": "two-action-trial-awaiting-opus-integration",
+  "method": "Built-in image_gen.imagegen with transparent_background=true; original PNG bytes preserved. No paid video service or separate API key used.",
+  "references": [
+    {
+      "path": "/art/companions/beikuang-chibi.png",
+      "role": "Q版身份、比例与画风；去除哭泣和被拎头发姿势"
+    },
+    {
+      "path": "/art/companions/beikuang-neutral.png",
+      "role": "服装细节；不采用成人比例"
+    }
+  ],
+  "requestedSize": [
+    1024,
+    1024
+  ],
+  "layout": {
+    "columns": 2,
+    "rows": 2,
+    "readingOrder": "left-to-right, top-to-bottom"
+  },
+  "actions": [
+    {
+      "name": "point",
+      "file": "/art/companions/chibi/beikuang-chibi-point.png",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a12acb-83a8-74e0-a003-1901888c4ba7\\exec-68c676c8-6562-4ae9-bfd8-ecac1cd2db1c.png",
+      "prompt": "Create a professional production sprite sheet for the existing character Beikuang, using the attached local reference images. This is the POINT animation requested by the project's frontend artist Opus.\nReference 1 beikuang-chibi.png is the EXACT CHIBI IDENTITY, rendering style, huge head and very small body proportions. Do NOT reproduce crying, tears, the hand lifting her hair, or dangling posture. Reference 2 beikuang-neutral.png is COSTUME DETAIL ONLY, NOT body proportions. Preserve the chibi design of reference 1.\nAsset: square 1024x1024 transparent PNG, precisely 2 columns x 2 rows, four equal 512x512 cells, read top-left, top-right, bottom-left, bottom-right. No grid lines, numbers, letters, captions, background, shadow or symbols. Real alpha transparency.\nEach cell contains the SAME full-body cute chibi girl, around 2.5 heads tall, large round head, small compact body and short legs, standing with BOTH shoes completely visible, body three-quarter facing screen RIGHT. Identical character scale, camera, body center at cell x=245, shoe baseline at cell y=472 in each cell. Keep entire figure and gesture inside a generous 28 px cell margin. No crop.\nIdentity: long near-black hair with burgundy-red tips, one ahoge, white headband, red five-petal gold-trim flower ornaments and fine gold chains/red tassels, large warm red eyes, rounded cheeks, white blouse, compact black cape with red lining and fine gold trim, short white pleated skirt, white stockings with gold motifs, black Mary Jane shoes with red bows. Detailed polished anime illustration, crisp clean linework, gentle cel shading, coherent gold details, neither pixel art nor 3D.\nFour genuinely different phases of one continuous pointing action: frame 1 anticipatory relaxed posture, her right hand bent close to chest and index finger beginning to rise, eyes turning up to screen right; frame 2 right elbow lifts and forearm extends diagonally toward screen right, index finger half extended; frame 3 right arm distinctly reaches and index finger points diagonally up-right to an interface beyond her, head and eyes follow fingertip; frame 4 settles into and holds the same clear up-right point with slightly relaxed shoulder, friendly small closed-mouth smile. Left hand stays near her waist throughout. Keep facial features and outfit consistent frame to frame. Two hands only, correct visible finger silhouettes. Arms, gaze and shoulder angles MUST visibly change between anticipation and pointing, not four duplicates. Feet do not slide, body does not grow. No tears, no hand grabbing her hair, no extra people.",
+      "actualSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "sha256": "6c496d54976f79accbfa07c4a7a1911294359fa1fcedfb4d6af49e42bda6c32a",
+      "bytes": 1843154
+    },
+    {
+      "name": "observe",
+      "file": "/art/companions/chibi/beikuang-chibi-observe.png",
+      "sourceFile": "C:\\Users\\user\\.codex\\generated_images\\01a12acb-83a8-74e0-a003-1901888c4ba7\\exec-d0f4fae3-8559-4587-b094-bd51997f177d.png",
+      "additionalReference": "point sprite sheet for style consistency",
+      "prompt": "Create the OBSERVE animation sprite sheet for Beikuang, matching the attached POINT sheet as a companion production asset.\nReference image 1 is the existing beikuang-chibi identity and tiny chibi body proportions. Do NOT copy crying or being lifted by hair. Reference image 2 (generated POINT sprite sheet) is the matching approved visual direction and repeatable outfit/linework/scale baseline. Generate OBSERVE with the same character, large round head, around 2.5 heads total height, long near-black hair with burgundy/red ends, single ahoge, white headband, red gold-trim flower ornaments, gold chains/red tassels, red eyes, white blouse, black cape lined red with gold decoration, white pleated skirt, gold-decorated white stockings and black Mary Jane shoes with red bows. Keep short legs and chibi shape, not adult illustration.\nSquare 1024x1024 PNG with genuine alpha transparency, 2x2 equal four cells in reading order. No grid lines, labels, numbers, letters, punctuation, ground, shadows, backdrops, props or extra people. Each full-body figure entirely inside its own cell, same camera and three-quarter facing screen RIGHT, same size and foot baseline; all hair, ornaments, shoes safely inside 24px minimum padding. Body center x=245 and shoes baseline y=468 relative to each 512 cell. Do not let bottom row shoes touch image boundary.\nThe sequence is quietly observing UI to her right: frame 1 upright attentively facing right, both hands gently gathered in front of her abdomen; frame 2 upper body leans a little forward/right from the waist, head and eyes look toward the right, curious concentrated closed mouth; frame 3 maintains the small forward lean with both eyes closed for ONE clear blink, hands still in the SAME place in front; frame 4 reopens eyes looking right and gently settles, slightly thoughtful but calm. Distinct upper body/head motion, not four copies. Feet remain planted in precisely the same place; no shrinking/growing or changing camera. Hands remain gathered in front across all four frames; no pointing or raised finger. Her mood is calm, inquisitive and engaged, never crying, confused or sad. Preserve same costume and ornament topology in all four frames, clean silhouettes, polished anime cel shading and crisp detailed illustration. This must be consistent animation reference for the front-end artist, not a comic page.",
+      "actualSize": [
+        1254,
+        1254
+      ],
+      "cellSize": [
+        627,
+        627
+      ],
+      "sha256": "abf2399bbb53844ef84b299a88fd47b4b10192f5ef54bbef2750256ed291d912",
+      "bytes": 1840185
+    }
+  ],
+  "integrationNotes": [
+    "实际像素尺寸与透明度另见图片核查字段；内置出图不保证请求的精确尺寸，不冒称已是 1024 图集。",
+    "Opus 按第 25 次回信统一尺寸、脚底基线与身体中线，再拼接图集；此次只提供 point / observe 两张试样。",
+    "point 帧 2 到帧 3 的手臂衔接、跨动作轮廓跳动需要在播放器逐帧审看。",
+    "未生成剩余 explain / think / result / fail 四张；等 Opus 校准比例后继续。",
+    "原 v1 素材和全部前端文件保留。"
+  ]
+}

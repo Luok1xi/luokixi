@@ -1,0 +1,135 @@
+/* choices.css —— 《请不要攻略我》里给选项上样式的规则。
+   从游戏的样式表按原来的层叠顺序抽出来（base → ui → dialogue → mobile → cute → progfx），
+   只留选项、限时条、手和点击小心心用得到的规则；规则本身没改，原注释没带。 */
+
+/* base.css */
+:root { --cream: #fffaf3; --paper: #fffdf8; --pink-50: #fff3f7; --pink-100: #ffe4ee; --pink-200: #ffcadd; --pink-300: #f6a8c2; --pink-400: #ec88aa; --pink-500: #d8688f; --rose-ink: #7e3f59; --peach: #ffcfae; --ink: #4a3942; --ink-soft: #85707c; --leaf: #8fb89a; --gold: #d6a64c; --sky: #a9cdea; --font-body: "LXGW WenKai", "霞鹜文楷", "Noto Serif SC", "Source Han Serif SC",
+               "Songti SC", "STSong", "SimSun", serif; --font-hand: "Long Cang", "LXGW WenKai", "霞鹜文楷", cursive; --ease-out: cubic-bezier(.22, .8, .26, 1); --ease-back: cubic-bezier(.34, 1.56, .64, 1); --ease-io: cubic-bezier(.65, 0, .35, 1); --shadow-soft: 0 14px 34px rgba(110, 50, 78, .16); --shadow-deep: 0 22px 48px rgba(80, 30, 55, .26); --glass-bg: rgba(255, 255, 255, .66); --glass-strong: rgba(255, 255, 255, .82); --glass-line: rgba(255, 255, 255, .75); --glass-blur: blur(22px) saturate(1.5); --glass-shadow: 0 24px 60px rgba(214, 72, 132, .14), 0 2px 8px rgba(60, 20, 40, .05); --accent-a: #f4508e; --accent-b: #b36cf0; --accent-grad: linear-gradient(120deg, var(--accent-a), var(--accent-b)); --accent-glow: 0 10px 26px rgba(244, 80, 142, .35); --fill-soft: rgba(120, 90, 110, .07); }
+* { box-sizing: border-box; }
+html, body { margin: 0px; width: 100%; height: 100%; background: rgb(0, 0, 0); overflow: hidden; -webkit-font-smoothing: antialiased; text-rendering: optimizelegibility; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; margin: -540px 0px 0px -960px; transform: scale(var(--s, .5)); transform-origin: 50% 50%; overflow: clip; background: rgb(0, 0, 0); font-family: var(--font-body); color: var(--ink); user-select: none; -webkit-tap-highlight-color: transparent; cursor: default; contain: layout paint; }
+button { font-family: inherit; color: inherit; background: none; border: 0px; padding: 0px; cursor: pointer; outline: none; }
+#choices { z-index: 21; }
+
+/* ui.css */
+#choices { position: absolute; inset: 150px 0px 330px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; pointer-events: none; }
+.choice { position: relative; width: 1000px; min-height: 94px; padding: 20px 50px 20px 122px; border-radius: 50px; background: rgba(255, 253, 249, 0.95); border: 3px solid var(--pink-300); box-shadow: rgba(110, 50, 78, 0.16) 0px 12px 26px, rgba(246, 168, 194, 0.18) 0px -4px 0px inset; font-size: 36px; letter-spacing: 0.04em; line-height: 1.45; color: var(--ink); text-align: left; pointer-events: auto; overflow: hidden; transition: transform .28s var(--ease-out), background .28s, box-shadow .28s, border-color .28s, color .2s; will-change: transform, opacity; }
+.choice .key { position: absolute; left: 30px; top: 50%; width: 60px; height: 60px; margin-top: -30px; border-radius: 50%; background: linear-gradient(135deg, rgb(246, 168, 194), rgb(255, 201, 164)); color: rgb(255, 255, 255); font-size: 30px; font-weight: 700; line-height: 60px; text-align: center; box-shadow: rgba(216, 104, 143, 0.35) 0px 4px 10px, rgba(255, 255, 255, 0.5) 0px 2px 0px inset; transition: transform .35s var(--ease-back); }
+.choice::after { content: ""; position: absolute; top: 0px; bottom: 0px; left: -40%; width: 30%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.8), transparent); transform: skewX(-18deg) translateX(0px); opacity: 0; }
+.choice:hover { transform: translateX(12px) scale(1.012); background: linear-gradient(90deg, rgb(255, 255, 255) 0%, rgb(255, 238, 244) 100%); border-color: var(--pink-400); box-shadow: rgba(216, 104, 143, 0.26) 0px 16px 34px, rgba(246, 168, 194, 0.16) 0px 0px 0px 7px; }
+.choice:hover .key { transform: rotate(-12deg) scale(1.08); }
+.choice:hover::after { animation: choiceShine .75s var(--ease-out); }
+.choice:active { transform: translateX(12px) scale(0.985); }
+.choice.picked { background: linear-gradient(90deg, rgb(255, 227, 238), rgb(255, 214, 196)); border-color: var(--pink-500); }
+.choice-timer { width: 1000px; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.6); overflow: hidden; box-shadow: rgba(246, 168, 194, 0.5) 0px 0px 0px 2px inset; }
+.choice-timer i { display: block; height: 100%; background: linear-gradient(90deg, rgb(246, 168, 194), rgb(255, 201, 164)); transform-origin: 0px 50%; }
+.choice-timer.urgent { box-shadow: rgba(226, 86, 111, 0.7) 0px 0px 0px 2px inset; animation: 1s ease-out 0s infinite normal none running timerPulse; }
+.choice-timer.urgent i { background: linear-gradient(90deg, rgb(226, 86, 111), rgb(240, 138, 106)); }
+.choice-note { font-size: 32px; letter-spacing: 0.12em; color: rgb(255, 255, 255); text-shadow: 0 0 1px var(--rose-ink), 1.5px 0 0 var(--rose-ink), -1.5px 0 0 var(--rose-ink),
+               0 1.5px 0 var(--rose-ink), 0 -1.5px 0 var(--rose-ink), 0 3px 8px rgba(0, 0, 0, .35); }
+.choice.d-option { font-family: var(--font-hand); font-size: 48px; color: rgb(46, 76, 134); background: rgba(255, 255, 250, 0.97); border: 3px dashed rgb(125, 149, 198); transform: rotate(-1.4deg); cursor: not-allowed; box-shadow: rgba(46, 76, 134, 0.18) 0px 10px 22px; }
+.choice.d-option .key { background: none; color: rgb(46, 76, 134); font-family: var(--font-hand); font-size: 46px; box-shadow: none; border: 2.5px solid rgb(46, 76, 134); }
+.choice.d-option:hover { transform: rotate(-1.4deg); background: rgba(255, 255, 250, 0.97); box-shadow: rgba(46, 76, 134, 0.18) 0px 10px 22px; }
+.choice.d-option:hover::after { animation: auto ease 0s 1 normal none running none; }
+.choice.d-option.pressed { transform: rotate(-1.4deg) scale(0.96); background: rgb(238, 243, 255); }
+.choice.hero { border-color: var(--gold); background: linear-gradient(rgb(255, 253, 244), rgb(255, 243, 217)); box-shadow: rgba(150, 110, 30, 0.2) 0px 12px 26px, rgba(214, 166, 76, 0.15) 0px 0px 0px 6px; }
+.choice.hero .key { background: linear-gradient(135deg, rgb(241, 204, 122), rgb(214, 166, 76)); }
+.choice.hero.pressed { transform: scale(0.97); }
+.choice.dead .key { background: rgb(207, 198, 204); box-shadow: none; }
+#hand { position: absolute; width: 360px; height: 260px; pointer-events: none; z-index: 23; filter: drop-shadow(rgba(0, 0, 0, 0.25) 0px 16px 20px); }
+
+/* dialogue.css */
+.choice { width: 980px; min-height: 96px; padding: 20px 50px 20px 120px; border-radius: 8px; border: 0px; background: radial-gradient(circle at 20% 30%, rgba(120, 90, 60, 0.03) 0px, rgba(120, 90, 60, 0.03) 1px, transparent 2px) 0px 0px / 6px 6px, rgb(255, 252, 245); box-shadow: rgba(40, 20, 30, 0.26) 0px 14px 28px, rgba(40, 20, 30, 0.14) 0px 2px 6px; font-size: 38px; color: rgb(58, 42, 44); transform-origin: 0px 50%; }
+.choice:nth-child(2n+1) { transform: rotate(-0.6deg); }
+.choice:nth-child(2n) { transform: rotate(0.5deg); }
+.choice::before { content: ""; position: absolute; inset: 16px 40px 14px 96px; border-radius: 30px 10px 26px 8px; background: linear-gradient(100deg, rgba(246, 210, 122, 0.75) 0%, rgba(244, 166, 200, 0.7) 60%, rgba(159, 198, 245, 0.6) 100%); transform: scaleX(0); transform-origin: 0px 50%; transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 0; }
+.choice .txt { position: relative; z-index: 1; }
+.choice .key { left: 30px; width: 58px; height: 58px; margin-top: -29px; border-radius: 14px; background: rgb(42, 29, 36); color: rgb(246, 210, 122); font-family: Georgia, serif; font-style: italic; font-size: 30px; line-height: 58px; box-shadow: rgba(0, 0, 0, 0.25) 0px 3px 6px; transform: rotate(-6deg); }
+.choice:hover, .choice:focus-visible { transform: translateX(14px) rotate(0deg); background: rgb(255, 253, 248); box-shadow: rgba(40, 20, 30, 0.32) 0px 18px 36px, rgba(246, 210, 122, 0.35) 0px 0px 0px 4px; }
+.choice:hover::before { transform: scaleX(1); }
+.choice:hover .key { transform: rotate(6deg) scale(1.08); }
+.choice:active { transform: translateX(14px) scale(0.98); }
+.choice.picked::before { transform: scaleX(1); filter: brightness(1.15); }
+.choice.picked { background: rgb(255, 253, 248); }
+body.touch .choice:hover { transform: none; box-shadow: rgba(40, 20, 30, 0.26) 0px 14px 28px; }
+body.touch .choice:hover::before { transform: scaleX(0); }
+body.touch .choice:active::before, body.touch .choice.picked::before { transform: scaleX(1); }
+.choice.d-option { border: 3px dashed rgb(125, 149, 198); background: rgb(255, 255, 250); }
+.choice.d-option::before { display: none; }
+.choice.hero { background: linear-gradient(rgb(255, 253, 244), rgb(255, 243, 217)); box-shadow: rgba(150, 110, 30, 0.25) 0px 12px 26px, rgba(214, 166, 76, 0.35) 0px 0px 0px 5px; }
+.choice.hero .key { background: linear-gradient(135deg, rgb(241, 204, 122), rgb(214, 166, 76)); color: rgb(255, 255, 255); }
+
+
+/* mobile.css */
+html, body { overscroll-behavior: none; touch-action: manipulation; text-size-adjust: 100%; }
+body.touch #stage { touch-action: none; }
+body.touch .choice:hover::after { animation: auto ease 0s 1 normal none running none; }
+body.touch #stage #choices .choice { min-height: calc(44 * var(--touch-px)); font-size: max(36px,calc(13 * var(--touch-px))); }
+
+/* cute.css */
+:root { --candy-pink: #ff9ec4; --candy-rose: #ff6fa5; --candy-deep: #e0558f; --candy-lav: #c6a6ff; --candy-mint: #93e0c6; --candy-butter: #ffdf87; --candy-sky: #9fd0ff; --candy-ink: #6d3553; --sticker-edge: 0 0 0 4px #fff; --sticker-drop: 0 5px 0 rgba(214, 80, 140, .22), 0 12px 22px rgba(120, 40, 80, .18); --bubble-outline: 3px 0 0 var(--candy-rose), -3px 0 0 var(--candy-rose), 0 3px 0 var(--candy-rose), 0 -3px 0 var(--candy-rose),
+    2.2px 2.2px 0 var(--candy-rose), -2.2px 2.2px 0 var(--candy-rose), 2.2px -2.2px 0 var(--candy-rose), -2.2px -2.2px 0 var(--candy-rose); }
+#stage button, #stage .choice { -webkit-tap-highlight-color: transparent; }
+#stage button:not(:disabled):active, #stage .choice:active { scale: 0.93 !important; transition-duration: 0.07s !important; }
+body:not(.touch) #stage { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M4 3 L4 24 L9.5 19 L13 27 L17 25.2 L13.6 17.4 L21 17 Z' fill='%23ff8fb8' stroke='white' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M22.5 29.5c-2.6-1.8-4.2-3.3-4.2-5.2 0-1.3 1-2.3 2.2-2.3.9 0 1.5.5 2 1.2.5-.7 1.1-1.2 2-1.2 1.2 0 2.2 1 2.2 2.3 0 1.9-1.6 3.4-4.2 5.2z' fill='%23ff6fa5' stroke='white' stroke-width='1.4'/%3E%3C/svg%3E") 4 3, auto; }
+body:not(.touch) #stage button, body:not(.touch) #stage .choice { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'%3E%3Cpath d='M17 31C8.5 25 3 20.4 3 14.2 3 10 6.1 7 10 7c2.8 0 5.1 1.5 7 4 1.9-2.5 4.2-4 7-4 3.9 0 7 3 7 7.2C31 20.4 25.5 25 17 31z' fill='%23ff6fa5' stroke='white' stroke-width='2.6'/%3E%3Cellipse cx='11' cy='13' rx='2.6' ry='1.8' fill='white' opacity='.7'/%3E%3C/svg%3E") 17 17, pointer; }
+.fx-tap { position: absolute; z-index: 90; pointer-events: none; will-change: transform, opacity; }
+.fx-tap svg { display: block; width: 100%; height: 100%; fill: currentcolor; stroke: rgb(255, 255, 255); stroke-width: 6; paint-order: stroke; filter: drop-shadow(rgba(120, 40, 80, 0.25) 0px 2px 3px); }
+.fx-tap.dust { border-radius: 50%; box-shadow: currentcolor 0px 0px 8px; }
+.choice .key, #stage .choice .key { border-radius: 50%; background: var(--candy-rose); color: rgb(255, 255, 255); font-family: var(--font-body); font-style: normal; font-weight: 700; box-shadow: rgb(255, 255, 255) 0px 0px 0px 4px, rgba(214, 80, 140, 0.3) 0px 4px 0px, rgba(120, 40, 80, 0.2) 0px 8px 14px; transform: rotate(-6deg); transition: transform .5s var(--spring-pop); }
+.choice:nth-child(2) .key { background: var(--candy-lav); }
+.choice:nth-child(3) .key { background: rgb(255, 184, 107); }
+.choice:nth-child(4) .key { background: var(--candy-mint); }
+.choice:hover .key { transform: rotate(10deg) scale(1.15); }
+.choice { transition: transform .55s var(--spring), scale .5s var(--spring-pop), background .25s, box-shadow .3s, border-color .25s; }
+.choice:hover::after { animation: choiceShine2 .75s var(--ease-out); }
+.choice.picked .key { animation: keyPick .6s var(--spring-pop); }
+
+/* progfx.css */
+:root { --pfx-mono: "Consolas", "Menlo", "SF Mono", "Cascadia Mono", var(--font-body); --pfx-bg: rgba(14, 12, 20, .9); --pfx-ink: #d7dcea; --pfx-dim: #7f889f; --pfx-blue: #9cc9ff; --pfx-warn: #ffd27a; --pfx-red: #ff7d8e; --pfx-ok: #8fe9b1; }
+.choice.d-option { position: relative; }
+.choice.d-option.rejected { border-color: rgb(216, 69, 95); }
+.choice.d-option .d-reject { position: absolute; right: 26px; bottom: -22px; padding: 4px 14px; border-radius: 10px; background: rgb(216, 69, 95); color: rgb(255, 255, 255); font-family: var(--pfx-mono); font-size: 20px; white-space: nowrap; transform: rotate(1.4deg); }
+.choice.d-option .d-old { position: relative; text-decoration: none; color: rgb(125, 143, 181); }
+.choice.d-option .d-old i { position: absolute; left: -4px; right: -4px; height: 3px; background: rgb(46, 76, 134); border-radius: 2px; transform-origin: 0px 50%; }
+.choice.d-option .d-old .s1 { top: 44%; transform: rotate(-2deg); }
+.choice.d-option .d-old .s2 { top: 60%; transform: rotate(1.5deg); }
+.choice.d-option .d-new { margin-left: 24px; }
+.choice.d-option .d-pass { margin-left: 16px; color: rgb(63, 174, 111); font-family: var(--pfx-mono); font-size: 34px; }
+.choice.ed-glitch .txt { animation: 0.3s steps(2) 0s 1 normal none running pfxJit; color: rgb(125, 149, 198); text-shadow: rgba(255, 80, 120, 0.45) 2px 0px, rgba(80, 160, 255, 0.45) -2px 0px; }
+.choice.ed-lock { cursor: not-allowed; }
+.choice.ed-overt { border: 3px dashed rgb(125, 149, 198); }
+.choice .d-old { position: relative; text-decoration: none; color: rgb(154, 166, 194); }
+.choice .d-old i { position: absolute; left: -4px; right: -4px; height: 3px; background: rgb(46, 76, 134); border-radius: 2px; transform-origin: 0px 50%; }
+.choice .d-old .s1 { top: 44%; transform: rotate(-2deg); }
+.choice .d-old .s2 { top: 60%; transform: rotate(1.5deg); }
+.choice .ed-new { margin-left: 22px; font-family: var(--font-hand); font-size: 1.12em; color: rgb(46, 76, 134); }
+
+
+
+/* keyframes */
+@keyframes choiceShine { 
+  0% { opacity: 1; left: -40%; }
+  100% { opacity: 0; left: 120%; }
+}
+@keyframes timerPulse { 
+  0% { transform: scaleY(2.2); }
+  35% { transform: scaleY(1); }
+  100% { transform: scaleY(1); }
+}
+@keyframes choiceShine2 { 
+  0% { opacity: 1; transform: skewX(-18deg) translateX(0px); }
+  100% { opacity: 0; transform: skewX(-18deg) translateX(620%); }
+}
+@keyframes keyPick { 
+  0% { transform: rotate(-6deg) scale(1); }
+  30% { transform: rotate(-16deg) scale(1.45); }
+  100% { transform: rotate(-6deg) scale(1); }
+}
+@keyframes pfxJit { 
+  0% { transform: translate(-4px, 1px); }
+  25% { transform: translate(5px, -2px); }
+  50% { transform: translate(-3px, 2px); }
+  75% { transform: translate(3px, 0px); }
+  100% { transform: none; }
+}

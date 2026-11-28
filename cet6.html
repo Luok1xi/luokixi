@@ -1,14 +1,285 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<!-- @include head -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<!-- Opt in before deferred bundles load, including the login redirect. -->
+<style>@media (prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}</style>
+<script>
+  (function () {
+    var d = document.documentElement;
+    d.classList.add('js');
+    // 嵌在资料库里打开（?embed=1）：不要拓展坞、顶栏、底栏；页里点到站内别的页也留在这个框里
+    if (/[?&]embed=1(&|$)/.test(location.search)) {
+      d.classList.add('is-embed');
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest && e.target.closest('a[href]');
+        if (!a || a.target || a.origin !== location.origin || !/(\.html|\/)$/.test(a.pathname)) return;
+        if (/materials\.html$/.test(a.pathname)) { a.target = '_top'; return; }
+        var u = new URL(a.href); u.searchParams.set('embed', '1'); a.href = u.href;
+      }, true);
+    }
+    try {
+      var t = localStorage.getItem('lk-theme');
+      if (t === 'light' || t === 'dark') d.dataset.theme = t;
+    } catch (e) {}
+    // 换页转场的方向（forward / back / same）：上一页换走前记下（shell.js），这里在第一帧之前读出来。
+    // 预先渲染的页面要等真正切过来时再读；转场播完就清掉，免得影响页内的其他转场。
+    function readDir() {
+      try {
+        var v = JSON.parse(sessionStorage.getItem('lk-vt') || 'null');
+        sessionStorage.removeItem('lk-vt');
+        if (v && Date.now() - v.at < 8000) { d.dataset.vt = v.dir; d.dataset.vtArrive = v.dir; }
+      } catch (e) {}
+    }
+    if (document.prerendering) document.addEventListener('prerenderingchange', readDir, { once: true });
+    else readDir();
+    addEventListener('pagereveal', function (e) {
+      if (!e.viewTransition) { delete d.dataset.vt; return; }
+      var clear = function () { delete d.dataset.vt; };
+      e.viewTransition.finished.then(clear, clear);
+      e.viewTransition.ready.catch(function () {});
+      // 页面在后台时转场可能一直不结束；最多 3 秒后清掉方向，免得影响之后的页内转场
+      setTimeout(clear, 3000);
+    });
+  })();
+</script>
+<!-- 鼠标停在链接上时提前准备下一页：轻页面直接在后台渲染好（点下去立刻出现，转场不再等空白页），
+     重页面（地图、开源流）和带分页快照的校圈只预取文件 -->
+<script type="speculationrules">
+{"prerender":[{"urls":["materials.html","reputation.html","reputation.html?view=courses","me.html","rules.html"],"eagerness":"moderate"}],
+ "prefetch":[{"urls":["./","planner.html","map.html","circle.html","discover.html"],"eagerness":"moderate"}]}
+</script>
+
 <title>六级真题 · Luokixi</title>
 <meta name="description" content="2019 – 2026 年大学英语六级（CET-6）真题，按考次整理，含听力与答案。">
-<script type="module" src="/src/pages/library.js"></script>
+  <script type="module" crossorigin src="./assets/modulepreload-polyfill-P2Xu9kJm.js"></script>
+  <script type="module" crossorigin src="./assets/data-Dv5cexaq.js"></script>
+  <script type="module" crossorigin src="./assets/motion-C2sOdNpi.js"></script>
+  <script type="module" crossorigin src="./assets/preload-helper-BaNbYf_w.js"></script>
+  <script type="module" crossorigin src="./assets/fx-BoR5dzGd.js"></script>
+  <script type="module" crossorigin src="./assets/site-windows-CtSL4Ym6.js"></script>
+  <script type="module" crossorigin src="./assets/download-ranges-UmCM3eRn.js"></script>
+  <script type="module" crossorigin src="./assets/dock-math-DxyM9pVa.js"></script>
+  <script type="module" crossorigin src="./assets/shell-CeC3ZAUd.js"></script>
+  <script type="module" crossorigin src="./assets/library-Zr-c6AkA.js"></script>
+  <script type="module" crossorigin src="./assets/library-B87p_M6z.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/shell-yh7Tv2wd.css">
+  <link rel="stylesheet" crossorigin href="./assets/library-DLWN3Ek1.css">
 </head>
 <body data-page="cet6" data-exam="cet6">
-<!-- @include nav -->
-<!-- @include library -->
-<!-- @include footer -->
+<a class="skip" href="#main">跳到正文</a>
+<!-- 拓展坞（Owner 10-11：GitHub × 推特）：桌面固定在左边，去各个板块和自己的地方；手机上是底部标签栏。
+     悬停时像 macOS 程序坞一样放大（shell.js initDock），当前板块左边一个小点，换页时滑过去（view-transition）。 -->
+<nav class="dock" id="dock" aria-label="拓展坞">
+  <span class="dock-bg" aria-hidden="true"></span>
+  <span class="dock-mark" aria-hidden="true"><svg class="brand-mark" viewBox="0 0 28 28"><path d="M5 6v16h18M10 17l5-10 4 6 5-9"/></svg></span>
+  <a href="./" data-board="home" aria-label="首页"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg><i class="dock-ind"></i></a>
+  <a href="map.html" data-board="campus" aria-label="校园"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><i class="dock-ind"></i></a>
+  <a href="materials.html" data-board="materials" aria-label="资料"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 13h8M8 17h6"/></svg><i class="dock-ind"></i></a>
+  <a href="circle.html" data-board="circle" aria-label="校圈"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg><i class="dock-ind"></i></a>
+  <a href="featured.html" data-board="open" aria-label="开源"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg><i class="dock-ind"></i></a>
+  <span class="dock-sep" aria-hidden="true"></span>
+  <a href="warehouse.html" data-dock="repo" aria-label="我的仓库"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5A1.5 1.5 0 0 1 7.5 3H19v15H7.5A1.5 1.5 0 0 0 6 19.5z"/><path d="M6 19.5A1.5 1.5 0 0 0 7.5 21H19v-3"/><path d="M10 3v7l2-1.5 2 1.5V3"/></svg><i class="dock-ind"></i></a>
+  <a href="profile.html" data-dock="profile" data-mine aria-label="我的主页"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="3"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.7 1.8-2.5 3.2-2.5s2.6.8 3.2 2.5M14.5 10h3.5M14.5 13.5h2.5"/></svg><i class="dock-ind"></i></a>
+  <a href="me.html" data-board="me" aria-label="个人中心"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><i class="dock-ind"></i></a>
+  <a href="studio.html" data-dock="studio" data-ai-studio aria-label="AI 工作室" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v12H8l-5 4z"/><path d="M8 10h8M8 13h5"/></svg><i class="dock-ind"></i></a>
+  <span class="dock-sep" aria-hidden="true"></span>
+  <button class="dock-pub" type="button" data-publish aria-haspopup="true" aria-expanded="false" aria-controls="gn-pub" aria-label="发布"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg></button>
+  <span class="dock-tip" aria-hidden="true"></span>
+</nav>
+<header class="gn" id="gn">
+  <div class="gn-inner">
+    <a class="gn-brand" href="./" aria-label="Luokixi 首页">
+      <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true"><path d="M5 6v16h18M10 17l5-10 4 6 5-9"/></svg>
+      <span>Luokixi</span>
+    </a>
+    <p class="gn-title" data-gn-title></p>
+    <!-- 这一页的切换按钮：板块里的几页（下面的脚本按页面写好），或者页面自己的标签（首页、成员主页） -->
+    <nav class="gn-tabs" id="gn-tabs" aria-label="这一页"></nav>
+    <div class="gn-tools">
+      <button class="gn-btn gn-search" type="button" data-search aria-label="搜索全站">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m20 20-4.8-4.8"/></svg>
+        <span class="kbd" data-kbd-mod>Ctrl K</span>
+      </button>
+      <a class="gn-btn gn-bell" href="me.html#notices" data-bell aria-label="消息" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z"/><path d="M10 21h4"/></svg>
+        <i class="gn-dot num" data-bell-count hidden></i>
+      </a>
+      <button class="gn-btn gn-theme" type="button" data-theme-toggle aria-label="切换外观">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.25"/><path d="M12 3.75a8.25 8.25 0 0 1 0 16.5z" class="fill"/></svg>
+      </button>
+      <a class="gn-me" href="auth.html" data-me>登录</a>
+    </div>
+  </div>
+  <div class="gn-pub glass" id="gn-pub" role="menu" aria-label="发布" hidden>
+    <p class="gn-pub-title">发布到哪里</p>
+    <a role="menuitem" href="map.html?add=place#explore" style="--h:212">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg></span>
+      <span><b>标一个地点</b><small>校园 · 拍照标出地点或限时活动，核对后上图</small></span></a>
+    <a role="menuitem" href="reputation.html" style="--h:28">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="m12 4 2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 16.4l-4.8 2.5.9-5.4L4.2 9.7l5.4-.8z"/></svg></span>
+      <span><b>写课程评价</b><small>校圈 · 给老师或课程打分，说一句真话</small></span></a>
+    <a role="menuitem" href="contribute.html#project" style="--h:262">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg></span>
+      <span><b>发布项目</b><small>开源广场 · 作品、工具和代码</small></span></a>
+    <a role="menuitem" href="collect.html" style="--h:158">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M12 10v7M9 14l3 3 3-3"/></svg></span>
+      <span><b>收集资源</b><small>链接或文件 · 私人保存，也可以提交共建</small></span></a>
+    <a role="menuitem" href="circle.html?compose=1" style="--h:330">
+      <span class="gn-pub-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+      <span><b>发帖</b><small>校圈 · 分享动态、经验和新发现</small></span></a>
+  </div>
+</header>
+<nav class="tabbar" aria-label="板块">
+  <a href="./" data-board="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg>首页</a>
+  <a href="map.html" data-board="campus"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg>校园</a>
+  <a href="materials.html" data-board="materials"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8 13h8M8 17h6"/></svg>资料</a>
+  <a href="circle.html" data-board="circle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>校圈</a>
+  <a href="featured.html" data-board="open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 7.5v9L12 21l8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>开源</a>
+  <a href="me.html" data-board="me"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</a>
+</nav>
+<button class="fab" type="button" data-publish aria-label="发布" aria-controls="gn-pub" aria-expanded="false">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>
+</button>
+<script>
+  // 第一帧之前：标出当前板块（拓展坞、底部标签栏）、写好这一页的切换按钮，换页转场截图时小点和下划线已经在对的位置。
+  // 板块和页面的对应同 shell.js 的 BOARD；只有“我的主页”使用缓存的公开用户名。
+  (function () {
+    var page = (location.pathname.split('/').pop() || '').replace(/\.html$/, '') || 'home';
+    if (page === 'index') page = 'home';
+    var q = new URLSearchParams(location.search);
+    var B = { home: 'home', map: 'campus', planner: 'campus', reservations: 'campus',
+      materials: 'materials', search: 'materials', course: 'materials', collect: 'materials', sources: 'materials', cet4: 'materials', cet6: 'materials', school: 'materials', knowledge: 'materials',
+      circle: 'circle', reputation: 'circle', community: 'circle', rules: 'circle',
+      discover: 'open', projects: 'open', project: 'open', contribute: 'open', featured: 'open', albums: 'open', blueprints: 'open', toolbox: 'open',
+      me: 'me', warehouse: 'me', studio: 'me', auth: 'me' };
+    var NAMES = { home: '首页', campus: '校园', materials: '资料', circle: '校圈', open: '开源', me: '我的' };
+    var T = {
+      campus: [['地图', 'map.html', 'map'], ['课表', 'planner.html', 'planner'], ['座位预约', 'reservations.html', 'reservations']],
+      materials: [['资料库', 'materials.html', 'materials'], ['找课程', 'search.html', 'search course'], ['真题', 'school.html', 'school cet4 cet6'], ['知识库', 'knowledge.html', 'knowledge'], ['收集', 'collect.html', 'collect'], ['来源', 'sources.html', 'sources']],
+      circle: [['动态', 'circle.html', 'circle'], ['教师口碑', 'reputation.html', 'reputation:t'], ['课程评价', 'reputation.html?view=courses', 'reputation:c'], ['社区', 'community.html', 'community'], ['制度', 'rules.html', 'rules']],
+      open: [['精选', 'featured.html', 'featured'], ['项目', 'albums.html?m=project', 'albums:project'], ['AI 强化', 'albums.html?m=ai', 'albums:ai'], ['教育', 'albums.html?m=learn', 'albums:learn blueprints'], ['工具箱', 'albums.html?m=tools', 'albums:tools toolbox'], ['全部项目', 'discover.html', 'discover projects project']],
+      me: [['个人中心', 'me.html', 'me'], ['我的主页', 'profile.html', 'profile'], ['AI 工作室', 'studio.html', 'studio', 1]]
+    };
+    var board = B[page] || '', me = '';
+    try { me = localStorage.getItem('lk-me') || ''; } catch (e) {}
+    var mod = { project: 1, ai: 1, learn: 1, tools: 1 }[q.get('m')] ? q.get('m') : 'project';
+    var key = page === 'reputation' ? 'reputation:' + (q.get('view') === 'courses' || q.has('course') || q.has('offering') ? 'c' : 't')
+      : page === 'albums' ? 'albums:' + mod : page;
+    document.documentElement.dataset.board = board;
+    var title = document.querySelector('[data-gn-title]');
+    if (title) title.textContent = NAMES[board] || '';
+    // 自己的公开主页亮“主页”，独立仓库亮“仓库”；别人的主页两边都不亮。
+    var own = page === 'profile' && (!q.get('u') || (me && q.get('u').toLowerCase() === me.toLowerCase()));
+    var dockKey = page === 'warehouse' ? '[data-dock="repo"]' : page === 'studio' ? '[data-dock="studio"]' : page === 'profile' ? (own ? '[data-dock="profile"]' : '') : '[data-board="' + board + '"]';
+    if (dockKey) [].forEach.call(document.querySelectorAll('.dock ' + dockKey), function (a) { a.setAttribute('aria-current', 'page'); });
+    [].forEach.call(document.querySelectorAll('.tabbar [data-board="' + (page === 'profile' ? 'me' : board) + '"]'), function (a) { a.setAttribute('aria-current', 'page'); });
+    if (me) {
+      var u = encodeURIComponent(me);
+      [].forEach.call(document.querySelectorAll('.dock [data-mine]'), function (a) { a.href = 'profile.html?u=' + u; });
+    }
+    // 这一页的切换按钮。首页：推荐 / 关注 / 热榜 / 机会（today.js 管切换和下划线）；成员主页的标签由 profile.js 写
+    var tabs = page === 'warehouse' ? [['我的仓库', 'warehouse.html', 'warehouse']] : T[board], nav = document.getElementById('gn-tabs');
+    if (nav && page === 'home') {
+      var H = [['picks', '推荐'], ['following', '关注'], ['hot', '热榜'], ['chances', '机会']], cur = location.hash.slice(1), b = '';
+      if (!H.some(function (h) { return h[0] === cur; })) cur = 'picks';
+      for (var k = 0; k < H.length; k++) b += '<button type="button" role="tab" id="td-tab-' + H[k][0] + '" data-tab="' + H[k][0] + '" aria-selected="' + (H[k][0] === cur) + '" aria-controls="td-panel">' + H[k][1] + '</button>';
+      nav.innerHTML = '<div class="v3-tabs" role="tablist" aria-label="首页内容" id="td-tabs">' + b + '<span class="v3-tabs-bar" aria-hidden="true"></span></div>';
+      return;
+    }
+    if (!nav || !tabs || page === 'auth' || page === 'profile') return;
+    var html = '';
+    for (var i = 0; i < tabs.length; i++) {
+      var t = tabs[i], on = (' ' + t[2] + ' ').indexOf(' ' + key + ' ') >= 0;
+      var href = t[1] === 'profile.html' && me ? 'profile.html?u=' + encodeURIComponent(me) : t[1];
+      html += '<a href="' + href + '"' + (on ? ' aria-current="page"' : '') + (t[3] ? ' data-staff hidden' : '') + '>' + t[0] + '<i class="gn-tab-line" aria-hidden="true"></i></a>';
+    }
+    nav.innerHTML = html;
+  })();
+</script>
+
+<div class="localnav">
+  <div class="wrap localnav-inner">
+    <span class="localnav-title" data-lib="name">大学英语</span>
+    <nav class="jumpbar" id="jumpbar" aria-label="按年份跳转"><span class="jumpbar-pill" aria-hidden="true"></span></nav>
+    <div class="segmented" role="tablist" aria-label="切换考试">
+      <a href="cet4.html" data-seg="cet4">四级</a>
+      <a href="cet6.html" data-seg="cet6">六级</a>
+    </div>
+  </div>
+</div>
+
+<main id="main">
+  <header class="lib-hero">
+    <div class="wrap">
+      <p class="eyebrow" data-reveal data-lib="eyebrow">CET 真题库</p>
+      <h1 class="headline headline-xl" data-reveal><span data-lib="title">真题。</span><br><span class="muted" data-lib="subtitle">按考次排好。</span></h1>
+      <dl class="lib-stats" data-reveal>
+        <div><dt>考次</dt><dd class="num" data-lib-stat="sessions">—</dd></div>
+        <div><dt>套卷</dt><dd class="num" data-lib-stat="sets">—</dd></div>
+        <div><dt>含听力</dt><dd class="num" data-lib-stat="listening">—</dd></div>
+        <div><dt>已上线资源</dt><dd class="num" data-lib-stat="ready">—</dd></div>
+      </dl>
+      <div class="lib-tools" data-reveal>
+        <div class="segmented" role="group" aria-label="筛选">
+          <button type="button" data-filter="all" aria-pressed="true">全部</button>
+          <button type="button" data-filter="listening" aria-pressed="false">只看含听力</button>
+        </div>
+      </div>
+      <p class="notice lib-notice" id="lib-notice" data-reveal hidden>
+        <span class="notice-dot" aria-hidden="true"></span>
+        <span><strong>真题文件正在陆续接入。</strong>目录已按考次排好，试卷、答案和听力上线后会直接出现在对应的卡片里。</span>
+      </p>
+    </div>
+  </header>
+
+  <div id="years-list"></div>
+</main>
+
+<footer class="ft">
+  <div class="wrap">
+    <p class="ft-note">
+      四六级真题版权归教育部教育考试院所有，校内试卷版权归命题教师与学校所有。
+      Luokixi 是校友自发维护的非官方公益学习站，与中国矿业大学（北京）及教育考试院无隶属关系；资料仅供个人学习，请勿用于商业用途。
+      考试时间、报名等信息以<a href="https://cet.neea.edu.cn/" target="_blank" rel="noopener">四六级官方网站</a>与学校教务通知为准。
+    </p>
+    <div class="ft-cols">
+      <div>
+        <h3>真题</h3>
+        <a href="cet4.html">大学英语四级</a>
+        <a href="cet6.html">大学英语六级</a>
+      </div>
+      <div>
+        <h3>矿大资料</h3>
+        <a href="reputation.html">教师与课程口碑</a>
+        <a href="school.html#calc-a1">高等数学 A1</a>
+        <a href="school.html#calc-a2">高等数学 A2</a>
+        <a href="school.html#linalg">线性代数</a>
+        <a href="map.html">校园地图</a>
+      </div>
+      <div>
+        <h3>社区</h3>
+        <a href="projects.html">开源广场</a>
+        <a href="community.html">贡献与刷题榜</a>
+        <a href="contribute.html">参与贡献</a>
+        <a href="rules.html">社区制度</a>
+      </div>
+      <div>
+        <h3>官方渠道</h3>
+        <a href="https://cet.neea.edu.cn/" target="_blank" rel="noopener">四六级考试官网</a>
+        <a href="https://cet-bm.neea.edu.cn/" target="_blank" rel="noopener">报名网站</a>
+      </div>
+    </div>
+    <div class="ft-bottom">
+      <span>© <span data-year>2026</span> Luokixi · 由矿大（北京）校友发起</span>
+      <span>写给学弟学妹，免费，且一直免费。</span>
+    </div>
+  </div>
+</footer>
+
 </body>
 </html>

@@ -1,0 +1,1 @@
+import{n as e}from"./materials-catalog-BlioroKi.js";export{e as loadMaterials};

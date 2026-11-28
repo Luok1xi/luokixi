@@ -1,0 +1,1 @@
+function e(e,t,n,r,{stiffness:i=640,damping:a=.86}={}){if(r<=0)return[e,t];let o=Math.sqrt(i),s=a*o,c=e-n;if(a>=1){let e=Math.exp(-o*r),i=t+o*c;return[n+e*(c+i*r),e*(t-o*i*r)]}let l=o*Math.sqrt(1-a*a),u=Math.exp(-s*r),d=Math.sin(l*r),f=Math.cos(l*r);return[n+u*(c*f+(t+s*c)/l*d),u*(t*f-(s*t+o*o*c)/l*d)]}export{e as t};

@@ -1,0 +1,47 @@
+{
+  "task": "修复 uniqueTags(tags)：接收字符串数组，去掉首尾空白，忽略空标签，不区分大小写去重，保留第一次出现的大小写和顺序，不修改原数组。不要新增依赖。",
+  "source": "function uniqueTags(tags) { return [...new Set(tags)]; }",
+  "model": "gpt-6-astra",
+  "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+  "code": "function uniqueTags(tags) {\n  const seen = new Set();\n  const result = [];\n  for (const tag of tags) {\n    const trimmed = tag.trim();\n    if (!trimmed) continue;\n    const key = trimmed.toLowerCase();\n    if (seen.has(key)) continue;\n    seen.add(key);\n    result.push(trimmed);\n  }\n  return result;\n}",
+  "explanation": "先去掉每个标签的首尾空白并跳过空标签，再用小写形式去重，保留第一次出现的标签大小写和顺序。返回新数组，不修改原数组，无新增依赖。",
+  "tests": [
+    "console.assert(JSON.stringify(uniqueTags([' JavaScript ', 'javascript', 'CSS', ' css ', 'HTML'])) === JSON.stringify(['JavaScript', 'CSS', 'HTML']));",
+    "console.assert(JSON.stringify(uniqueTags(['', ' ', '\\t\\n', ' A ', 'a'])) === JSON.stringify(['A']));",
+    "console.assert(JSON.stringify(uniqueTags([])) === '[]');",
+    "console.assert(JSON.stringify(uniqueTags([' Foo Bar ', 'foo bar', 'Foo  Bar'])) === JSON.stringify(['Foo Bar', 'Foo  Bar']));",
+    "const input = Object.freeze([' A ', 'a', ' B ']); const output = uniqueTags(input); console.assert(JSON.stringify(input) === JSON.stringify([' A ', 'a', ' B '])); console.assert(output !== input); console.assert(JSON.stringify(output) === JSON.stringify(['A', 'B']));"
+  ],
+  "status": "passed",
+  "wallMs": 37785,
+  "lines": 13,
+  "codeSha256": "620cf37f2836bb0d5058f1a7b2d2f1ae0a9971666db94a48a871508159c4bbce",
+  "evidence": "data/skill-evidence/unique-tags-before.json",
+  "checks": [
+    {
+      "name": "空输入",
+      "passed": true
+    },
+    {
+      "name": "空白标签",
+      "passed": true
+    },
+    {
+      "name": "首项与顺序",
+      "passed": true
+    },
+    {
+      "name": "内部空格保留",
+      "passed": true
+    },
+    {
+      "name": "非 ASCII 标签",
+      "passed": true
+    },
+    {
+      "name": "不返回原数组",
+      "passed": true
+    }
+  ],
+  "output": "先去掉每个标签的首尾空白并跳过空标签，再用小写形式去重，保留第一次出现的标签大小写和顺序。返回新数组，不修改原数组，无新增依赖。"
+}

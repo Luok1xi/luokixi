@@ -1,0 +1,10 @@
+/* Luokixi 试玩外壳：整块居中、按窗口缩放（缩放在 play.js 里算），底下一行署名。原版样式不改。 */
+html, body { height: 100%; }
+body { margin: 0; padding: 0; overflow: hidden; }
+/* 正中间：先用 translate 把自己挪到中心，再由 play.js 的 scale 绕中心缩放（比窗口高时也不会被裁掉一截） */
+.container { position: absolute; left: 50%; top: 50%; translate: -50% -50%; transform-origin: 50% 50%; }
+.lk-credit { margin: 18px 0 0; font-size: 13px; line-height: 1.5; text-align: center; opacity: .8; }
+.lk-demo .above-game, .lk-demo .lk-credit { visibility: hidden; }
+@media screen and (max-width: 520px) {
+  body { margin: 0; padding: 0; }
+}

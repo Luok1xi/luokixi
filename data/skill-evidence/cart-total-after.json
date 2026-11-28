@@ -1,0 +1,65 @@
+{
+  "task": "修复 cartTotal(items)：每项 priceCents 和 quantity 都是非负安全整数，数量 0 必须是 0，按整数分求和。空数组返回 0，字段非法或计算超过安全整数时抛 RangeError，不修改输入。",
+  "source": "function cartTotal(items) { return items.reduce((sum, item) => sum + item.priceCents * (item.quantity || 1), 0); }",
+  "model": "gpt-6-astra",
+  "conditions": "相同模型 / low 推理 / 相同任务和 JSON 格式；右侧在任务后附加 Ponytail v5.1.0 原版规则。每侧独立生成一次。",
+  "code": "function cartTotal(items) {\n  let total = 0;\n  for (const item of items) {\n    const priceCents = item?.priceCents;\n    const quantity = item?.quantity;\n    if (!Number.isSafeInteger(priceCents) || priceCents < 0 ||\n        !Number.isSafeInteger(quantity) || quantity < 0) {\n      throw new RangeError('priceCents and quantity must be non-negative safe integers');\n    }\n    total += priceCents * quantity;\n    if (!Number.isSafeInteger(total)) {\n      throw new RangeError('Cart total exceeds the safe integer range');\n    }\n  }\n  return total;\n}",
+  "explanation": "移除 quantity 的默认值，确保数量为 0 时金额为 0；验证两个字段均为非负安全整数，按整数分累加，乘积或总和超出安全整数范围时抛出 RangeError。空数组返回 0，不修改输入。仅处理所给函数，未访问文件或运行测试。",
+  "tests": [
+    "const items = Object.freeze([Object.freeze({ priceCents: 125, quantity: 2 }), Object.freeze({ priceCents: 999, quantity: 0 }), Object.freeze({ priceCents: 50, quantity: 3 })]); if (cartTotal(items) !== 400 || cartTotal([]) !== 0) throw new Error('基本求和失败');",
+    "for (const field of ['priceCents', 'quantity']) { for (const value of [-1, 0.5, NaN, Infinity, -Infinity, Number.MAX_SAFE_INTEGER + 1, '1', null, undefined, true, 1n]) { let caught = false; try { cartTotal([{ priceCents: 1, quantity: 1, [field]: value }]); } catch (error) { if (!(error instanceof RangeError)) throw error; caught = true; } if (!caught) throw new Error('非法字段未被拒绝'); } }",
+    "const max = Number.MAX_SAFE_INTEGER; for (const items of [[{ priceCents: max, quantity: 2 }], [{ priceCents: max, quantity: 1 }, { priceCents: 1, quantity: 1 }], [{}], [null]]) { let caught = false; try { cartTotal(items); } catch (error) { if (!(error instanceof RangeError)) throw error; caught = true; } if (!caught) throw new Error('应抛出 RangeError'); } if (cartTotal([{ priceCents: max, quantity: 1 }]) !== max || cartTotal([{ priceCents: max, quantity: 0 }]) !== 0 || cartTotal([{ priceCents: 0, quantity: max }]) !== 0) throw new Error('边界计算失败');"
+  ],
+  "status": "passed",
+  "wallMs": 42852,
+  "lines": 16,
+  "codeSha256": "d23694c929ac154b9165f124956be9092fe5cf84ae90df8083de9a0c31e60ae4",
+  "evidence": "data/skill-evidence/cart-total-after.json",
+  "checks": [
+    {
+      "name": "空购物车",
+      "passed": true
+    },
+    {
+      "name": "零数量",
+      "passed": true
+    },
+    {
+      "name": "整数分求和",
+      "passed": true
+    },
+    {
+      "name": "最大安全整数",
+      "passed": true
+    },
+    {
+      "name": "零与最大数量",
+      "passed": true
+    },
+    {
+      "name": "priceCents 非法值",
+      "passed": true
+    },
+    {
+      "name": "quantity 非法值",
+      "passed": true
+    },
+    {
+      "name": "缺字段",
+      "passed": true
+    },
+    {
+      "name": "乘法溢出",
+      "passed": true
+    },
+    {
+      "name": "加法溢出",
+      "passed": true
+    },
+    {
+      "name": "随机整数与精确参照一致",
+      "passed": true
+    }
+  ],
+  "output": "移除 quantity 的默认值，确保数量为 0 时金额为 0；验证两个字段均为非负安全整数，按整数分累加，乘积或总和超出安全整数范围时抛出 RangeError。空数组返回 0，不修改输入。仅处理所给函数，未访问文件或运行测试。"
+}

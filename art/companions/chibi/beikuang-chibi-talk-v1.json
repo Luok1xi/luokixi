@@ -1,0 +1,24 @@
+{
+  "character": "beikuang-chibi",
+  "version": "talk-v1",
+  "date": "2026-10-12",
+  "tool": "image_gen.imagegen",
+  "transparentBackground": true,
+  "source": "C:\\Users\\user\\.codex\\generated_images\\01a12acb-83a8-74e0-a003-1901888c4ba7\\exec-0384b76d-b61c-4ee2-9b93-38351be92296.png",
+  "reference": "/art/companions/chibi/beikuang-chibi-point.png",
+  "prompt": "Edit the attached existing Beikuang chibi sprite sheet into a TALKING-MOUTH asset. Preserve the exact chibi identity, outfit, facial features, scale, and illustration style. Use ONLY the first (top-left) figure in the reference as the base. Do not use the pointing poses from the other cells.\nCreate a square 2x2 four-cell transparent PNG (target 1254 x 1254, 627 x 627 per cell) with the SAME full body figure repeated at EXACTLY the same location in each cell. This is NOT four gestures. All body, head, hair, hands, clothing and eye pixels should remain as consistent as possible across the four cells. The feet are planted on one identical baseline. Keep the calm attentive posture of reference cell 1, one hand near chest. Keep the mouth at the identical center in all cells; do not change the face tilt or expression.\nThe ONLY animation is the mouth:\ntop left = CLOSED, tiny relaxed closed mouth line;\ntop right = SMALL OPEN, small clear rounded speaking mouth with dark-red interior;\nbottom left = OPEN, a slightly taller speaking mouth, cheerful but restrained, dark burgundy interior with a subtle red tongue; no teeth;\nbottom right = CLOSED, exactly like top left.\nNatural anime mouth drawing consistent with this character; sizes noticeable in a 230px-tall character. Keep eyes open and unchanged, no blinking. Do not rotate, tilt, shrink, lean or change arms. No extra face patches, no labels, letters, grids, numbering, drop shadows, background or framing. Actual alpha transparency. Whole character visible, never cropped or crossing cell boundaries. The goal is a clean fixed-pose speaking sprite, whose posture stays still while only the mouth talks. Black to crimson hair, white headband, red/gold flowers, red eyes, white blouse/skirt/stockings, black/red/gold cape and black Mary Jane shoes all IDENTICAL to the first reference figure.",
+  "notes": [
+    "原始PNG直接复制；不声称模型输出全身像素完全相同。",
+    "播放器始终显示第一格身体，通过 SVG 遮罩仅采样另两格嘴部，实现口型与姿势分离。",
+    "这是字幕/拟声驱动的风格化口型，不是中文音素级口型同步。",
+    "参考视频已由官方嵌入播放器实际取 17 个时间点核对；未试听音色。核对记录见 REFERENCE_SPEECH_BILIBILI_20261012.md。"
+  ],
+  "actualSize": [
+    1254,
+    1254
+  ],
+  "sha256": "df7a174e96d7d11b1457e00b47a8f77c002c28def7057846c8a3eef47010ab4f",
+  "bytes": 1771228,
+  "columns": 2,
+  "rows": 2
+}

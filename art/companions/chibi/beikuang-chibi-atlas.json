@@ -1,0 +1,14 @@
+{
+  "asset": "beikuang-chibi-atlas.webp",
+  "cell": 384,
+  "cols": 4,
+  "rows": [
+    "point",
+    "observe"
+  ],
+  "sources": {
+    "point": "6c496d54976f79accbfa07c4a7a1911294359fa1fcedfb4d6af49e42bda6c32a",
+    "observe": "abf2399bbb53844ef84b299a88fd47b4b10192f5ef54bbef2750256ed291d912"
+  },
+  "note": "scripts/pack-chibi-atlas.py 生成：按脚底基线和腿部中心对齐，统一缩放。原图由 Codex 内置图片工具制作，见 beikuang-chibi-guide.json。"
+}

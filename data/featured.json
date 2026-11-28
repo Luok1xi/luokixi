@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "luokixi-showcase-hero",
+      "kind": "notice",
+      "title": "Luokixi · 矿大双校区校园信息与创作平台",
+      "dek": "在线核心功能预览版：已开放双校区 OSM 地图、校圈九图发帖、口碑弹幕打分、资料袋 ZIP 打包与北矿娘互动体验。",
+      "reason": "即将部署至正式服务器的公开演示版本",
+      "source": {
+        "name": "Luokixi 演示站",
+        "type": "editorial",
+        "url": "./circle.html"
+      },
+      "href": "circle.html",
+      "publishedAt": "2026-11-27T08:00:00+08:00",
+      "eventAt": "2026-11-27",
+      "checkedAt": "2026-11-27T08:00:00+08:00",
+      "startsAt": "2026-01-01T00:00:00+08:00",
+      "expiresAt": "2028-12-31T00:00:00+08:00",
+      "editor": "演示导览",
+      "media": {
+        "src": "./art/generated/art-5cb00779c1cbe46451ab0888-1586.webp",
+        "alt": "Luokixi 校园信息平台界面预览",
+        "credit": "Luokixi 演示配图"
+      }
+    },
+    {
+      "id": "luokixi-smartcar-showcase",
+      "kind": "creator",
+      "title": "智能车视觉循线与 TunePro 调参实录",
+      "dek": "进入校圈或开源广场，体验多图纵深视差滑轨、开源项目专辑与实时互动评论。",
+      "reason": "校园开源与工程实践精选",
+      "source": {
+        "name": "智能车与机器人吧",
+        "type": "community",
+        "url": "./circle.html?post=p-smartcar-champ"
+      },
+      "href": "circle.html?post=p-smartcar-champ",
+      "publishedAt": "2026-11-26T18:00:00+08:00",
+      "eventAt": "2026-11-26",
+      "checkedAt": "2026-11-27T08:00:00+08:00",
+      "startsAt": "2026-01-01T00:00:00+08:00",
+      "expiresAt": "2028-12-31T00:00:00+08:00",
+      "editor": "作品精选",
+      "media": {
+        "src": "./art/generated/art-1f7290a2054dbab4ffd20589-1536.webp",
+        "alt": "智能车与机器人演示",
+        "credit": "Luokixi 演示配图"
+      }
+    },
+    {
+      "id": "luokixi-map-showcase",
+      "kind": "news",
+      "title": "学院路 / 沙河双校区交互地图与场馆直达",
+      "dek": "点击地图楼宇与同学标注，直跳官方场馆预约、测试地点实时打卡，或用个人课表规划空闲时段。",
+      "reason": "核心校园服务演示",
+      "source": {
+        "name": "校园地图",
+        "type": "editorial",
+        "url": "./map.html"
+      },
+      "href": "map.html",
+      "publishedAt": "2026-11-25T10:00:00+08:00",
+      "eventAt": "2026-11-25",
+      "checkedAt": "2026-11-27T08:00:00+08:00",
+      "startsAt": "2026-01-01T00:00:00+08:00",
+      "expiresAt": "2028-12-31T00:00:00+08:00",
+      "editor": "校园服务",
+      "media": {
+        "src": "./art/generated/art-3f89fe4b4fb49244757bea22-1586.webp",
+        "alt": "双校区地图与服务",
+        "credit": "Luokixi 演示配图"
+      }
+    }
+  ]
+}

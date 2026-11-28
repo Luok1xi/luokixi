@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "paths": [
+    {
+      "id": "ai-skills",
+      "title": "AI 技能：从基线到接入",
+      "module": "ai",
+      "albumId": "ai-workflow",
+      "description": "编辑整理的操作路线。演示样本和你自己的接入记录分开；完成状态是本人记录，不代表模型能力已被认证。",
+      "conditions": {
+        "ai-editor": "已准备可使用的编程 AI 环境",
+        "isolated-project": "已准备可回退的测试项目"
+      },
+      "nodes": [
+        {
+          "id": "scope",
+          "title": "确认技能范围与权限",
+          "dependsOn": [],
+          "conditions": [],
+          "outcome": "写下技能来源版本、会修改什么、允许哪些操作。",
+          "discId": "ponytail",
+          "sources": [
+            "https://github.com/DietrichGebert/ponytail"
+          ]
+        },
+        {
+          "id": "baseline",
+          "title": "保存未加技能的基线",
+          "dependsOn": [
+            "scope"
+          ],
+          "conditions": [
+            "ai-editor",
+            "isolated-project"
+          ],
+          "outcome": "保存原始输入、模型版本、运行条件和实际输出。",
+          "discId": "ponytail",
+          "sources": [
+            "https://github.com/DietrichGebert/ponytail"
+          ]
+        },
+        {
+          "id": "with-skill",
+          "title": "在相同条件下加技能重跑",
+          "dependsOn": [
+            "baseline"
+          ],
+          "conditions": [
+            "ai-editor",
+            "isolated-project"
+          ],
+          "outcome": "保留相同任务与模型条件，单独保存附加技能后的输出。",
+          "discId": "ponytail",
+          "sources": [
+            "https://github.com/DietrichGebert/ponytail"
+          ]
+        },
+        {
+          "id": "compare",
+          "title": "比较正确性、失败与成本",
+          "dependsOn": [
+            "with-skill"
+          ],
+          "conditions": [],
+          "outcome": "用相同检查核对两份结果，记录改善、退化与没测过的部分。",
+          "discId": "ponytail",
+          "sources": [
+            "https://github.com/DietrichGebert/ponytail"
+          ]
+        },
+        {
+          "id": "integrate",
+          "title": "小范围接入与回退",
+          "dependsOn": [
+            "compare"
+          ],
+          "conditions": [
+            "ai-editor",
+            "isolated-project"
+          ],
+          "outcome": "记录真实接入位置、验收结果以及恢复方法；没有改善也可以保留结论。",
+          "discId": "ponytail",
+          "sources": [
+            "https://github.com/DietrichGebert/ponytail"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "robotics",
+      "title": "机器人：条件与能力",
+      "module": "project",
+      "albumId": "robots-move",
+      "description": "编辑整理的两条独立实践分支。OpenCat 使用舵机；SimpleFOC 是无刷电机路线，不是 OpenCat 的必装依赖。网页示意不控制硬件。",
+      "conditions": {
+        "nyboard-kit": "与本条版本匹配的 NyBoard 套件",
+        "arduino-tools": "可用的 Arduino 编译和串口环境",
+        "motor-kit": "与官方文档匹配的电机、驱动、控制板与供电"
+      },
+      "nodes": [
+        {
+          "id": "choose",
+          "title": "核对项目与硬件版本",
+          "dependsOn": [],
+          "conditions": [],
+          "outcome": "记录使用 OpenCat 还是 SimpleFOC、套件版本与对应文档。",
+          "discId": "opencat",
+          "sources": [
+            "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot"
+          ]
+        },
+        {
+          "id": "opencat-setup",
+          "title": "OpenCat 固件与套件准备",
+          "dependsOn": [
+            "choose"
+          ],
+          "conditions": [
+            "nyboard-kit",
+            "arduino-tools"
+          ],
+          "outcome": "按匹配套件的官方步骤准备固件，记录版本和串口检查结果。",
+          "discId": "opencat",
+          "sources": [
+            "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot"
+          ]
+        },
+        {
+          "id": "opencat-calibrate",
+          "title": "舵机与 IMU 校准",
+          "dependsOn": [
+            "opencat-setup"
+          ],
+          "conditions": [
+            "nyboard-kit",
+            "arduino-tools"
+          ],
+          "outcome": "按套件文档校准关节和 IMU，记录实际校准结果。",
+          "discId": "opencat",
+          "sources": [
+            "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot"
+          ]
+        },
+        {
+          "id": "opencat-gait",
+          "title": "验证四足步态",
+          "dependsOn": [
+            "opencat-calibrate"
+          ],
+          "conditions": [
+            "nyboard-kit",
+            "arduino-tools"
+          ],
+          "outcome": "记录官方步态示例的实际运行现象与失败情况。",
+          "discId": "opencat",
+          "sources": [
+            "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot"
+          ]
+        },
+        {
+          "id": "foc-setup",
+          "title": "SimpleFOC 接线与环境",
+          "dependsOn": [
+            "choose"
+          ],
+          "conditions": [
+            "motor-kit",
+            "arduino-tools"
+          ],
+          "outcome": "核对电机与驱动匹配关系、供电限制、库版本和接线文档。",
+          "discId": "simplefoc",
+          "sources": [
+            "https://github.com/simplefoc/Arduino-FOC"
+          ]
+        },
+        {
+          "id": "foc-run",
+          "title": "验证电机控制示例",
+          "dependsOn": [
+            "foc-setup"
+          ],
+          "conditions": [
+            "motor-kit",
+            "arduino-tools"
+          ],
+          "outcome": "按匹配硬件的官方示例运行，记录控制模式、输入及真实输出。",
+          "discId": "simplefoc",
+          "sources": [
+            "https://github.com/simplefoc/Arduino-FOC"
+          ]
+        }
+      ]
+    }
+  ]
+}

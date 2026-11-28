@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 960" role="img" aria-labelledby="title desc">
+  <title id="title">让机器人动起来：能力与部件图，美术概念样张</title>
+  <desc id="desc">象牙白背景上的四足机器人结构，暖金色透明节点对应主控、姿态和舵机。虚线关联学习资源。暖光代表当前选择，不代表已经学会或通过实测。</desc>
+  <defs>
+    <linearGradient id="paper" x2="1" y2="1"><stop stop-color="#f7f5ef"/><stop offset="1" stop-color="#e8e5dc"/></linearGradient>
+    <linearGradient id="metal" x2=".7" y2="1"><stop stop-color="#fff"/><stop offset=".35" stop-color="#c0bfb9"/><stop offset=".6" stop-color="#f2f1eb"/><stop offset="1" stop-color="#858781"/></linearGradient>
+    <radialGradient id="glass" cx=".36" cy=".22" r=".9"><stop stop-color="#fffdf4" stop-opacity=".9"/><stop offset=".4" stop-color="#f2dc9e" stop-opacity=".25"/><stop offset=".73" stop-color="#bda270" stop-opacity=".3"/><stop offset="1" stop-color="#fffbeb" stop-opacity=".85"/></radialGradient>
+    <radialGradient id="glow"><stop stop-color="#ffe092" stop-opacity=".85"/><stop offset=".4" stop-color="#eab154" stop-opacity=".35"/><stop offset="1" stop-color="#eab154" stop-opacity="0"/></radialGradient>
+    <radialGradient id="core"><stop stop-color="#fff9dd"/><stop offset=".35" stop-color="#ffdf8b"/><stop offset="1" stop-color="#b67a30"/></radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="220%"><feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#5a4d30" flood-opacity=".17"/></filter>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".7" fill="#625d51" opacity=".17"/></pattern>
+    <g id="node"><circle r="42" fill="url(#glass)" stroke="#faf7eb" stroke-width="2"/><path d="M-27-18Q-8-39 22-22" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".95"/><circle r="12" fill="url(#metal)" stroke="#78786d"/><circle r="4" fill="#555b50"/></g>
+    <g id="small-disc"><circle r="25" fill="url(#metal)" stroke="#b1b2aa"/><circle r="18" fill="none" stroke="#7a8076" opacity=".25"/><circle r="7" fill="#eceae2" stroke="#a5a79c"/></g>
+  </defs>
+  <rect width="1440" height="960" fill="url(#paper)"/>
+  <g fill="#262b28" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif">
+    <text x="56" y="55" font-size="15" letter-spacing="3">LUOKIXI / 能力专辑</text>
+    <text x="1384" y="55" text-anchor="end" font-size="13" letter-spacing="2">ART STUDY 01 · PROJECT</text>
+    <path d="M56 78H1384" stroke="#a8aaa0"/>
+    <text x="56" y="157" font-size="46" font-weight="500" letter-spacing="2">让机器人动起来</text>
+    <text x="58" y="196" font-size="16" fill="#62675d">选一项能力，看看它落在机器人的哪个位置。</text>
+    <rect x="1014" y="119" width="370" height="76" rx="38" fill="#fcfbf7" stroke="#d1cfc4"/>
+    <use href="#small-disc" x="1056" y="157"/>
+    <text x="1096" y="151" font-size="16">OpenCat · 部件图</text>
+    <text x="1096" y="176" font-size="12" fill="#656b61">来源已核对 / 硬件待实测</text>
+  </g>
+  <rect x="56" y="242" width="1328" height="536" fill="url(#dots)"/>
+  <g stroke="#aaa99c" fill="none" stroke-width="1.3">
+    <ellipse cx="752" cy="695" rx="316" ry="50"/>
+    <path d="M436 695H1068M752 645V745" opacity=".55"/>
+    <path d="M377 325H515Q548 325 578 358L711 432M740 277V402M1152 481H1000L911 575"/>
+    <path d="M268 553H458L569 473" stroke-dasharray="4 7"/>
+    <path d="M945 684L1117 702" stroke-dasharray="4 7"/>
+  </g>
+  <!-- 原创结构示意；部件位置只用于表达关系，不是具体型号装配图。 -->
+  <g stroke="#777c72" stroke-width="2" stroke-linejoin="round" filter="url(#shadow)">
+    <g opacity=".48" fill="url(#metal)">
+      <path d="M722 479L742 569L715 670L733 678L770 572L755 477Z"/>
+      <path d="M904 473L947 559L933 664L952 672L977 557L933 462Z"/>
+    </g>
+    <path d="M603 419L733 370L950 411L826 470Z" fill="#e7e7df"/>
+    <path d="M603 419L826 470V523L603 470Z" fill="url(#metal)"/>
+    <path d="M826 470L950 411V463L826 523Z" fill="#aeb2a5"/>
+    <path d="M562 390L624 366L665 391L605 417Z" fill="#eeeee7"/>
+    <path d="M562 390L605 417V470L562 444Z" fill="url(#metal)"/>
+    <path d="M605 417L665 391V444L605 470Z" fill="#b8bdb0"/>
+    <path d="M628 488L588 568L611 693L632 688L619 573L661 494Z" fill="url(#metal)"/>
+    <path d="M845 513L877 578L845 704L868 708L911 575L879 502Z" fill="url(#metal)"/>
+    <g fill="#e8e9df"><circle cx="645" cy="493" r="17"/><circle cx="603" cy="572" r="16"/><circle cx="862" cy="512" r="17"/><circle cx="894" cy="576" r="17"/></g>
+    <g fill="#747c6c"><circle cx="645" cy="493" r="5"/><circle cx="603" cy="572" r="5"/><circle cx="862" cy="512" r="5"/><circle cx="894" cy="576" r="5"/></g>
+    <path d="M697 413L746 394L804 407L755 428Z" fill="#677461"/>
+    <path d="M730 412L750 405L773 410L753 417Z" fill="#bfc9b2"/>
+  </g>
+  <g font-family="'Microsoft YaHei', sans-serif" fill="#2d332c">
+    <use href="#node" x="335" y="325" filter="url(#shadow)"/>
+    <text x="270" y="397" font-size="23">姿态感知</text>
+    <text x="273" y="423" font-size="14" fill="#656c60">IMU / 感知身体倾斜</text>
+    <use href="#node" x="740" y="278" filter="url(#shadow)"/>
+    <text x="800" y="273" font-size="23">主控与步态</text>
+    <text x="800" y="301" font-size="14" fill="#656c60">NyBoard / 协调动作</text>
+    <circle cx="1180" cy="481" r="125" fill="url(#glow)"/>
+    <use href="#node" x="1180" y="481" filter="url(#shadow)"/>
+    <circle cx="1180" cy="481" r="13" fill="url(#core)"/>
+    <text x="1118" y="554" font-size="25">关节驱动</text>
+    <text x="1098" y="582" font-size="14" fill="#75603d">舵机 / 把指令变成动作</text>
+    <text x="1142" y="613" font-size="11" letter-spacing="2" fill="#906b34">当前焦点</text>
+    <use href="#small-disc" x="242" y="553"/>
+    <text x="169" y="606" font-size="18">嵌入式基础</text>
+    <text x="171" y="632" font-size="13" fill="#656c60">从教学路线补齐知识</text>
+    <use href="#small-disc" x="1141" y="706"/>
+    <text x="1187" y="700" font-size="17">电机控制</text>
+    <text x="1187" y="725" font-size="12" fill="#656c60">SimpleFOC · 独立分支</text>
+  </g>
+  <g font-family="'Microsoft YaHei', sans-serif" fill="#343a32">
+    <path d="M56 808H1384" stroke="#a8aaa0"/>
+    <text x="56" y="853" font-size="14">01 / 物体是结构</text>
+    <text x="493" y="853" font-size="14">02 / 连线有含义</text>
+    <text x="948" y="853" font-size="14">03 / 点亮后能继续</text>
+    <text x="56" y="881" font-size="13" fill="#6a6e63">轮廓对应真实部件，不用装饰图替代能力说明。</text>
+    <text x="493" y="881" font-size="13" fill="#6a6e63">实线定位部件，虚线连接相关学习资源。</text>
+    <text x="948" y="881" font-size="13" fill="#6a6e63">选节点 → 看演示 / 看原作 / 进入教学。</text>
+    <text x="56" y="931" font-size="11" fill="#73776c">美术概念样张 · 非实机照片或完成进度 · 暖光只表示选择 · SVG 元素可拆分交给页面实现</text>
+    <text x="1384" y="931" font-size="11" text-anchor="end" fill="#73776c">CODEX × OPUS / 2026.10.11</text>
+  </g>
+</svg>

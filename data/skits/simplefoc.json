@@ -1,0 +1,147 @@
+{
+  "format": "skit/1",
+  "disc": "simplefoc",
+  "title": "SimpleFOC：让无刷电机听话",
+  "kicker": "LUOKIXI 开源小剧场 · 项目篇",
+  "note": "示意动画：内容依据 SimpleFOC README（b3d8f39，v2.4.0），本站没有接电机实测。",
+  "sources": [
+    { "label": "README @ b3d8f39", "url": "https://github.com/simplefoc/Arduino-FOC/blob/b3d8f3931342ae68a980d0140e24b9048eba098b/README.md" },
+    { "label": "文档 docs.simplefoc.com", "url": "https://docs.simplefoc.com" }
+  ],
+  "scenes": [
+    {
+      "title": "要解决什么",
+      "tone": "paper",
+      "headline": "无刷电机，[怎么让它听话]？",
+      "big": "?",
+      "lines": [
+        { "who": "bk", "act": "explain", "text": "云台、机械臂关节、小车轮子，很多机器人都用无刷电机。" },
+        { "who": "bk", "act": "think", "text": "可它没法“给个角度就转过去”。中间到底要管几件事？我们一件件数。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "paper",
+      "headline": "第 1 件：转子[现在在哪]？",
+      "big": "1",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "读位置", "sub": "编码器告诉你转子角度" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "point", "text": "先得知道转子转到了哪儿，所以要读编码器之类的位置传感器。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "yellow",
+      "headline": "第 2 件：三相[各加多少电压]？",
+      "big": "2",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "读位置", "sub": "编码器告诉你转子角度" }, { "n": 2, "label": "算电压", "sub": "按角度算三相该给多少：FOC" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "think", "text": "知道角度以后，要按这个角度算出三相各加多少电压。这一步就叫 FOC。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "pink",
+      "headline": "第 3 件：把电压[送到驱动板]",
+      "big": "3",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "读位置", "sub": "编码器告诉你转子角度" }, { "n": 2, "label": "算电压", "sub": "按角度算三相该给多少：FOC" }, { "n": 3, "label": "出 PWM", "sub": "三路 PWM 交给驱动板" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "explain", "text": "算出来的电压，要变成三路 PWM 交给驱动板，驱动板再去推电机。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "blue",
+      "headline": "第 4 件：外面还要[再套一圈]",
+      "big": "4",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "读位置", "sub": "编码器告诉你转子角度" }, { "n": 2, "label": "算电压", "sub": "按角度算三相该给多少：FOC" }, { "n": 3, "label": "出 PWM", "sub": "三路 PWM 交给驱动板" }, { "n": 4, "label": "速度 / 角度闭环", "sub": "看实际值，不停修正" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "fail", "text": "最后还要一圈速度或角度闭环，不停对比实际值去修正。四件事一直在循环，哪件写歪了都转不稳。" }
+      ]
+    },
+    {
+      "title": "它是谁",
+      "tone": "ink",
+      "headline": "[SimpleFOC]：把这四件事做成一个 Arduino 库",
+      "ui": [
+        { "type": "table", "rows": [ ["版本", "2.4.0"], ["许可", "MIT"], ["电机", "无刷 BLDC · 步进"], ["开发环境", "Arduino IDE · PlatformIO"], ["板子", "Arduino · STM32 · ESP32 · RP2040 · Teensy …"] ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "result", "text": "SimpleFOC 是开源的跨平台 FOC 库，用 Arduino IDE 或 PlatformIO 就能装。" },
+        { "who": "bk", "act": "explain", "text": "无刷电机和步进电机都能用，Arduino、STM32、ESP32、树莓派 Pico 这些板子都支持。" }
+      ]
+    },
+    {
+      "title": "代码长什么样",
+      "tone": "paper",
+      "headline": "主循环里只有[两句]",
+      "ui": [
+        { "type": "window", "title": "README 里的速度控制例子（节选）", "tilt": -3, "code": [
+          "BLDCMotor motor = BLDCMotor(11);",
+          "BLDCDriver3PWM driver = BLDCDriver3PWM(9, 10, 11, 8);",
+          "Encoder encoder = Encoder(2, 3, 2048);",
+          "",
+          "void setup() {",
+          "  motor.controller = MotionControlType::velocity;",
+          "  motor.init();",
+          "  motor.initFOC();",
+          "}",
+          "void loop() {",
+          "  motor.loopFOC();",
+          "  motor.move(2);",
+          "}"
+        ], "mark": [6, 7, 10, 11] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "point", "text": "setup 里：motor.init() 初始化电机，motor.initFOC() 对齐编码器、启动 FOC。" },
+        { "who": "bk", "act": "point", "text": "loop 里就两句：loopFOC() 跑 FOC，move(2) 设目标，这个例子是每秒 2 弧度。" }
+      ]
+    },
+    {
+      "title": "换控制方式",
+      "tone": "yellow",
+      "headline": "要速度、要角度、要力矩，[改一行]",
+      "ui": [
+        { "type": "checklist", "items": [ "速度闭环 velocity", "角度闭环 angle", "开环 velocity_openloop", "力矩：电压 · foc_current · estimated_current" ] },
+        { "type": "badge", "text": "README：所有闭环、开环模式都能配任意力矩模式", "at": 1 }
+      ],
+      "lines": [
+        { "who": "bk", "act": "explain", "text": "控制方式就写在 motor.controller 这一行：速度、角度，或者开环。" },
+        { "who": "bk", "act": "result", "text": "README 写得很清楚：所有闭环和开环模式，都能和任意一种力矩控制搭配。" }
+      ]
+    },
+    {
+      "title": "边转边调",
+      "tone": "pink",
+      "headline": "参数不对？[边转边调]",
+      "ui": [
+        { "type": "flow", "loop": true, "steps": [ "改一个参数", "串口 / SimpleFOCStudio 看数据", "电机马上跟着变" ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "observe", "text": "库里自带串口通信和监视，还有图形界面 SimpleFOCStudio，可以一边转一边调参、看数据。" }
+      ]
+    },
+    {
+      "title": "带走",
+      "tone": "paper",
+      "headline": "从四件事，到[两行主循环]",
+      "ui": [
+        { "type": "compare", "before": { "label": "自己从头写", "value": "位置 + FOC + PWM + 闭环" }, "after": { "label": "用 SimpleFOC", "value": "loopFOC + move" } },
+        { "type": "checklist", "at": 1, "items": [ "无刷电机（或步进电机）", "驱动板", "编码器等位置传感器", "Arduino 兼容的开发板" ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "result", "text": "自己写要一直管四件事；用 SimpleFOC，主循环里就是 loopFOC 和 move。" },
+        { "who": "bk", "act": "explain", "text": "想动手，准备这四样，从库自带的例程开始。" },
+        { "who": "bk", "act": "think", "text": "说明一下：这一集是示意动画，本站还没有接电机实测。具体接线以 SimpleFOC 文档为准。" }
+      ]
+    }
+  ]
+}

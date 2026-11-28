@@ -1,0 +1,1 @@
+import{t as e}from"./favorites-desk-DT0_EabJ.js";export{e as mountFavorites};

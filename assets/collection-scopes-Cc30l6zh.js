@@ -1,0 +1,1 @@
+var e={workKinds:[`project`,`resource`,`paper`,`reproduction`,`collection`],learningTopicTypes:[`question`]};function t(t){let n=t.data||{};return e.workKinds.includes(t.kind)||t.kind===`topic`&&!n.circle&&e.learningTopicTypes.includes(n.learning?.materialType)}var n=(e,n)=>e.filter(e=>n===`works`?t(e):!t(e));export{t as n,n as t};

@@ -1,0 +1,2274 @@
+{
+ "schema": "tc264-bench-catalog/1",
+ "source": "public/data/replays/schoolcar-tc264/index.json 与各案例回放的 args",
+ "note": "全部是仿真；实车成绩另榜，不混排。负压：11-05 起的新控制回放带风机参数，记为有负压；更早的回放没有风机记录，仍记未记录（μ 是摩擦系数，不代表负压）。",
+ "groups": [
+  {
+   "id": "school",
+   "label": "校赛",
+   "note": "预赛＋左上六边形环岛＋中部横向虚线；A/B/C 为已排除的历史位置；照片图 29.4 m 是 11-04 的校赛照片（新控制）"
+  },
+  {
+   "id": "prelim",
+   "label": "预赛",
+   "note": "第 21 届分赛区预赛图；P15 照片定位地图是新控制用的同一张图"
+  },
+  {
+   "id": "final",
+   "label": "国赛",
+   "note": "决赛参考全图"
+  },
+  {
+   "id": "province",
+   "label": "省赛",
+   "note": "2025 省赛图"
+  },
+  {
+   "id": "special",
+   "label": "专项",
+   "note": "单个元素和直道测试"
+  }
+ ],
+ "configs": [
+  {
+   "id": "pilot-p15-flow",
+   "title": "新控制 · 预赛 P15 · 现在车上的 51f9ff6c（镜头 15 cm、弯半径 155、风机 50→70%）",
+   "kind": "success",
+   "category": "lap",
+   "map": "prelim-p15-photo",
+   "group": "prelim",
+   "speed": 200,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": true,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "pilot-p15-flow-csim.json.gz",
+     "time_s": 10.183,
+     "dist_m": 17.49,
+     "lat_max": 53.7,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "pilot-p15-flow-pybullet.json.gz",
+     "time_s": 10.378,
+     "dist_m": 17.49,
+     "lat_max": 47,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "pilot-p15-200",
+   "title": "新控制 · 预赛 P15 · 36635b41（按 18 cm 镜头，已被 51f9ff6c 取代）",
+   "kind": "success",
+   "category": "lap",
+   "map": "prelim-p15-photo",
+   "group": "prelim",
+   "speed": 200,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": true,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "pilot-p15-200-csim.json.gz",
+     "time_s": 10.153,
+     "dist_m": 17.49,
+     "lat_max": 51.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "pilot-p15-200-pybullet.json.gz",
+     "time_s": 10.637,
+     "dist_m": 17.49,
+     "lat_max": 44.3,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "pursuit-school-156",
+   "title": "新控制 · 校赛照片图 · 资格后普通直角 156 档",
+   "kind": "success",
+   "category": "lap",
+   "map": "school-photo-29m",
+   "group": "school",
+   "speed": 350,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": true,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "pursuit-school-156-csim.json.gz",
+     "time_s": 14.107,
+     "dist_m": 29.41,
+     "lat_max": 53,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "pursuit-school-156-pybullet.json.gz",
+     "time_s": 14.578,
+     "dist_m": 29.4,
+     "lat_max": 49.3,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "pursuit-school-c2",
+   "title": "新控制 · 校赛照片图 · 第 24 弯外偏 30 mm、250 mm 圆弧、240 档",
+   "kind": "success",
+   "category": "lap",
+   "map": "school-photo-29m",
+   "group": "school",
+   "speed": 350,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": true,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "pursuit-school-c2-csim.json.gz",
+     "time_s": 14.01,
+     "dist_m": 29.4,
+     "lat_max": 53.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "pursuit-school-c2-pybullet.json.gz",
+     "time_s": 14.427,
+     "dist_m": 29.4,
+     "lat_max": 46.6,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "school-prelim-draft",
+   "title": "当前校赛 · 两三极管间虚线＋电阻",
+   "kind": "failure",
+   "category": "lap",
+   "map": "school-prelim-v1",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-prelim-draft-csim.json.gz",
+     "time_s": 5.632,
+     "dist_m": 5.54,
+     "lat_max": 60,
+     "out": 1,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "school-dash-a-fill",
+   "title": "历史竖向候选（已排除） · 方案 A · 补线候选 · 外圈验证",
+   "kind": "failure",
+   "category": "dash",
+   "map": "school-dash-a-fill",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-dash-a-fill-csim.json.gz",
+     "time_s": 6.851,
+     "dist_m": 7.02,
+     "lat_max": 60.3,
+     "out": 1,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "school-dash-b-fill",
+   "title": "历史竖向候选（已排除） · 方案 B · 补线候选 · 外圈验证",
+   "kind": "failure",
+   "category": "dash",
+   "map": "school-dash-b-fill",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-dash-b-fill-csim.json.gz",
+     "time_s": 6.847,
+     "dist_m": 7.02,
+     "lat_max": 60.1,
+     "out": 1,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "school-dash-c-fill",
+   "title": "历史竖向候选（已排除） · 方案 C · 补线候选 · 外圈验证",
+   "kind": "failure",
+   "category": "dash",
+   "map": "school-dash-c-fill",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-dash-c-fill-csim.json.gz",
+     "time_s": 6.851,
+     "dist_m": 7.02,
+     "lat_max": 60,
+     "out": 1,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "school-dash-a-baseline",
+   "title": "历史竖向候选（已排除） · 方案 A · 原参数 · 外圈验证",
+   "kind": "failure",
+   "category": "dash",
+   "map": "school-dash-a",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-dash-a-baseline-csim.json.gz",
+     "time_s": 3.85,
+     "dist_m": 3.92,
+     "lat_max": 48.2,
+     "out": 0,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "school-dash-b-baseline",
+   "title": "历史竖向候选（已排除） · 方案 B · 原参数 · 外圈验证",
+   "kind": "failure",
+   "category": "dash",
+   "map": "school-dash-b",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-dash-b-baseline-csim.json.gz",
+     "time_s": 4.265,
+     "dist_m": 4.37,
+     "lat_max": 48.2,
+     "out": 0,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "school-dash-c-baseline",
+   "title": "历史竖向候选（已排除） · 方案 C · 原参数 · 外圈验证",
+   "kind": "failure",
+   "category": "dash",
+   "map": "school-dash-c",
+   "group": "school",
+   "speed": 125,
+   "mu": 1,
+   "fps": 150,
+   "out_mm": 60,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "school-dash-c-baseline-csim.json.gz",
+     "time_s": 4.63,
+     "dist_m": 4.77,
+     "lat_max": 48.2,
+     "out": 0,
+     "lap": 0
+    }
+   ]
+  },
+  {
+   "id": "route14-stable-sguard-20261024",
+   "title": "稳定维护 · 修正直行节点完成",
+   "kind": "success",
+   "category": "lap",
+   "map": "full-opt",
+   "group": "final",
+   "speed": 240,
+   "mu": 1.5,
+   "fps": 490,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route14-stable-sguard-20261024-csim.json",
+     "time_s": 17.685,
+     "dist_m": 25.85,
+     "lat_max": 48.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route14-stable-sguard-20261024-pybullet.json",
+     "time_s": 17.966,
+     "dist_m": 25.85,
+     "lat_max": 36.7,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route15-stable18-20261024",
+   "title": "全图18秒内 · 已测8项通过",
+   "kind": "success",
+   "category": "lap",
+   "map": "full-opt",
+   "group": "final",
+   "speed": 240,
+   "mu": 1.5,
+   "fps": 490,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route15-stable18-20261024-csim.json",
+     "time_s": 17.682,
+     "dist_m": 25.85,
+     "lat_max": 48.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route15-stable18-20261024-pybullet.json",
+     "time_s": 17.942,
+     "dist_m": 25.85,
+     "lat_max": 36.7,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route12-guard-fast-20261024",
+   "title": "全图冲刺 · 未达12秒",
+   "kind": "failure",
+   "category": "lap",
+   "map": "full-opt",
+   "group": "final",
+   "speed": 275,
+   "mu": 1.5,
+   "fps": 490,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route12-guard-fast-20261024-csim.json",
+     "time_s": 13.956,
+     "dist_m": 25.85,
+     "lat_max": 53.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route12-guard-fast-20261024-pybullet.json",
+     "time_s": 14.501,
+     "dist_m": 25.85,
+     "lat_max": 49.1,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route15-sprint15-20261024",
+   "title": "15秒内冲刺 · 实验方案",
+   "kind": "failure",
+   "category": "lap",
+   "map": "full-opt",
+   "group": "final",
+   "speed": 275,
+   "mu": 1.5,
+   "fps": 490,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route15-sprint15-20261024-csim.json",
+     "time_s": 14.407,
+     "dist_m": 25.85,
+     "lat_max": 48.5,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route15-sprint15-20261024-pybullet.json",
+     "time_s": 14.903,
+     "dist_m": 25.85,
+     "lat_max": 44.6,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route-opt-full",
+   "title": "最优路线 · 2025 全图（校赛规则：过完最后一个元件就出线，少转弯）",
+   "kind": "success",
+   "category": "lap",
+   "map": "full-opt",
+   "group": "final",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route-opt-full-csim.json",
+     "time_s": 24.736,
+     "dist_m": 25.85,
+     "lat_max": 35.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route-opt-full-pybullet.json",
+     "time_s": 25.072,
+     "dist_m": 25.85,
+     "lat_max": 51.1,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route-opt-prelim",
+   "title": "最优路线 · 预赛图（校赛规则：过完最后一个元件就出线，少转弯）",
+   "kind": "success",
+   "category": "lap",
+   "map": "prelim-opt",
+   "group": "prelim",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route-opt-prelim-csim.json",
+     "time_s": 17.112,
+     "dist_m": 17.49,
+     "lat_max": 46.6,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route-opt-prelim-pybullet.json",
+     "time_s": 17.3,
+     "dist_m": 17.49,
+     "lat_max": 41.6,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route-opt-prelim-200",
+   "title": "最优路线 · 预赛图（校赛规则：过完最后一个元件就出线，少转弯） · 200 档",
+   "kind": "success",
+   "category": "lap",
+   "map": "prelim-opt",
+   "group": "prelim",
+   "speed": 200,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route-opt-prelim-200-csim.json",
+     "time_s": 15.244,
+     "dist_m": 17.49,
+     "lat_max": 44.7,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route-opt-prelim-200-pybullet.json",
+     "time_s": 15.501,
+     "dist_m": 17.49,
+     "lat_max": 43.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "route-opt-full-200",
+   "title": "最优路线 · 2025 全图（校赛规则：过完最后一个元件就出线，少转弯） · 200 档",
+   "kind": "success",
+   "category": "lap",
+   "map": "full-opt",
+   "group": "final",
+   "speed": 200,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "route-opt-full-200-csim.json",
+     "time_s": 22.355,
+     "dist_m": 25.85,
+     "lat_max": 37.4,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "route-opt-full-200-pybullet.json",
+     "time_s": 22.632,
+     "dist_m": 25.85,
+     "lat_max": 43.3,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "province2025-lower-start",
+   "title": "对照 · 旧路线 · 2025 全图 26 m 闭环（只求最短、回到起点）",
+   "kind": "success",
+   "category": "lap",
+   "map": "province2025-lower-start",
+   "group": "province",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "province2025-lower-start-csim.json",
+     "time_s": 26.016,
+     "dist_m": 26.15,
+     "lat_max": 45.2,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "province2025-lower-start-pybullet.json",
+     "time_s": 26.465,
+     "dist_m": 26.15,
+     "lat_max": 44.3,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "lap250",
+   "title": "混合圈 · 直道 250（负压、抓地受限，速度规划）",
+   "kind": "success",
+   "category": "track",
+   "map": "",
+   "group": "special",
+   "speed": 250,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "lap250-csim.json",
+     "time_s": 4.949,
+     "dist_m": 7.64,
+     "lat_max": 40.5,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "lap250-pybullet.json",
+     "time_s": 5.006,
+     "dist_m": 7.64,
+     "lat_max": 39.1,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "lap300",
+   "title": "混合圈 · 直道 300（负压、抓地受限，速度规划 + 前瞻）",
+   "kind": "success",
+   "category": "track",
+   "map": "",
+   "group": "special",
+   "speed": 300,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "lap300-csim.json",
+     "time_s": 4.799,
+     "dist_m": 7.64,
+     "lat_max": 40.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "lap300-pybullet.json",
+     "time_s": 4.821,
+     "dist_m": 7.64,
+     "lat_max": 40.8,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ra150",
+   "title": "直角 · 150 档（无负压、抓地受限、快电机）",
+   "kind": "success",
+   "category": "corner",
+   "map": "",
+   "group": "special",
+   "speed": 150,
+   "mu": 0.9,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ra150-csim.json",
+     "time_s": 2.46,
+     "dist_m": 2.88,
+     "lat_max": 33.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ra150-pybullet.json",
+     "time_s": 2.502,
+     "dist_m": 2.88,
+     "lat_max": 27.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-straight_parts",
+   "title": "元件 · 直道 + 电源、电阻图案",
+   "kind": "success",
+   "category": "track",
+   "map": "straight_parts",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-straight_parts-csim.json",
+     "time_s": 1.642,
+     "dist_m": 2.08,
+     "lat_max": 2.6,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-straight_parts-pybullet.json",
+     "time_s": 1.641,
+     "dist_m": 2.08,
+     "lat_max": 0.5,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-right_angle",
+   "title": "元件 · 90° 直角",
+   "kind": "success",
+   "category": "corner",
+   "map": "right_angle",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-right_angle-csim.json",
+     "time_s": 1.842,
+     "dist_m": 1.98,
+     "lat_max": 35,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-right_angle-pybullet.json",
+     "time_s": 1.854,
+     "dist_m": 1.98,
+     "lat_max": 26,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-plain_T_left",
+   "title": "元件 · 普通 T 型分支",
+   "kind": "success",
+   "category": "t",
+   "map": "plain_T_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-plain_T_left-csim.json",
+     "time_s": 1.792,
+     "dist_m": 1.98,
+     "lat_max": 34.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-plain_T_left-pybullet.json",
+     "time_s": 1.809,
+     "dist_m": 1.98,
+     "lat_max": 26.1,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-transistor_T_straight",
+   "title": "元件 · 三极管 T 型分支",
+   "kind": "success",
+   "category": "t",
+   "map": "transistor_T_straight",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-transistor_T_straight-csim.json",
+     "time_s": 1.412,
+     "dist_m": 1.78,
+     "lat_max": 13.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-transistor_T_straight-pybullet.json",
+     "time_s": 1.414,
+     "dist_m": 1.78,
+     "lat_max": 10.8,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-dash_fork_right",
+   "title": "元件 · 实线 / 虚线分岔（虚线段 50、间隙 50 mm）",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_end_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-dash_fork_right-csim.json",
+     "time_s": 1.79,
+     "dist_m": 1.98,
+     "lat_max": 32.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-dash_fork_right-pybullet.json",
+     "time_s": 1.793,
+     "dist_m": 1.98,
+     "lat_max": 27,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-dash_fork_right_gap20",
+   "title": "元件 · 实线 / 虚线分岔（间隙 20 mm，对照）",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_end_right_g20",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-dash_fork_right_gap20-csim.json",
+     "time_s": 1.829,
+     "dist_m": 1.98,
+     "lat_max": 34.2,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-dash_fork_right_gap20-pybullet.json",
+     "time_s": 1.833,
+     "dist_m": 1.98,
+     "lat_max": 28.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "el-hexagon_loop",
+   "title": "元件 · 六边形环岛",
+   "kind": "success",
+   "category": "hexagon",
+   "map": "hexagon_loop",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "el-hexagon_loop-csim.json",
+     "time_s": 5.146,
+     "dist_m": 3.58,
+     "lat_max": 23.5,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "el-hexagon_loop-pybullet.json",
+     "time_s": 5.133,
+     "dist_m": 3.58,
+     "lat_max": 25.8,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "rt-T_left",
+   "title": "路线 · 普通 T：主线直行、左侧支路，路线表左转",
+   "kind": "success",
+   "category": "",
+   "map": "T_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "production",
+     "short": "production",
+     "file": "rt-T_left-production.json",
+     "time_s": 1.535,
+     "dist_m": 1,
+     "lat_max": 940.4,
+     "out": 0,
+     "lap": 0
+    },
+    {
+     "variant": "candidate",
+     "short": "candidate",
+     "file": "rt-T_left-candidate.json",
+     "time_s": 1.795,
+     "dist_m": 1.98,
+     "lat_max": 38,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "rt-T_right",
+   "title": "路线 · 普通 T：右侧支路，路线表右转",
+   "kind": "success",
+   "category": "",
+   "map": "T_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "production",
+     "short": "production",
+     "file": "rt-T_right-production.json",
+     "time_s": 1.535,
+     "dist_m": 1,
+     "lat_max": 941.1,
+     "out": 0,
+     "lap": 0
+    },
+    {
+     "variant": "candidate",
+     "short": "candidate",
+     "file": "rt-T_right-candidate.json",
+     "time_s": 1.799,
+     "dist_m": 1.98,
+     "lat_max": 35.8,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "rt-T_end_left",
+   "title": "路线 · T 字尽头：线撞上横线，路线表左转",
+   "kind": "success",
+   "category": "",
+   "map": "T_end_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "production",
+     "short": "production",
+     "file": "rt-T_end_left-production.json",
+     "time_s": 0.76,
+     "dist_m": 0.93,
+     "lat_max": 2.4,
+     "out": 0,
+     "lap": 0
+    },
+    {
+     "variant": "candidate",
+     "short": "candidate",
+     "file": "rt-T_end_left-candidate.json",
+     "time_s": 1.825,
+     "dist_m": 1.98,
+     "lat_max": 38.3,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "rt-T_two",
+   "title": "路线 · 连续两个普通 T：第一个直行，第二个右转",
+   "kind": "success",
+   "category": "",
+   "map": "T_two",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "production",
+     "short": "production",
+     "file": "rt-T_two-production.json",
+     "time_s": 2.145,
+     "dist_m": 1.9,
+     "lat_max": 840.3,
+     "out": 0,
+     "lap": 0
+    },
+    {
+     "variant": "candidate",
+     "short": "candidate",
+     "file": "rt-T_two-candidate.json",
+     "time_s": 2.483,
+     "dist_m": 2.88,
+     "lat_max": 37.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "rt-T_wrong_table",
+   "title": "路线 · 普通 T：路线表写错（要右转，路口只有左支路）",
+   "kind": "success",
+   "category": "",
+   "map": "T_wrong_table",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": null,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "production",
+     "short": "production",
+     "file": "rt-T_wrong_table-production.json",
+     "time_s": 1.411,
+     "dist_m": 1.78,
+     "lat_max": 2.4,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "candidate",
+     "short": "candidate",
+     "file": "rt-T_wrong_table-candidate.json",
+     "time_s": 1.411,
+     "dist_m": 1.78,
+     "lat_max": 2.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-corner_left",
+   "title": "直角 · 左直角",
+   "kind": "success",
+   "category": "corner",
+   "map": "corner_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-corner_left-csim.json",
+     "time_s": 1.842,
+     "dist_m": 1.98,
+     "lat_max": 35,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-corner_left-pybullet.json",
+     "time_s": 1.854,
+     "dist_m": 1.98,
+     "lat_max": 26,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-corner_right",
+   "title": "直角 · 右直角",
+   "kind": "success",
+   "category": "corner",
+   "map": "corner_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-corner_right-csim.json",
+     "time_s": 1.846,
+     "dist_m": 1.98,
+     "lat_max": 32.6,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-corner_right-pybullet.json",
+     "time_s": 1.853,
+     "dist_m": 1.98,
+     "lat_max": 26.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-corner_U",
+   "title": "直角 · 连续两个左直角（掉头形，间距 400 mm）",
+   "kind": "success",
+   "category": "corner",
+   "map": "corner_U",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-corner_U-csim.json",
+     "time_s": 2.319,
+     "dist_m": 2.38,
+     "lat_max": 35,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-corner_U-pybullet.json",
+     "time_s": 2.356,
+     "dist_m": 2.38,
+     "lat_max": 30.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-corner_S",
+   "title": "直角 · 左直角接右直角（S 形，间距 400 mm）",
+   "kind": "success",
+   "category": "corner",
+   "map": "corner_S",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-corner_S-csim.json",
+     "time_s": 1.968,
+     "dist_m": 1.98,
+     "lat_max": 47.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-corner_S-pybullet.json",
+     "time_s": 1.996,
+     "dist_m": 1.98,
+     "lat_max": 48.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-corner_close",
+   "title": "直角 · 连续两个左直角，间距 250 mm",
+   "kind": "success",
+   "category": "corner",
+   "map": "corner_close",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-corner_close-csim.json",
+     "time_s": 1.966,
+     "dist_m": 1.93,
+     "lat_max": 35.5,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-corner_close-pybullet.json",
+     "time_s": 2.002,
+     "dist_m": 1.93,
+     "lat_max": 31.7,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_straight",
+   "title": "普通 T：同一个路口，路线表直行",
+   "kind": "success",
+   "category": "t",
+   "map": "T_straight",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_straight-csim.json",
+     "time_s": 1.412,
+     "dist_m": 1.78,
+     "lat_max": 2.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_straight-pybullet.json",
+     "time_s": 1.411,
+     "dist_m": 1.78,
+     "lat_max": 0.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_left",
+   "title": "普通 T：主线直行、左侧支路，路线表左转",
+   "kind": "success",
+   "category": "t",
+   "map": "T_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_left-csim.json",
+     "time_s": 1.792,
+     "dist_m": 1.98,
+     "lat_max": 34.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_left-pybullet.json",
+     "time_s": 1.809,
+     "dist_m": 1.98,
+     "lat_max": 26.1,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_right",
+   "title": "普通 T：右侧支路，路线表右转",
+   "kind": "success",
+   "category": "t",
+   "map": "T_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_right-csim.json",
+     "time_s": 1.806,
+     "dist_m": 1.98,
+     "lat_max": 30.8,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_right-pybullet.json",
+     "time_s": 1.809,
+     "dist_m": 1.98,
+     "lat_max": 26.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_end_left",
+   "title": "T 字尽头：线撞上横线，路线表左转",
+   "kind": "success",
+   "category": "t",
+   "map": "T_end_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_end_left-csim.json",
+     "time_s": 1.827,
+     "dist_m": 1.98,
+     "lat_max": 35.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_end_left-pybullet.json",
+     "time_s": 1.834,
+     "dist_m": 1.98,
+     "lat_max": 28.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_end_right",
+   "title": "T 字尽头：同一个路口，路线表右转",
+   "kind": "success",
+   "category": "t",
+   "map": "T_end_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_end_right-csim.json",
+     "time_s": 1.83,
+     "dist_m": 1.98,
+     "lat_max": 32.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_end_right-pybullet.json",
+     "time_s": 1.833,
+     "dist_m": 1.98,
+     "lat_max": 28.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_two",
+   "title": "连续两个普通 T：第一个直行，第二个右转",
+   "kind": "success",
+   "category": "t",
+   "map": "T_two",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_two-csim.json",
+     "time_s": 2.489,
+     "dist_m": 2.88,
+     "lat_max": 32.5,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_two-pybullet.json",
+     "time_s": 2.494,
+     "dist_m": 2.88,
+     "lat_max": 26.9,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-T_wrong_table",
+   "title": "普通 T：路线表写错（要右转，路口只有左支路）",
+   "kind": "success",
+   "category": "t",
+   "map": "T_wrong_table",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-T_wrong_table-csim.json",
+     "time_s": 1.547,
+     "dist_m": 1.78,
+     "lat_max": 2.6,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-T_wrong_table-pybullet.json",
+     "time_s": 1.548,
+     "dist_m": 1.78,
+     "lat_max": 0.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-TT_straight",
+   "title": "三极管 T · 三极管 T：基极支路在左，路线表直行",
+   "kind": "success",
+   "category": "t",
+   "map": "TT_straight",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-TT_straight-csim.json",
+     "time_s": 1.412,
+     "dist_m": 1.78,
+     "lat_max": 13.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-TT_straight-pybullet.json",
+     "time_s": 1.414,
+     "dist_m": 1.78,
+     "lat_max": 10.8,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-TT_left",
+   "title": "三极管 T · 三极管 T：路线表左转，走进基极支路",
+   "kind": "success",
+   "category": "t",
+   "map": "TT_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-TT_left-csim.json",
+     "time_s": 1.639,
+     "dist_m": 1.78,
+     "lat_max": 34.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-TT_left-pybullet.json",
+     "time_s": 1.656,
+     "dist_m": 1.78,
+     "lat_max": 26.1,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-TT_right",
+   "title": "三极管 T · 三极管 T：基极支路在右，路线表右转",
+   "kind": "success",
+   "category": "t",
+   "map": "TT_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-TT_right-csim.json",
+     "time_s": 1.653,
+     "dist_m": 1.78,
+     "lat_max": 31.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-TT_right-pybullet.json",
+     "time_s": 1.656,
+     "dist_m": 1.78,
+     "lat_max": 26.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-cross_straight",
+   "title": "十字 · 十字路口直行",
+   "kind": "success",
+   "category": "cross",
+   "map": "cross_straight",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-cross_straight-csim.json",
+     "time_s": 1.411,
+     "dist_m": 1.78,
+     "lat_max": 2.7,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-cross_straight-pybullet.json",
+     "time_s": 1.411,
+     "dist_m": 1.78,
+     "lat_max": 0.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-cross_left",
+   "title": "十字 · 十字路口左转",
+   "kind": "success",
+   "category": "cross",
+   "map": "cross_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-cross_left-csim.json",
+     "time_s": 1.674,
+     "dist_m": 1.78,
+     "lat_max": 35.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-cross_left-pybullet.json",
+     "time_s": 1.681,
+     "dist_m": 1.78,
+     "lat_max": 28.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-cross_right",
+   "title": "十字 · 十字路口右转",
+   "kind": "success",
+   "category": "cross",
+   "map": "cross_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-cross_right-csim.json",
+     "time_s": 1.678,
+     "dist_m": 1.78,
+     "lat_max": 32.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-cross_right-pybullet.json",
+     "time_s": 1.68,
+     "dist_m": 1.78,
+     "lat_max": 28.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-D_end_right",
+   "title": "虚线 · 实线 / 虚线分岔：右转进虚线（间隙 50 mm），过电阻",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_end_right",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-D_end_right-csim.json",
+     "time_s": 1.79,
+     "dist_m": 1.98,
+     "lat_max": 32.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-D_end_right-pybullet.json",
+     "time_s": 1.793,
+     "dist_m": 1.98,
+     "lat_max": 27,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-D_end_right_g20",
+   "title": "虚线 · 同一分岔，虚线间隙 20 mm",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_end_right_g20",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-D_end_right_g20-csim.json",
+     "time_s": 1.829,
+     "dist_m": 1.98,
+     "lat_max": 34.2,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-D_end_right_g20-pybullet.json",
+     "time_s": 1.833,
+     "dist_m": 1.98,
+     "lat_max": 28.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-D_end_left",
+   "title": "虚线 · 同一分岔，路线表左转进实线（补线开着）",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_end_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-D_end_left-csim.json",
+     "time_s": 1.788,
+     "dist_m": 1.98,
+     "lat_max": 34,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-D_end_left-pybullet.json",
+     "time_s": 1.794,
+     "dist_m": 1.98,
+     "lat_max": 27,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-D_side_left",
+   "title": "虚线 · 主线直行、左侧虚线支路：路线表左转进虚线，过电阻",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_side_left",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-D_side_left-csim.json",
+     "time_s": 1.787,
+     "dist_m": 1.98,
+     "lat_max": 31.5,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-D_side_left-pybullet.json",
+     "time_s": 1.794,
+     "dist_m": 1.98,
+     "lat_max": 27,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-D_side_straight",
+   "title": "虚线 · 同一个虚线支路口，路线表直行",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_side_straight",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-D_side_straight-csim.json",
+     "time_s": 1.412,
+     "dist_m": 1.78,
+     "lat_max": 2.3,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-D_side_straight-pybullet.json",
+     "time_s": 1.411,
+     "dist_m": 1.78,
+     "lat_max": 0.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-D_two",
+   "title": "虚线 · 连续两个路口：普通 T 直行，再在实线 / 虚线分岔右转进虚线",
+   "kind": "success",
+   "category": "dash",
+   "map": "D_two",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-D_two-csim.json",
+     "time_s": 2.47,
+     "dist_m": 2.88,
+     "lat_max": 33,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-D_two-pybullet.json",
+     "time_s": 2.493,
+     "dist_m": 2.88,
+     "lat_max": 31.2,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-dash_straight",
+   "title": "虚线 · 直道中间 600 mm 虚线（段 50、间隙 50 mm）",
+   "kind": "success",
+   "category": "dash",
+   "map": "dash_straight",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-dash_straight-csim.json",
+     "time_s": 1.565,
+     "dist_m": 1.98,
+     "lat_max": 1.9,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-dash_straight-pybullet.json",
+     "time_s": 1.565,
+     "dist_m": 1.98,
+     "lat_max": 0.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-dash_straight_g20",
+   "title": "虚线 · 直道中间 600 mm 虚线（间隙 20 mm）",
+   "kind": "success",
+   "category": "dash",
+   "map": "dash_straight_g20",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-dash_straight_g20-csim.json",
+     "time_s": 1.565,
+     "dist_m": 1.98,
+     "lat_max": 2,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-dash_straight_g20-pybullet.json",
+     "time_s": 1.565,
+     "dist_m": 1.98,
+     "lat_max": 0.4,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-dash_after_corner",
+   "title": "虚线 · 左直角出来 300 mm 接 600 mm 虚线",
+   "kind": "success",
+   "category": "dash",
+   "map": "dash_after_corner",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-dash_after_corner-csim.json",
+     "time_s": 1.965,
+     "dist_m": 2.18,
+     "lat_max": 35.1,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-dash_after_corner-pybullet.json",
+     "time_s": 1.982,
+     "dist_m": 2.18,
+     "lat_max": 26.5,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-straight_long",
+   "title": "普通赛道 · 4 m 长直道 + 电源、电阻图案（看直道速度）",
+   "kind": "success",
+   "category": "track",
+   "map": "straight_long",
+   "group": "special",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-straight_long-csim.json",
+     "time_s": 2.941,
+     "dist_m": 3.78,
+     "lat_max": 2.6,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-straight_long-pybullet.json",
+     "time_s": 2.936,
+     "dist_m": 3.78,
+     "lat_max": 0.9,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-prelim",
+   "title": "对照 · 旧路线 · 预赛图 17.2 m 闭环（只求最短、回到起点）",
+   "kind": "success",
+   "category": "lap",
+   "map": "regional_prelim",
+   "group": "prelim",
+   "speed": 150,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-prelim-csim.json",
+     "time_s": 17.605,
+     "dist_m": 17.38,
+     "lat_max": 37.2,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-prelim-pybullet.json",
+     "time_s": 17.871,
+     "dist_m": 17.38,
+     "lat_max": 31.5,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "ct-prelim-200",
+   "title": "对照 · 旧路线 · 预赛图 17.2 m 闭环（只求最短、回到起点） · 200 档",
+   "kind": "success",
+   "category": "lap",
+   "map": "regional_prelim",
+   "group": "prelim",
+   "speed": 200,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "ct-prelim-200-csim.json",
+     "time_s": 15.908,
+     "dist_m": 17.38,
+     "lat_max": 37.6,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "ct-prelim-200-pybullet.json",
+     "time_s": 16.225,
+     "dist_m": 17.38,
+     "lat_max": 32.9,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  },
+  {
+   "id": "province2025-lower-start-200",
+   "title": "对照 · 旧路线 · 2025 全图 26 m 闭环（只求最短、回到起点） · 200 档",
+   "kind": "success",
+   "category": "lap",
+   "map": "province2025-lower-start",
+   "group": "province",
+   "speed": 200,
+   "mu": 1.5,
+   "fps": 120,
+   "out_mm": null,
+   "downforce": null,
+   "runs": [
+    {
+     "variant": "csim",
+     "short": "C 物理",
+     "file": "province2025-lower-start-200-csim.json",
+     "time_s": 23.589,
+     "dist_m": 26.15,
+     "lat_max": 43.8,
+     "out": 0,
+     "lap": 1
+    },
+    {
+     "variant": "pybullet",
+     "short": "PyBullet",
+     "file": "province2025-lower-start-200-pybullet.json",
+     "time_s": 24.128,
+     "dist_m": 26.15,
+     "lat_max": 46.8,
+     "out": 0,
+     "lap": 1
+    }
+   ]
+  }
+ ]
+}

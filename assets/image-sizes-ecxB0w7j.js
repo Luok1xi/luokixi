@@ -1,0 +1,1 @@
+var e=[160,320,640,960,1280],t=/^\/api\/hub\/(?:source-media\/[a-f0-9]{64}|uploads\/[0-9a-f-]{36}\/photo)$/,n=e=>typeof e==`string`&&t.test(e);function r(t,r){if(!n(t))return t;let i=r*Math.min(2,globalThis.devicePixelRatio||1);return`${t}?w=${e.find(e=>e>=i)??e.at(-1)}`}function i(e,t=[320,640,1280]){return n(e)?t.map(t=>`${e}?w=${t} ${t}w`).join(`, `):``}export{i as n,r as t};

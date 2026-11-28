@@ -1,0 +1,54 @@
+{
+  "model": "gpt-6-astra",
+  "reasoning": "low",
+  "skillVersion": "5.1.0",
+  "skillSha256": "ba68ff26239c3c3b05b2a9a47ee0d9a6b93a69639a2555ec87a5d44bffaf2f0c",
+  "protocol": "Three fixed tasks, one independent generation per condition. Same requested model, low reasoning, same user task and JSON schema. After condition appends the original public Ponytail SKILL.md. Ignore-user-config was requested and no tool calls were observed in run events. The CLI ignored features.skills, so complete removal of implicit skills was not established. Full plugin hook behavior was not tested. No retries or result selection. Timing is observed wall time, not a causal performance claim.",
+  "startedAt": "2026-10-11T11:56:23.842Z",
+  "runs": [
+    {
+      "id": "unique-tags",
+      "side": "before",
+      "exitCode": 0,
+      "wallMs": 37785,
+      "promptSha256": "537ac5036374e98681834139b45f752a0262873fd6df1a5dbd4bf4aa4766184b"
+    },
+    {
+      "id": "unique-tags",
+      "side": "after",
+      "exitCode": 0,
+      "wallMs": 29785,
+      "promptSha256": "953773dc72a7a2c2458d6312fcc3149c72c6d8582c86675244ca50a168a92656"
+    },
+    {
+      "id": "cart-total",
+      "side": "before",
+      "exitCode": 0,
+      "wallMs": 43115,
+      "promptSha256": "931d7439ae57867d33b0f46783402a1b711313c78583d8d77bebbbf7453dccb7"
+    },
+    {
+      "id": "cart-total",
+      "side": "after",
+      "exitCode": 0,
+      "wallMs": 42852,
+      "promptSha256": "249fad6a64355cfa9640c2fcd6c6f21cb7c2fdd9e44d5f92853fba033db62e13"
+    },
+    {
+      "id": "page-window",
+      "side": "before",
+      "exitCode": 0,
+      "wallMs": 43392,
+      "promptSha256": "54fd71c7260df161d06ebc7c710b8f4a38914c069bd6b3d6720136596c0b97dd"
+    },
+    {
+      "id": "page-window",
+      "side": "after",
+      "exitCode": 0,
+      "wallMs": 40699,
+      "promptSha256": "da44e9c378107742b6769ca3c70bc652631d5f5dc26899685fc14b09711322a9"
+    }
+  ],
+  "source": "https://raw.githubusercontent.com/DietrichGebert/ponytail/9cc65d03aa2da1db7121b912d03596409ee340b8/skills/ponytail/SKILL.md",
+  "note": "这是附加 Skill 规则的受控对比，未测试完整插件钩子。3 个任务，每侧 1 次，没有挑选重跑。当前 CLI 忽略了 features.skills 开关，故不能声称完全关闭了所有隐式技能；两侧使用相同宿主设置。耗时含启动与网络，不代表稳定提速；更短也不等于更好。"
+}

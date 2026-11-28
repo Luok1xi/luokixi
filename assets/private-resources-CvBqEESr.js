@@ -1,0 +1,1 @@
+import{r as e}from"./private-resources-R6zmsRsa.js";export{e as listPrivateResources};

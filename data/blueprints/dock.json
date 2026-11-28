@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "id": "dock",
+  "title": "程序坞 · 从指针到排布",
+  "summary": "两段纯函数，把指针距离变成放大倍数，再让相邻图标腾出空间。",
+  "scope": "feature",
+  "maturity": "site-tested",
+  "scopeNote": "按边界标注为小功能：一组可复用数学函数，不是完整应用。",
+  "evidence": [],
+  "analysis": "static",
+  "languages": [
+    "JavaScript / TypeScript"
+  ],
+  "nodes": [
+    {
+      "id": "dock",
+      "label": "程序坞 · 从指针到排布",
+      "kind": "project",
+      "summary": "两段纯函数，把指针距离变成放大倍数，再让相邻图标腾出空间。"
+    },
+    {
+      "id": "dock:group:math",
+      "parent": "dock",
+      "kind": "module",
+      "label": "距离与排布",
+      "summary": "不操作界面，可独立验证输入和结果。"
+    },
+    {
+      "id": "dock:src/js/dock-math.js",
+      "parent": "dock:group:math",
+      "kind": "file",
+      "label": "dock-math.js",
+      "file": "src/js/dock-math.js",
+      "line": 1,
+      "endLine": 38,
+      "code": "// 程序坞放大的数学（macOS 程序坞的手感）：拓展坞（shell.js initDock）和开源广场里的“程序坞放大”试玩共用。\n// 坐标只用一个轴：竖着的坞传 top / h，横着的传 left / w，算法一样。纯函数，不碰 DOM。\n\n/** 每一项想要放大到多少：离指针越近越大，range 以外不放大（余弦衰减，中间最大 1 + max） */\nexport function dockTargets(items, pointer, { max = 0.5, range = 140 } = {}) {\n  return items.map((it) => {\n    if (it.grow === false) return 1;\n    const d = Math.abs(pointer - (it.start + it.size / 2));\n    return d >= range ? 1 : 1 + max * (1 + Math.cos(Math.PI * d / range)) / 2;\n  });\n}\n\n/**\n * 按当前的放大倍数排开：各项依次往后让位，再整体挪一下，让指针下面那一点不动（点得准）。\n * 返回每一项的位移（中心点挪了多少）、总共多出来的长度、底板该往前伸出的长度。\n */\nexport function dockLayout(items, scales, pointer) {\n  const extra = items.map((it, i) => (scales[i] - 1) * it.size);\n  const total = extra.reduce((a, b) => a + b, 0);\n  let anchor = total / 2;\n  if (pointer != null) {\n    anchor = 0;\n    for (let i = 0, before = 0; i < items.length; i++) {\n      const it = items[i];\n      if (pointer >= it.start + it.size) { before += extra[i]; anchor = before; continue; }\n      anchor = before + extra[i] * Math.min(1, Math.max(0, (pointer - it.start) / it.size));\n      break;\n    }\n  }\n  let before = 0;\n  const shifts = items.map((it, i) => {\n    const shift = before + extra[i] / 2 - anchor;\n    before += extra[i];\n    return shift;\n  });\n  return { shifts, total, anchor };\n}\n",
+      "truncated": false
+    },
+    {
+      "id": "dock:src/js/dock-math.js:189",
+      "parent": "dock:src/js/dock-math.js",
+      "kind": "function",
+      "label": "dockTargets",
+      "file": "src/js/dock-math.js",
+      "line": 5,
+      "endLine": 11,
+      "code": "function dockTargets(items, pointer, { max = 0.5, range = 140 } = {}) {\n  return items.map((it) => {\n    if (it.grow === false) return 1;\n    const d = Math.abs(pointer - (it.start + it.size / 2));\n    return d >= range ? 1 : 1 + max * (1 + Math.cos(Math.PI * d / range)) / 2;\n  });\n}",
+      "truncated": false
+    },
+    {
+      "id": "dock:src/js/dock-math.js:280",
+      "parent": "dock:src/js/dock-math.js:189",
+      "kind": "function",
+      "label": "回调 @6",
+      "file": "src/js/dock-math.js",
+      "line": 6,
+      "endLine": 10,
+      "code": "(it) => {\n    if (it.grow === false) return 1;\n    const d = Math.abs(pointer - (it.start + it.size / 2));\n    return d >= range ? 1 : 1 + max * (1 + Math.cos(Math.PI * d / range)) / 2;\n  }",
+      "truncated": false
+    },
+    {
+      "id": "dock:src/js/dock-math.js:579",
+      "parent": "dock:src/js/dock-math.js",
+      "kind": "function",
+      "label": "dockLayout",
+      "file": "src/js/dock-math.js",
+      "line": 17,
+      "endLine": 37,
+      "code": "function dockLayout(items, scales, pointer) {\n  const extra = items.map((it, i) => (scales[i] - 1) * it.size);\n  const total = extra.reduce((a, b) => a + b, 0);\n  let anchor = total / 2;\n  if (pointer != null) {\n    anchor = 0;\n    for (let i = 0, before = 0; i < items.length; i++) {\n      const it = items[i];\n      if (pointer >= it.start + it.size) { before += extra[i]; anchor = before; continue; }\n      anchor = before + extra[i] * Math.min(1, Math.max(0, (pointer - it.start) / it.size));\n      break;\n    }\n  }\n  let before = 0;\n  const shifts = items.map((it, i) => {\n    const shift = before + extra[i] / 2 - anchor;\n    before += extra[i];\n    return shift;\n  });\n  return { shifts, total, anchor };\n}",
+      "truncated": false
+    },
+    {
+      "id": "dock:src/js/dock-math.js:651",
+      "parent": "dock:src/js/dock-math.js:579",
+      "kind": "function",
+      "label": "回调 @18",
+      "file": "src/js/dock-math.js",
+      "line": 18,
+      "endLine": 18,
+      "code": "(it, i) => (scales[i] - 1) * it.size",
+      "truncated": false
+    },
+    {
+      "id": "dock:src/js/dock-math.js:719",
+      "parent": "dock:src/js/dock-math.js:579",
+      "kind": "function",
+      "label": "回调 @19",
+      "file": "src/js/dock-math.js",
+      "line": 19,
+      "endLine": 19,
+      "code": "(a, b) => a + b",
+      "truncated": false
+    },
+    {
+      "id": "dock:src/js/dock-math.js:1144",
+      "parent": "dock:src/js/dock-math.js:579",
+      "kind": "function",
+      "label": "回调 @31",
+      "file": "src/js/dock-math.js",
+      "line": 31,
+      "endLine": 35,
+      "code": "(it, i) => {\n    const shift = before + extra[i] / 2 - anchor;\n    before += extra[i];\n    return shift;\n  }",
+      "truncated": false
+    }
+  ],
+  "edges": [],
+  "unresolved": [
+    {
+      "from": "dock:src/js/dock-math.js:189",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 6,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:280",
+      "kind": "call",
+      "expression": "Math.abs",
+      "line": 8,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:280",
+      "kind": "call",
+      "expression": "Math.cos",
+      "line": 9,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 18,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "extra.reduce",
+      "line": 19,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "Math.min",
+      "line": 26,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "Math.max",
+      "line": 26,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    },
+    {
+      "from": "dock:src/js/dock-math.js:579",
+      "kind": "call",
+      "expression": "items.map",
+      "line": 31,
+      "reason": "动态、方法或外部调用，静态分析未确认目标"
+    }
+  ],
+  "sources": [
+    {
+      "file": "src/js/dock-math.js",
+      "sha256": "0153a87e5e9f52e1b82319af2951c670214cbf4e8e77d9b8cf4e7f68251754c8"
+    }
+  ],
+  "limits": [
+    "静态调用关系不等于实际执行轨迹。",
+    "未确认的动态调用、方法分派与重导出保留在待确认列表。",
+    "仅分析清单内公开源码；源码片段最多 12000 字符，教学另行维护。"
+  ]
+}

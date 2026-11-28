@@ -1,0 +1,136 @@
+{
+  "format": "skit/1",
+  "disc": "opencat",
+  "title": "OpenCat：让四条腿走起来",
+  "kicker": "LUOKIXI 开源小剧场 · 项目篇",
+  "note": "示意动画：内容依据 OpenCat README（24563ca），本站没有实机演示；作者的实拍动图待授权核对。",
+  "sources": [
+    { "label": "README @ 24563ca", "url": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/README.md" },
+    { "label": "LICENSE（MIT）", "url": "https://github.com/PetoiCamp/OpenCat-Quadruped-Robot/blob/24563ca2e0218150f6299d013cd3a20c45433467/LICENSE" }
+  ],
+  "scenes": [
+    {
+      "title": "要解决什么",
+      "tone": "paper",
+      "headline": "一只机器狗，[要动几个关节]？",
+      "big": "?",
+      "ui": [
+        { "type": "table", "rows": [ ["Bittle（狗）", "9 个舵机：头 1 · 腿 8"], ["Nybble（猫）", "11 个舵机：头 2 · 尾 1 · 腿 8"] ], "at": 1 }
+      ],
+      "lines": [
+        { "who": "bk", "act": "explain", "text": "Petoi 做了两只开源的四足机器人：机器狗 Bittle 和机器猫 Nybble。" },
+        { "who": "bk", "act": "point", "text": "狗身上 9 个舵机，猫身上 11 个。让它们走起来，要管几件事？我们数一数。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "paper",
+      "headline": "第 1 件：八个腿部舵机[一起动]",
+      "big": "1",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "舵机控制", "sub": "腿上 8 个舵机同时转到位" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "point", "text": "每条腿两个舵机，四条腿一共八个，得同时转到该去的角度。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "yellow",
+      "headline": "第 2 件：[哪条腿先抬]？",
+      "big": "2",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "舵机控制", "sub": "腿上 8 个舵机同时转到位" }, { "n": 2, "label": "步态协调", "sub": "走、跑、跳，每种节奏不一样" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "think", "text": "走路、跑步、跳跃，四条腿抬起落下的顺序和节奏都不一样，这叫步态。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "pink",
+      "headline": "第 3 件：[别摔倒]",
+      "big": "3",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "舵机控制", "sub": "腿上 8 个舵机同时转到位" }, { "n": 2, "label": "步态协调", "sub": "走、跑、跳，每种节奏不一样" }, { "n": 3, "label": "姿态感知", "sub": "IMU 告诉它身体歪没歪" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "observe", "text": "身体歪了要知道，所以要接姿态传感器 IMU，读出它现在的姿态。" }
+      ]
+    },
+    {
+      "title": "要管几件事",
+      "tone": "blue",
+      "headline": "第 4 件：[怎么指挥它]？",
+      "big": "4",
+      "ui": [
+        { "type": "cards", "key": "jobs", "items": [ { "n": 1, "label": "舵机控制", "sub": "腿上 8 个舵机同时转到位" }, { "n": 2, "label": "步态协调", "sub": "走、跑、跳，每种节奏不一样" }, { "n": 3, "label": "姿态感知", "sub": "IMU 告诉它身体歪没歪" }, { "n": 4, "label": "接收指令", "sub": "遥控、手机、电脑都要能发令" } ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "fail", "text": "最后还得能接遥控、手机和电脑的命令。四件事从零写起，光是让它站稳就够折腾的。" }
+      ]
+    },
+    {
+      "title": "它是谁",
+      "tone": "ink",
+      "headline": "[OpenCat]：把难的部分做成框架",
+      "ui": [
+        { "type": "table", "rows": [ ["是什么", "四足机器人开源框架"], ["基于", "Arduino · 树莓派"], ["本仓库主板", "NyBoard（ATmega328P）"], ["新款主板", "BiBoard / ESP32 → OpenCatESP32 仓库"], ["许可", "MIT"] ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "result", "text": "OpenCat 是 Petoi 的开源框架，基于 Arduino 和树莓派，专门用来做和编程四足机器人。" },
+        { "who": "bk", "act": "explain", "text": "步态协调、舵机控制、IMU 这些难啃的部分，框架都包好了。README 里说，它能走、能跑、能跳，还能后空翻。" }
+      ]
+    },
+    {
+      "title": "怎么指挥它",
+      "tone": "paper",
+      "headline": "[四种方式]给它下命令",
+      "ui": [
+        { "type": "flow", "steps": [ "红外遥控", "Petoi 手机 App", "Python", "串口监视器" ] },
+        { "type": "badge", "text": "手机 App 配蓝牙模块，还能做校准", "at": 1 }
+      ],
+      "lines": [
+        { "who": "bk", "act": "point", "text": "红外遥控、Petoi 的手机 App、Python，还有电脑上的串口监视器，都能给它发命令。" },
+        { "who": "bk", "act": "explain", "text": "手机 App 接上蓝牙模块，还能用来校准关节。" }
+      ]
+    },
+    {
+      "title": "装起来",
+      "tone": "yellow",
+      "headline": "第一次上手，[照这几步]",
+      "ui": [
+        { "type": "checklist", "items": [ "在 OpenCat.ino 里选机型和主板版本", "先上传配置模式", "串口 115200，不加换行", "平放在桌上校准 IMU", "传回主程序，再校准关节" ] }
+      ],
+      "lines": [
+        { "who": "bk", "act": "observe", "text": "先在 OpenCat.ino 里选好是 Bittle 还是 Nybble、主板是哪一版，上传配置模式。" },
+        { "who": "bk", "act": "think", "text": "串口开 115200，把机器人平放在桌上校准 IMU，它会响几声提示。再传回主程序，校准关节。" }
+      ]
+    },
+    {
+      "title": "还能接什么",
+      "tone": "pink",
+      "headline": "想让它[看见]、[摸到]？",
+      "ui": [
+        { "type": "flow", "steps": [ "Petoi 传感器套件", "智能相机模块", "树莓派 / Jetson Nano 做 AI 协处理" ] },
+        { "type": "badge", "text": "C/C++ · Python · 积木编程；兼容 ROS", "at": 1 }
+      ],
+      "lines": [
+        { "who": "bk", "act": "point", "text": "可以加传感器套件和智能相机，也能把树莓派、Jetson Nano 接上来做 AI 协处理。" },
+        { "who": "bk", "act": "result", "text": "写程序可以用 C/C++、Python，也可以拼积木，还兼容 ROS。" }
+      ]
+    },
+    {
+      "title": "带走",
+      "tone": "paper",
+      "headline": "从四件事，到[选机型、校准、开始做]",
+      "ui": [
+        { "type": "compare", "before": { "label": "自己从零写", "value": "舵机 + 步态 + 平衡 + 通信" }, "after": { "label": "用 OpenCat", "value": "选机型 → 校准 → 开始做" } }
+      ],
+      "lines": [
+        { "who": "bk", "act": "result", "text": "自己写要同时管四件事；用 OpenCat，选好机型、校准完，就能开始做自己的动作。" },
+        { "who": "bk", "act": "think", "text": "说明一下：这一集是示意动画，资料来自 README。注意本仓库对应老款 NyBoard，新款主板请看 OpenCatESP32。" }
+      ]
+    }
+  ]
+}

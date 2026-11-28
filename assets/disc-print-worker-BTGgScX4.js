@@ -1,0 +1,1 @@
+(function(){function e(e,t=Math.random){let n=new Float32Array(e);for(let r=0;r<e;r++)n[r]=(t()-.5)*14;return n}function t(e,t,n=0,r=t.length){for(let i=n;i<r;i++){let n=i*4,r=t[i];e[n]+=r,e[n+1]+=r,e[n+2]+=r}}let n;self.onmessage=({data:{id:r,buffer:i}})=>{let a=new Uint8ClampedArray(i);n?.length!==a.length/4&&(n=e(a.length/4)),t(a,n),self.postMessage({id:r,buffer:i},[i])}})();
